@@ -1,7 +1,7 @@
 package com.lhf.messages.events;
 
-import java.util.StringJoiner;
-
+import com.lhf.OutputBuilder;
+import com.lhf.Taggable.BasicTaggable;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.messages.GameEventType;
@@ -84,48 +84,47 @@ public class BattleRoundEvent extends GameEvent {
     }
 
     @Override
-    public String toString() {
-
-        StringJoiner sj = new StringJoiner(" ").setEmptyValue("This is a round notification");
-
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
         if (this.roundCount != null) {
-            sj.add("It is round").add(Integer.toString(this.roundCount));
-            sj.add("of the fight.");
+            builder.appendString("It is round");
+            builder.appendTaggable(BasicTaggable.customTaggable("RoundCount", Integer.toString(this.roundCount)));
+            builder.appendString("of the fight.");
         }
 
         if (this.needSubmission == null) {
-            sj.add(this.addressCreature(about, true)).add("should enter an action to take for the round.");
+            this.addressCreature(builder, about, true);
+            builder.appendString("should enter an action to take for the round.");
         } else {
             switch (this.needSubmission) {
-                case MISSING:
-                    sj.add(this.addressCreature(about, true)).add("had not submitted any action for the round.");
-                    break;
-                case PERFORMED:
-                    sj.add(this.possesiveCreature(about, true)).add("action for the round has been performed.");
-                    break;
-                case ACCEPTED:
-                    sj.add(this.possesiveCreature(about, true)).add("action has been submitted for the round.");
-                    break;
-                case REJECTED:
-                    sj.add(this.addressCreature(about, true))
-                            .add("had already submitted an action to take for this round.");
-                    break;
-                case COMPLETED:
-                    sj.add("This round is over!");
-                    break;
-                case NEEDED:
-                default:
-                    sj.add(this.addressCreature(about, true)).add("should enter an action to take for the round.");
-                    break;
+            case MISSING:
+                this.addressCreature(builder, about, true);
+                builder.appendString("had not submitted any action for the round.");
+                break;
+            case PERFORMED:
+                this.possesiveCreature(builder, about);
+                builder.appendString("action for the round has been performed.");
+                break;
+            case ACCEPTED:
+                this.possesiveCreature(builder, about);
+                builder.appendString("action has been submitted for the round.");
+                break;
+            case REJECTED:
+                this.addressCreature(builder, about);
+                builder.appendString("had already submitted an action to take for this round.");
+                break;
+            case COMPLETED:
+                builder.appendString("This round is over!");
+                break;
+            case NEEDED:
+            default:
+                this.addressCreature(builder, about, true);
+                builder.appendString("should enter an action to take for the round.");
+                break;
             }
         }
-
-        return sj.toString();
-    }
-
-    @Override
-    public String print() {
-        return this.toString();
     }
 
     public Integer getRoundCount() {
@@ -139,20 +138,20 @@ public class BattleRoundEvent extends GameEvent {
             return null;
         }
         switch (acceptance) {
-            case ACCEPTED:
-                return TickType.ACTION;
-            case COMPLETED:
-                return TickType.ROUND;
-            case MISSING:
-                return TickType.TURN;
-            case NEEDED:
-                return null;
-            case PERFORMED:
-                return TickType.TURN;
-            case REJECTED:
-                return null;
-            default:
-                return null;
+        case ACCEPTED:
+            return TickType.ACTION;
+        case COMPLETED:
+            return TickType.ROUND;
+        case MISSING:
+            return TickType.TURN;
+        case NEEDED:
+            return null;
+        case PERFORMED:
+            return TickType.TURN;
+        case REJECTED:
+            return null;
+        default:
+            return null;
 
         }
     }

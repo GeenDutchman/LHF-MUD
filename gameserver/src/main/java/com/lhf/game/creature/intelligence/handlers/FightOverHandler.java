@@ -13,7 +13,7 @@ public class FightOverHandler extends AIHandler {
 
     @Override
     public void handle(BasicAI bai, GameEvent event) {
-        if (event.getEventType().equals(GameEventType.FIGHT_OVER) && bai.getNpc().isInBattle()) {
+        if (event.getXmlEventType().equals(GameEventType.FIGHT_OVER) && bai.getNpc().isInBattle()) {
             bai.getNpc().getHarmMemories().reset();
         }
     }

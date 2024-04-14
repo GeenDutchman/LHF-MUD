@@ -146,7 +146,7 @@ public class CreatureEffectSource extends EntityEffectSource {
             return this;
         }
 
-        public String printDescription() {
+        public String getDescription() {
             StringJoiner sj = new StringJoiner(" ");
             if (this.statChanges.size() > 0) {
                 sj.add("The target's");
@@ -435,11 +435,11 @@ public class CreatureEffectSource extends EntityEffectSource {
     }
 
     @Override
-    public String printDescription() {
+    public String getDescription() {
         StringJoiner sj = new StringJoiner(" ");
-        sj.add(super.printDescription()).add("\r\n");
+        sj.add(super.getDescription()).add("\r\n");
         if (this.onApplication != null) {
-            final String applicationDescription = this.onApplication.printDescription();
+            final String applicationDescription = this.onApplication.getDescription();
             if (applicationDescription.length() > 0) {
                 sj.add("On application:").add(applicationDescription);
             }
@@ -451,14 +451,14 @@ public class CreatureEffectSource extends EntityEffectSource {
                 if (tester == null || deltas == null) {
                     continue;
                 }
-                final String tickDescription = deltas.printDescription();
+                final String tickDescription = deltas.getDescription();
                 if (tickDescription.length() > 0) {
                     sj.add(tester.toString()).add(tickDescription);
                 }
             }
         }
         if (this.onRemoval != null) {
-            final String removalDescription = this.onRemoval.printDescription();
+            final String removalDescription = this.onRemoval.getDescription();
             if (removalDescription.length() > 0) {
                 sj.add("On removal:").add(removalDescription);
             }

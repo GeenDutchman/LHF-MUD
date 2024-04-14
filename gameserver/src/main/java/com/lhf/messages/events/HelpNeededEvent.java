@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import com.lhf.OutputBuilder;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.in.AMessageType;
 
@@ -88,21 +89,6 @@ public class HelpNeededEvent extends GameEvent {
         this.singleHelp = builder.getSingleHelp();
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        if (this.singleHelp != null && this.helps.containsKey(this.singleHelp)) {
-            sb.append(this.singleHelp.getColorTaggedName()).append(":").append("\r\n").append("<description>")
-                    .append(this.helps.get(this.singleHelp)).append("</description>").append("\r\n");
-        } else {
-            for (AMessageType cmdMsg : this.helps.keySet()) {
-                sb.append(cmdMsg.getColorTaggedName()).append(":").append("\r\n").append("<description>")
-                        .append(helps.get(cmdMsg)).append("</description>").append("\r\n");
-            }
-        }
-        return sb.toString();
-    }
-
     public Map<AMessageType, String> getHelps() {
         return helps;
     }
@@ -112,7 +98,17 @@ public class HelpNeededEvent extends GameEvent {
     }
 
     @Override
-    public String print() {
-        return this.toString();
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        if (this.singleHelp != null && this.helps.containsKey(this.singleHelp)) {
+            builder.appendTaggable(this.singleHelp, " ", ":").appendString(this.helps.get(this.singleHelp), "\r\n",
+                    null);
+        } else {
+            for (AMessageType cmdMsg : this.helps.keySet()) {
+                builder.appendTaggable(cmdMsg, "\r\n", null).appendString(this.helps.get(cmdMsg), "\r\n", null);
+            }
+        }
     }
 }

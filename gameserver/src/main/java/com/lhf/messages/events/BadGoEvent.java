@@ -3,8 +3,8 @@ package com.lhf.messages.events;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.StringJoiner;
 
+import com.lhf.OutputBuilder;
 import com.lhf.game.map.Directions;
 import com.lhf.messages.GameEventType;
 
@@ -81,42 +81,6 @@ public class BadGoEvent extends GameEvent {
         this.available = builder.getAvailable();
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("You cannot go ");
-        if (this.attempted != null) {
-            sb.append(this.attempted.getColorTaggedName());
-        } else {
-            sb.append("that way");
-        }
-        sb.append(". ");
-        if (this.subType == BadGoType.DNE || this.attempted == null) {
-            sb.append("That way is a wall. ");
-        } else if (this.subType == BadGoType.BLOCKED) {
-            sb.append("Your path is blocked ");
-        } else if (this.subType == BadGoType.NO_ROOM) {
-            sb.append("You are not in a room. ");
-        }
-        if (this.available != null && this.available.size() > 0) {
-            if (this.available.size() == 1 && this.attempted != null && this.subType == BadGoType.BLOCKED) {
-                sb.append("No other directions are available.  Try finding a way to unblock it. ");
-            } else {
-                sb.append("You could try to go one of:");
-                StringJoiner sj = new StringJoiner(", ");
-                for (Directions s : this.available) {
-                    if (!(this.subType == BadGoType.BLOCKED && s.equals(this.attempted))) {
-                        sj.add(s.getColorTaggedName());
-                    }
-                }
-                sb.append(sj.toString());
-            }
-        } else {
-            sb.append("No directions are available.");
-        }
-        return sb.toString();
-    }
-
     public Directions getAttempted() {
         return attempted;
     }
@@ -126,8 +90,37 @@ public class BadGoEvent extends GameEvent {
     }
 
     @Override
-    public String print() {
-        return this.toString();
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        builder.appendString("You cannot go");
+        if (this.attempted != null) {
+            builder.appendTaggable(this.attempted, " ", ".");
+        } else {
+            builder.appendString("that way.");
+        }
+        if (this.subType == BadGoType.DNE || this.attempted == null) {
+            builder.appendString("That way is a wall.");
+        } else if (this.subType == BadGoType.BLOCKED) {
+            builder.appendString("Your path is blocked.");
+        } else if (this.subType == BadGoType.NO_ROOM) {
+            builder.appendString("You are not in a room.");
+        }
+        if (this.available != null && this.available.size() > 0) {
+            if (this.available.size() == 1 && this.attempted != null && this.subType == BadGoType.BLOCKED) {
+                builder.appendString("No other directions are available.  Try finding a way to unblock it.");
+            } else {
+                builder.appendString("You could try to go one of:");
+                for (Directions s : this.available) {
+                    if (!(this.subType == BadGoType.BLOCKED && s.equals(this.attempted))) {
+                        builder.appendTaggable(s);
+                    }
+                }
+            }
+        } else {
+            builder.appendString("No directions are available.");
+        }
     }
 
 }

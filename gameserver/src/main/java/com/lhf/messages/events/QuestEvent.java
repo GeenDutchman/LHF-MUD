@@ -1,7 +1,6 @@
 package com.lhf.messages.events;
 
-import java.util.StringJoiner;
-
+import com.lhf.OutputBuilder;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.QuestEffect;
 import com.lhf.game.creature.QuestSource;
@@ -65,14 +64,14 @@ public class QuestEvent extends GameEvent {
 
         public Builder fromQuest(QuestSource quest) {
             if (quest != null) {
-                this.setQuestName(quest.getName()).setQuestDescription(quest.printDescription());
+                this.setQuestName(quest.getName()).setQuestDescription(quest.getDescription());
             }
             return this;
         }
 
         public Builder fromQuest(QuestEffect quest) {
             if (quest != null) {
-                this.setQuestName(quest.getName()).setQuestDescription(quest.printDescription());
+                this.setQuestName(quest.getName()).setQuestDescription(quest.getDescription());
             }
             return this;
         }
@@ -118,27 +117,23 @@ public class QuestEvent extends GameEvent {
     }
 
     @Override
-    public String toString() {
-        StringJoiner sj = new StringJoiner(" ");
-        sj.add(this.addressCreature(this.whoseQuest, isBroadcast()));
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        this.addressCreature(builder, whoseQuest);
         if (this.questEventType == null) {
-            sj.add(QuestEventType.VIEWED.toString());
+            builder.appendString(QuestEventType.VIEWED.toString());
         } else {
-            sj.add(this.questEventType.toString());
+            builder.appendString(this.questEventType.toString());
         }
         if (this.questDescription != null && !this.isBroadcast()) {
-            sj.add("a quest described by: ").add(this.questDescription);
+            builder.appendString("a quest described by:").appendString(questDescription);
         } else if (this.questName != null) {
-            sj.add("a quest named").add(this.questName);
+            builder.appendString("a quest named").appendString(questName);
         } else {
-            sj.add("a quest");
+            builder.appendString("a quest");
         }
-        return sj.toString();
-    }
-
-    @Override
-    public String print() {
-        return this.toString();
     }
 
 }

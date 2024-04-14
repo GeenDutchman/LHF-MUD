@@ -1,7 +1,6 @@
 package com.lhf.messages.events;
 
-import java.util.StringJoiner;
-
+import com.lhf.OutputBuilder;
 import com.lhf.Taggable;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
@@ -87,31 +86,32 @@ public class CreatureDiedEvent extends GameEvent {
     }
 
     @Override
-    public String toString() {
-        ICreature dead = this.getDearlyDeparted();
-        if (dead == null || dead.isAlive()) {
-            return "JK!  Nobody died!";
-        }
-        StringJoiner sj = new StringJoiner(" ");
-        sj.add(dead.getColorTaggedName()).add("has died.");
-        Taggable cause = this.getCause();
-        if (cause != null) {
-            sj.add("They died because of:").add(cause.getColorTaggedName() + ".");
-        }
-        String extras = this.getExtraInfo();
-        if (extras != null && !extras.isBlank()) {
-            sj.add(extras);
-        }
-        return sj.toString();
-    }
-
-    @Override
     public TickType getTickType() {
         return TickType.DEATH;
     }
 
     @Override
-    public String print() {
-        return this.toString();
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        final ICreature dead = this.getDearlyDeparted();
+        if (dead == null || dead.isAlive()) {
+            builder.appendString("JK! Nobody died!");
+            return;
+        }
+        builder.appendTaggable(dead);
+        builder.appendString("has died.");
+        final Taggable cause = this.getCause();
+        if (cause != null) {
+            builder.appendString("They died because of:");
+            builder.appendTaggable(cause, " ", ".");
+        }
+        final String extras = this.getExtraInfo();
+        if (extras != null && !extras.isBlank()) {
+            OutputBuilder extraBuilder = builder.produceSubBuilder("Details");
+            extraBuilder.appendString(extras);
+        }
     }
+
 }

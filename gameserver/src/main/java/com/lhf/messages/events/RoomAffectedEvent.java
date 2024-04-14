@@ -1,7 +1,6 @@
 package com.lhf.messages.events;
 
-import java.util.StringJoiner;
-
+import com.lhf.OutputBuilder;
 import com.lhf.game.creature.IMonster;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.map.Room;
@@ -93,38 +92,35 @@ public class RoomAffectedEvent extends GameEvent {
     }
 
     @Override
-    public String toString() {
-        StringJoiner sj = new StringJoiner(" ");
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
         if (this.effect.creatureResponsible() != null) {
-            sj.add(this.effect.creatureResponsible().getColorTaggedName()).add("used");
-            sj.add(this.effect.getGeneratedBy().getColorTaggedName()).add("on");
+            builder.appendTaggable(this.effect.creatureResponsible()).appendString("used");
+            builder.appendTaggable(this.effect.getGeneratedBy()).appendString("on");
         } else {
-            sj.add(this.effect.getGeneratedBy().getColorTaggedName()).add("affected");
+            builder.appendTaggable(this.effect.getGeneratedBy()).appendString("affected");
         }
+
         if (this.room != null) {
-            sj.add("the room '").add(this.room.getName() + "'!");
+            builder.appendString("the room").appendTaggable(this.room, " ", "!");
         } else {
-            sj.add("a room!");
+            builder.appendString("a room!");
         }
-        sj.add("\r\n");
+        builder.appendString("\r\n");
         if (this.reversed) {
-            sj.add("But the effects have EXPIRED, and will now REVERSE!").add("\r\n");
+            builder.appendString("But the effects have EXPIRED, and will now REVERSE!\r\n");
         }
 
         IMonster summonedMonster = this.effect.getCachedMonster();
         if (summonedMonster != null) {
-            sj.add("The monster").add(summonedMonster.getColorTaggedName()).add("was summoned.");
+            builder.appendString("The monster").appendTaggable(summonedMonster).appendString("was summoned.");
         }
         INonPlayerCharacter summonedNPC = this.effect.getCachedNPC();
         if (summonedNPC != null) {
-            sj.add("The NPC").add(summonedNPC.getColorTaggedName()).add("was summoned.");
+            builder.appendString("The NPC").appendTaggable(summonedNPC).appendString("was summoned.");
         }
-
-        return sj.toString();
     }
 
-    @Override
-    public String print() {
-        return this.toString();
-    }
 }

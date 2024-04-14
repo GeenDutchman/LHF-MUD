@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 
+import com.lhf.OutputBuilder;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffect;
@@ -23,12 +24,10 @@ public class CarnivorousArmor extends EquipableHiddenEffect {
     private static final CreatureEffectSource eatingACResults = new CreatureEffectSource.Builder("Protect the Meal")
             .setPersistence(new EffectPersistence(TickType.CONDITIONAL))
             .setDescription("Must protect the next meal...you!")
-            .setOnApplication(new Deltas().setStatChange(Stats.AC, 3))
-            .build();
+            .setOnApplication(new Deltas().setStatChange(Stats.AC, 3)).build();
 
     private static final CreatureEffectSource lastBite = new CreatureEffectSource.Builder("Last Bite")
-            .instantPersistence()
-            .setDescription("As you tear it off, one last bite!")
+            .instantPersistence().setDescription("As you tear it off, one last bite!")
             .setOnApplication(new Deltas().setStatChange(Stats.CURRENTHP, CarnivorousArmor.eatsHealthTo)).build();
 
     private static final int AC = 2;
@@ -85,24 +84,36 @@ public class CarnivorousArmor extends EquipableHiddenEffect {
                     return;
                 }
                 if (CarnivorousArmor.this.equippedAndUsed) {
-                    String snuggle = "The " + CarnivorousArmor.this.getColorTaggedName()
-                            + " snuggles around you as you poke at it, but otherwise does nothing.";
-                    ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).setMessage(snuggle).Build());
+                    ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).setOutputCallback(nodeGenerator -> {
+                        if (nodeGenerator == null) {
+                            return;
+                        }
+                        OutputBuilder description = nodeGenerator.produceSubBuilder("ItemUsedDescription");
+                        description.appendString("The");
+                        description.appendTaggable(CarnivorousArmor.this);
+                        description.appendString("snuggles around you as you poke at it, but otherwise does nothing.");
+                    }).Build());
                     return;
                 }
                 final Integer currHealth = creature.getStats().getOrDefault(Stats.CURRENTHP, 0);
                 if (currHealth > eatsHealthTo) {
                     int diff = currHealth - eatsHealthTo;
                     final CreatureEffectSource eatingResults = new CreatureEffectSource.Builder("Eaten Alive")
-                            .instantPersistence()
-                            .setDescription("You are eaten alive...just a bite.")
+                            .instantPersistence().setDescription("You are eaten alive...just a bite.")
                             .setOnApplication(new Deltas().setStatChange(Stats.CURRENTHP, diff * -1)).build();
                     CarnivorousArmor.this.equippedAndUsed = true;
-                    String eatDescription = "A thousand teeth sink into your body, and you feel life force ripped out of you.  "
-                            +
-                            "Once it is sated, you feel the " + CarnivorousArmor.this.getColorTaggedName() +
-                            " tighten up around its most recent, precious meal.  It leaves the rest for later.";
-                    ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).setMessage(eatDescription).Build());
+                    ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).setOutputCallback(nodeGenerator -> {
+                        if (nodeGenerator == null) {
+                            return;
+                        }
+                        OutputBuilder description = nodeGenerator.produceSubBuilder("ItemUsedDescription");
+                        description.appendString(
+                                "A thousand teeth sink into your body, and you feel life force ripped out of you.");
+                        description.appendString("Once it is sated, you feel the");
+                        description.appendTaggable(CarnivorousArmor.this);
+                        description.appendString(
+                                "tighten up around its most recent, precious meal.  It leaves the rest for later.");
+                    }).Build());
                     CarnivorousArmor.this.sendNotice(ctx, creature,
                             creature.applyEffect(new CreatureEffect(eatingResults, creature, CarnivorousArmor.this)));
 

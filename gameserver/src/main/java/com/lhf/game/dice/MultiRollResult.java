@@ -23,6 +23,15 @@ public class MultiRollResult implements Taggable, Iterable<RollResult> {
             this.bonuses = new ArrayList<>();
         }
 
+        public Builder addDice(Dice... dice) {
+            for (Dice die : dice) {
+                if (die != null) {
+                    this.rolls.add(die.rollDice());
+                }
+            }
+            return this;
+        }
+
         public Builder addRollResults(RollResult... rrs) {
             for (RollResult rr : rrs) {
                 if (rr != null) {
@@ -36,6 +45,15 @@ public class MultiRollResult implements Taggable, Iterable<RollResult> {
             for (Integer bonus : bonuses) {
                 if (bonus != null) {
                     this.bonuses.add(bonus);
+                }
+            }
+            return this;
+        }
+
+        public Builder addDice(Iterable<Dice> dice) {
+            for (Dice die : dice) {
+                if (die != null) {
+                    this.rolls.add(die.rollDice());
                 }
             }
             return this;
@@ -137,18 +155,13 @@ public class MultiRollResult implements Taggable, Iterable<RollResult> {
     }
 
     @Override
-    public String getStartTag() {
-        return "<dice>";
+    public String getTagName() {
+        return "dice";
     }
 
     @Override
-    public String getEndTag() {
-        return "</dice>";
-    }
-
-    @Override
-    public String getColorTaggedName() {
-        return this.getStartTag() + this.toString() + this.getEndTag();
+    public String getSimpleContent() {
+        return this.toString();
     }
 
     @Override

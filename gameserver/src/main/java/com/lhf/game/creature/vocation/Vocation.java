@@ -167,18 +167,13 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
         }
 
         @Override
-        public String getStartTag() {
-            return "<vocation>";
+        public String getTagName() {
+            return "vocation";
         }
 
         @Override
-        public String getEndTag() {
-            return "</vocation>";
-        }
-
-        @Override
-        public String getColorTaggedName() {
-            return this.getStartTag() + this.toString() + this.getEndTag();
+        public String getSimpleContent() {
+            return this.toString();
         }
 
         public abstract Dice getLevelingDice();
@@ -275,8 +270,7 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
                 deltas.setStatChange(Stats.MAXHP, total.getRoll()).setStatChange(Stats.CURRENTHP, total.getRoll());
                 CreatureEffect levelUp = new CreatureEffect(
                         CreatureEffectSource.getCreatureEffectBuilder(String.format("Level up to %d!", vocation.level))
-                                .withoutReversedApplication()
-                                .setOnApplication(deltas).instantPersistence()
+                                .withoutReversedApplication().setOnApplication(deltas).instantPersistence()
                                 .setDescription(String.format("Level up to %d!", vocation.level)).build(),
                         creature, vocation);
                 ICreature.eventAccepter.accept(creature, creature.applyEffect(levelUp));
@@ -293,18 +287,13 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
     }
 
     @Override
-    public String getColorTaggedName() {
-        return String.format("%s%s %s%s", this.getStartTag(), this.name, this.level, this.getEndTag());
+    public String getTagName() {
+        return "vocation";
     }
 
     @Override
-    public String getEndTag() {
-        return "</vocation>";
-    }
-
-    @Override
-    public String getStartTag() {
-        return "<vocation>";
+    public String getSimpleContent() {
+        return String.format("%s %s", this.name, this.level);
     }
 
     @Override

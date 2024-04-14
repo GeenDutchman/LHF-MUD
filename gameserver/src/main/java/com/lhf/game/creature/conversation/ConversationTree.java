@@ -3,11 +3,12 @@ package com.lhf.game.creature.conversation;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -15,8 +16,10 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.lhf.Taggable;
-import com.lhf.game.creature.conversation.ConversationContext.ConversationContextKey;
+import com.lhf.OutputBuilder.OutputSequence;
+import com.lhf.OutputBuilder.PrintingInstructions;
+import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContext;
+import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
 import com.lhf.server.client.Client.ClientID;
 import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.interfaces.NotNull;
@@ -24,8 +27,9 @@ import com.lhf.server.interfaces.NotNull;
 public class ConversationTree implements Serializable {
     private String treeName;
     private ConversationTreeNode start;
-    private SortedMap<UUID, ConversationTreeNode> nodes;
-    private SortedMap<UUID, List<ConversationTreeBranch>> branches;
+    // TODO: wait for `SequencedCollection` from Java21
+    private Map<UUID, ConversationTreeNode> nodes;
+    private Map<UUID, List<ConversationTreeBranch>> branches;
     private transient Map<ClientID, ConversationContext> bookmarks;
     private SortedSet<ConversationTreeBranch> greetings;
     private SortedSet<ConversationPattern> repeatWords;
@@ -35,8 +39,8 @@ public class ConversationTree implements Serializable {
 
     public ConversationTree(@NotNull ConversationTreeNode startNode) {
         this.treeName = UUID.randomUUID().toString();
-        this.nodes = new TreeMap<>();
-        this.branches = new TreeMap<>();
+        this.nodes = new LinkedHashMap<>();
+        this.branches = new LinkedHashMap<>();
         this.start = startNode;
         this.nodes.put(startNode.getNodeID(), startNode);
         this.init();
@@ -67,8 +71,8 @@ public class ConversationTree implements Serializable {
         if (this.greetings == null) {
             this.greetings = new TreeSet<>();
         }
-        this.addGreeting(new ConversationPattern("hello", "^hello\\b", Pattern.CASE_INSENSITIVE));
-        this.addGreeting(new ConversationPattern("hi", "^hi\\b", Pattern.CASE_INSENSITIVE));
+        this.addGreeting(new ConversationPattern("hello", "^\\s*hello\\b", Pattern.CASE_INSENSITIVE));
+        this.addGreeting(new ConversationPattern("hi", "^\\s*hi\\b", Pattern.CASE_INSENSITIVE));
         return this;
     }
 
@@ -108,38 +112,21 @@ public class ConversationTree implements Serializable {
         return branch;
     }
 
+    @Deprecated
     private ConversationTreeNodeResult tagIt(ConversationContext ctx, ConversationTreeNode node) {
         if (node == null) {
             return null;
         }
-        ConversationTreeNodeResult result = node.getResult();
-        String output = node.getBody();
+        TreeSet<ConversationPattern> branches = new TreeSet<>();
         if (this.branches.containsKey(node.getNodeID()) && this.tagkeywords) {
             for (ConversationTreeBranch branch : this.branches.get(node.getNodeID())) {
                 if (branch.canAccess(ctx)) {
-                    Matcher matcher = branch.getRegex().matcher(output);
-                    output = matcher.replaceFirst("<convo>$0</convo>");
+                    branches.add(branch.getRegex());
                 }
             }
         }
-
-        for (String contextual : ctx.keySet()) {
-            Pattern pattern = Pattern.compile("\\b" + contextual + "\\b");
-            Matcher matcher = pattern.matcher(output);
-            output = matcher.replaceAll(ctx.getOrDefault(contextual, ""));
-        }
-
-        result.setBody(output);
-
-        for (int i = 0; i < result.getPrompts().size(); i++) {
-            String prompt = result.getPrompts().get(i);
-            for (String contextual : ctx.keySet()) {
-                Pattern pattern = Pattern.compile("\\b" + contextual + "\\b");
-                Matcher matcher = pattern.matcher(prompt);
-                prompt = matcher.replaceAll(ctx.getOrDefault(contextual, ""));
-            }
-            result.replacePrompt(i, prompt);
-        }
+        ConversationTreeNodeResult result = ConversationTreeNodeResult.create(ctx, node.getBodySequence(),
+                node.getPrompts(), branches);
 
         return result;
     }
@@ -155,8 +142,8 @@ public class ConversationTree implements Serializable {
         return this.nodes.get(nodeID);
     }
 
-    protected SortedMap<UUID, ConversationTreeNode> getNodes() {
-        return this.nodes;
+    protected Map<UUID, ConversationTreeNode> getNodes() {
+        return Collections.unmodifiableMap(this.nodes);
     }
 
     protected ConversationTreeNode getCurrentNode(CommandInvoker talker) {
@@ -175,8 +162,8 @@ public class ConversationTree implements Serializable {
                 Matcher matcher = greet.getRegex().matcher(message);
                 if (matcher.find()) {
                     ConversationContext ctx = new ConversationContext();
-                    ctx.put(ConversationContextKey.TALKER_NAME, Taggable.extract(talker));
-                    ctx.put(ConversationContextKey.TALKER_TAGGED_NAME, talker.getColorTaggedName());
+                    ctx.put(ConversationContextKey.TALKER_NAME, ConversationTransformer.ofString(talker.getName()));
+                    ctx.put(ConversationContextKey.TALKER_TAGGED_NAME, ConversationTransformer.ofTaggable(talker));
                     ctx.addTrail(this.start.getNodeID());
                     this.bookmarks.put(talker.getClientID(), ctx);
                     return this.tagIt(ctx, this.start);
@@ -213,29 +200,21 @@ public class ConversationTree implements Serializable {
 
         if (hasBranches <= 0) {
             this.bookmarks.get(talker.getClientID()).addTrail(this.start.getNodeID());
-            return new ConversationTreeNodeResult(this.endOfConvo);
+            return ConversationTreeNodeResult.fromString(ctx, this.endOfConvo, null, null);
         }
-        return new ConversationTreeNodeResult(this.notRecognized);
+        return ConversationTreeNodeResult.fromString(ctx, this.notRecognized, null, repeatWords);
     }
 
     public void forgetBookmark(CommandInvoker talker) {
         this.bookmarks.remove(talker.getClientID());
     }
 
-    public boolean store(CommandInvoker talker, String key, String value) {
+    public boolean store(CommandInvoker talker, String key, ConversationTransformer transformer) {
         if (this.bookmarks.containsKey(talker.getClientID())) {
-            this.bookmarks.get(talker.getClientID()).put(key, value);
+            this.bookmarks.get(talker.getClientID()).put(key, transformer);
             return true;
         }
         return false;
-    }
-
-    public Map<String, String> getContextBag(CommandInvoker talker) {
-        ConversationContext ctx = this.bookmarks.get(talker.getClientID());
-        if (ctx != null) {
-            return Collections.unmodifiableMap(ctx);
-        }
-        return ctx;
     }
 
     public ConversationContext getContext(CommandInvoker talker) {
@@ -262,7 +241,7 @@ public class ConversationTree implements Serializable {
         this.greetings = new TreeSet<>(greetings);
     }
 
-    public String getAGreeting() {
+    public ConversationTreeNodeResult getAGreeting(ConversationTransformer transformer) {
         if (this.greetings == null || this.greetings.size() == 0) {
             return null;
         }
@@ -270,10 +249,9 @@ public class ConversationTree implements Serializable {
         if (pattern == null) {
             return null;
         }
-        String output = pattern.getExample();
-        Matcher matcher = pattern.getRegex().matcher(output);
-        output = matcher.replaceFirst("<convo>$0</convo>");
-        return output;
+        TreeSet<ConversationPattern> patterns = new TreeSet<>();
+        patterns.add(pattern);
+        return ConversationTreeNodeResult.fromString(transformer, pattern.getExample(), null, patterns);
     }
 
     public void setRepeats(Set<ConversationPattern> repeats) {
@@ -291,12 +269,14 @@ public class ConversationTree implements Serializable {
         sb.append("stateDiagram-v2").append("\r\n");
         for (ConversationTreeNode node : this.nodes.values()) {
             // String json = gson.toJson(node);
-            sb.append("    ").append(node.getNodeID().toString().replace("-", "")).append(":").append(node.getBody())
+            sb.append("    ").append(node.getNodeID().toString().replace("-", "")).append(":")
+                    .append(node.getBodySequence().printString(EnumSet.allOf(PrintingInstructions.class)))
                     .append("\r\n");
             if (node.getPrompts().size() > 0) {
                 sb.append("    note right of ").append(node.getNodeID().toString().replace("-", "")).append("\r\n");
-                for (String prompt : node.getPrompts()) {
-                    sb.append("        ").append(prompt).append("\r\n");
+                for (OutputSequence prompt : node.getPrompts()) {
+                    sb.append("        ").append(prompt.printString(EnumSet.allOf(PrintingInstructions.class)))
+                            .append("\r\n");
                 }
                 sb.append("    end note").append("\r\n");
             }

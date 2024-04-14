@@ -35,6 +35,8 @@ public class UserManager {
         List<String> usernames = this.getAllUsernames();
         usernames.add("Someone");
         usernames.add("someone");
+        usernames.add("Somebody");
+        usernames.add("somebody");
         usernames.add("You");
         usernames.add("you");
         return usernames;

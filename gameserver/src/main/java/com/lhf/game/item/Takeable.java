@@ -21,13 +21,8 @@ public class Takeable extends AItem {
     }
 
     @Override
-    public String getStartTag() {
-        return "<takeable>";
-    }
-
-    @Override
-    public String getEndTag() {
-        return "</takeable>";
+    public String getTagName() {
+        return "takeable";
     }
 
 }

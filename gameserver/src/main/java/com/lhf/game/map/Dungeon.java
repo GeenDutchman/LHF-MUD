@@ -79,8 +79,7 @@ public class Dungeon implements Land {
             return this;
         }
 
-        public DungeonBuilder connectRoom(AreaBuilder first, Directions toSecond,
-                AreaBuilder second, Doorway type) {
+        public DungeonBuilder connectRoom(AreaBuilder first, Directions toSecond, AreaBuilder second, Doorway type) {
             if (this.atlas == null || this.startingRoom == null) {
                 throw new IllegalStateException("Cannot connect a room without first specifying a starting room!");
             }
@@ -92,8 +91,7 @@ public class Dungeon implements Land {
             return this.connectRoom(first, toSecond, second, new Doorway());
         }
 
-        public DungeonBuilder connectRoomOneWay(AreaBuilder first, Directions toSecond,
-                AreaBuilder second) {
+        public DungeonBuilder connectRoomOneWay(AreaBuilder first, Directions toSecond, AreaBuilder second) {
             if (this.atlas == null || this.startingRoom == null) {
                 throw new IllegalStateException("Cannot connect a room without first specifying a starting room!");
             }
@@ -107,13 +105,12 @@ public class Dungeon implements Land {
         }
 
         @Override
-        public Dungeon build(CommandChainHandler successor, AIRunner aiRunner,
-                ConversationManager conversationManager,
+        public Dungeon build(CommandChainHandler successor, AIRunner aiRunner, ConversationManager conversationManager,
                 boolean fallbackNoConversation) {
             this.logger.entering(this.getClass().getName(), "build()");
             return Dungeon.fromBuilder(this, () -> successor, () -> (dungeon) -> {
-                Map<AreaBuilderID, UUID> translation = this.translateAtlas(dungeon, aiRunner,
-                        conversationManager, fallbackNoConversation);
+                Map<AreaBuilderID, UUID> translation = this.translateAtlas(dungeon, aiRunner, conversationManager,
+                        fallbackNoConversation);
                 if (translation != null && this.startingRoom != null) {
                     AreaBuilderID builderID = this.startingRoom.getAreaBuilderID();
                     dungeon.setStartingAreaUUID(translation.get(builderID));
@@ -121,8 +118,7 @@ public class Dungeon implements Land {
             });
         }
 
-        public static Dungeon buildDynamicDungeon(int seed, AIRunner aiRunner,
-                ConversationManager convoLoader) {
+        public static Dungeon buildDynamicDungeon(int seed, AIRunner aiRunner, ConversationManager convoLoader) {
 
             return null;
         }
@@ -159,9 +155,8 @@ public class Dungeon implements Land {
         @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
-            builder.append(this.getClass().getSimpleName()).append(" [id=").append(id).append(", name=")
-                    .append(name).append(", startingRoom=").append(startingRoom).append(", atlas=").append(atlas)
-                    .append("]");
+            builder.append(this.getClass().getSimpleName()).append(" [id=").append(id).append(", name=").append(name)
+                    .append(", startingRoom=").append(startingRoom).append(", atlas=").append(atlas).append("]");
             return builder.toString();
         }
 
@@ -176,8 +171,8 @@ public class Dungeon implements Land {
     private final GameEventProcessorID gameEventProcessorID;
     private final String name;
 
-    static Dungeon fromBuilder(Land.LandBuilder builder,
-            Supplier<CommandChainHandler> successorSupplier, Supplier<Consumer<Dungeon>> postOperation) {
+    static Dungeon fromBuilder(Land.LandBuilder builder, Supplier<CommandChainHandler> successorSupplier,
+            Supplier<Consumer<Dungeon>> postOperation) {
         Dungeon built = new Dungeon(builder, successorSupplier);
         if (postOperation != null) {
             Consumer<Dungeon> postOp = postOperation.get();
@@ -227,9 +222,8 @@ public class Dungeon implements Land {
     @Override
     public boolean addPlayer(Player player) {
         Area startingRoom = this.getStartingArea();
-        startingRoom
-                .announce(CreatureSpawnedEvent.getBuilder().setBroacast().setCreatureName(player.getColorTaggedName())
-                        .Build());
+        startingRoom.announce(CreatureSpawnedEvent.getBuilder().setBroacast().setCreatureName(player.getName())
+                .setCreature(player).Build());
         player.setSuccessor(this);
         return startingRoom.addPlayer(player);
     }
@@ -266,9 +260,7 @@ public class Dungeon implements Land {
     @Override
     public boolean addCreature(ICreature creature) {
         Area startingRoom = this.getStartingArea();
-        startingRoom
-                .announce(CreatureSpawnedEvent.getBuilder().setCreatureName(creature.getColorTaggedName()).setBroacast()
-                        .Build());
+        startingRoom.announce(CreatureSpawnedEvent.getBuilder().setCreature(creature).setBroacast().Build());
         creature.setSuccessor(this);
         return startingRoom.addCreature(creature);
     }
@@ -276,8 +268,7 @@ public class Dungeon implements Land {
     public boolean addCreature(ICreature creature, UUID roomUUID) {
         AtlasMappingItem<Area, UUID> areaInfo = this.atlas.getAtlasMappingItem(roomUUID);
         if (areaInfo != null && areaInfo.getAtlasMember() != null) {
-            areaInfo.getAtlasMember()
-                    .announce(CreatureSpawnedEvent.getBuilder().setCreatureName(creature.getColorTaggedName()).Build());
+            areaInfo.getAtlasMember().announce(CreatureSpawnedEvent.getBuilder().setCreature(creature).Build());
             creature.setSuccessor(this);
             return areaInfo.getAtlasMember().addCreature(creature);
         }
@@ -345,7 +336,7 @@ public class Dungeon implements Land {
             nextLife.setSuccessor(this.getStartingArea());
             oldLife.disconnectController(); // events will now not go anywhere
             ICreature.eventAccepter.accept(nextLife,
-                    PlayerReincarnatedEvent.getBuilder().setTaggedName(creature).setNotBroadcast().Build());
+                    PlayerReincarnatedEvent.getBuilder().setCreature(creature).setNotBroadcast().Build());
             // ICreature.eventAccepter.accept(nextLife,
             // SeeEvent.getBuilder().setExaminable(startingRoom).Build());
             this.addPlayer(nextLife);
@@ -443,19 +434,13 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public String getStartTag() {
-        return "<Dungeon>";
+    public String getTagName() {
+        return "Dungeon";
     }
 
     @Override
-    public String getEndTag() {
-        return "</Dungeon>";
-    }
-
-    @Override
-    public String printDescription() {
-        return String.format("This Dungeon is called %s and it has %d rooms!", this.getColorTaggedName(),
-                this.atlas.size());
+    public String getDescription() {
+        return String.format("This Dungeon has %d rooms!", this.atlas.size());
     }
 
     @Override
@@ -471,8 +456,8 @@ public class Dungeon implements Land {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("Dungeon [name=").append(this.getName()).append(", startingRoom=")
-                .append(this.atlas.getFirstMember())
-                .append(", numRooms=").append(this.atlas != null ? this.atlas.size() : 0).append("]");
+                .append(this.atlas.getFirstMember()).append(", numRooms=")
+                .append(this.atlas != null ? this.atlas.size() : 0).append("]");
         return builder.toString();
     }
 

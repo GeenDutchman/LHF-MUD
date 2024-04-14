@@ -16,6 +16,8 @@ import java.util.logging.Level;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
+import com.lhf.OutputBuilder;
+import com.lhf.Taggable;
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.EffectResistance;
@@ -76,8 +78,7 @@ import com.lhf.server.client.CommandInvoker;
  * 
  * @see java.lang.Comparable
  */
-public interface ICreature
-        extends InventoryOwner, EquipmentOwner, Comparable<ICreature>,
+public interface ICreature extends InventoryOwner, EquipmentOwner, Comparable<ICreature>,
         AffectableEntity<CreatureEffect>, CommandInvoker {
 
     public final static class ICreatureID implements Comparable<ICreatureID> {
@@ -127,9 +128,8 @@ public interface ICreature
     }
 
     /**
-     * A Fist is a weapon that most Creatures can be assumed to have.
-     * Does some small {@link com.lhf.game.enums.DamageFlavor#BLUDGEONING
-     * Bludgeoning} damage.
+     * A Fist is a weapon that most Creatures can be assumed to have. Does some
+     * small {@link com.lhf.game.enums.DamageFlavor#BLUDGEONING Bludgeoning} damage.
      */
     public static class Fist extends Weapon {
         private static final String description = "This is a Fist attached to a Creature \n";
@@ -187,8 +187,8 @@ public interface ICreature
     }
 
     /**
-     * Gets the {@link com.lhf.server.client.CommandInvoker Controller}
-     * for this Creature
+     * Gets the {@link com.lhf.server.client.CommandInvoker Controller} for this
+     * Creature
      * 
      * @return {@link com.lhf.server.client.CommandInvoker Controller}
      */
@@ -207,8 +207,7 @@ public interface ICreature
     /**
      * Gets the {@link com.lhf.server.client.Client.ClientID ClientID} from the
      * {@link com.lhf.server.client.CommandInvoker Controller} for the creature, or
-     * NULL
-     * if there is no Controller.
+     * NULL if there is no Controller.
      * 
      * @return {@link com.lhf.server.client.Client.ClientID ClientID} or NULL
      */
@@ -245,10 +244,10 @@ public interface ICreature
     public abstract boolean isAlive();
 
     /**
-     * Updates the Creature's hitpoints by value.
-     * If the Creature is no longer {@link #isAlive()} then it may search for the
-     * nearest {@link com.lhf.game.CreatureContainer CreatureContainer} and notify
-     * them of the death.
+     * Updates the Creature's hitpoints by value. If the Creature is no longer
+     * {@link #isAlive()} then it may search for the nearest
+     * {@link com.lhf.game.CreatureContainer CreatureContainer} and notify them of
+     * the death.
      */
     public abstract void updateHitpoints(int value);
 
@@ -269,8 +268,8 @@ public interface ICreature
 
     /**
      * Makes a check for the Creature, using the slected
-     * {@link com.lhf.game.enums.Attributes Attribute} modifier.
-     * Will just do a straight roll if attribute is null
+     * {@link com.lhf.game.enums.Attributes Attribute} modifier. Will just do a
+     * straight roll if attribute is null
      * 
      * @param attribute
      * @return {@link com.lhf.game.dice.MultiRollResult MultiRollResult}
@@ -500,16 +499,15 @@ public interface ICreature
 
     /**
      * This method sets the creature's vocation. Note that proficiencies, stats,
-     * etc. will not be updated.
-     * This is the penalty for switching vocations.
+     * etc. will not be updated. This is the penalty for switching vocations.
      * 
      * @param job the new vocation
      */
     public abstract void setVocation(Vocation job);
 
     /**
-     * A static method to create a Corpse from a Creature.
-     * Moves all the equipment and stuff to the Corpse.
+     * A static method to create a Corpse from a Creature. Moves all the equipment
+     * and stuff to the Corpse.
      * 
      * @param deadCreature
      * @return {@link com.lhf.game.item.concrete.Corpse Corpse} with all the stuff
@@ -561,26 +559,49 @@ public interface ICreature
      * Prints a description of the Creature
      */
     @Override
-    public default String printDescription() {
-        StringBuilder sb = new StringBuilder();
-        Map<EquipmentSlots, Equipable> equipped = this.getEquipmentSlots();
-        if (equipped.get(EquipmentSlots.HAT) != null) {
-            sb.append("On their head is:").append(equipped.get(EquipmentSlots.HAT).getColorTaggedName());
+    public default String getDescription() {
+        final EnumSet<SubAreaSort> subAreas = this.getSubAreaSorts();
+        if (subAreas == null || subAreas.isEmpty()) {
+            return "";
         }
-        if (equipped.get(EquipmentSlots.ARMOR) != null) {
-            sb.append("They are wearing:").append(equipped.get(EquipmentSlots.ARMOR).getColorTaggedName());
-        } else {
-            if (equipped.get(EquipmentSlots.NECKLACE) != null) {
-                sb.append("Around their neck is:")
-                        .append(equipped.get(EquipmentSlots.NECKLACE).getColorTaggedName());
+        StringBuilder sb = new StringBuilder();
+        sb.append("\r\n").append(subAreas.stream().map(sort -> sort.toString())
+                .collect(Collectors.joining(" and ", "They are in the state(s) of ", ".")));
+        return sb.toString();
+    }
+
+    @Override
+    default Map<String, String> getTagAttributes() {
+        Map<String, String> tagAttr = Taggable.produceBasicTagAttributes();
+        tagAttr.put("uuid", this.getCreatureID().toString());
+        return tagAttr;
+    }
+
+    @Override
+    default void produceExtraDescription(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        final Map<EquipmentSlots, Equipable> equipped = this.getEquipmentSlots();
+        if (equipped != null) {
+            Equipable equipable = equipped.get(EquipmentSlots.HAT);
+            if (equipable != null) {
+                builder.appendString("On their head is:");
+                builder.appendTaggable(equipable, " ", ".");
+            }
+            equipable = equipped.get(EquipmentSlots.ARMOR);
+            if (equipable != null) {
+                builder.appendString("They are wearing:");
+                builder.appendTaggable(equipable, " ", ".");
+            } else {
+                equipable = equipped.get(EquipmentSlots.NECKLACE);
+                if (equipable != null) {
+                    builder.appendString("Around their neck is:");
+                    builder.appendTaggable(equipable, " ", ".");
+                }
             }
         }
-        final EnumSet<SubAreaSort> subAreas = this.getSubAreaSorts();
-        if (subAreas != null && !subAreas.isEmpty()) {
-            sb.append("\r\n").append(subAreas.stream().map(sort -> sort.toString())
-                    .collect(Collectors.joining(" and ", "They are in the state(s) of ", ".")));
-        }
-        return sb.toString();
+        return;
     }
 
     @Override
@@ -597,9 +618,9 @@ public interface ICreature
     }
 
     /**
-     * Produces a {@link com.lhf.messages.events.SeeEvent SeeOutMessage}
-     * describing this Creature and any {@link com.lhf.game.creature.CreatureEffect
-     * Effects} upon it.
+     * Produces a {@link com.lhf.messages.events.SeeEvent SeeOutMessage} describing
+     * this Creature and any {@link com.lhf.game.creature.CreatureEffect Effects}
+     * upon it.
      */
     @Override
     public default SeeEvent produceMessage(SeeEvent.ABuilder<?> seeOutMessage) {
@@ -614,28 +635,18 @@ public interface ICreature
     }
 
     @Override
-    public default String getStartTag() {
-        String tag = "<" + this.getClass().getSimpleName().toLowerCase() + ">";
+    public default String getTagName() {
+        String tag = this.getClass().getSimpleName().toLowerCase();
         CreatureFaction foundFaction = this.getFaction();
         if (foundFaction != null) {
-            tag = "<" + foundFaction.name().toLowerCase() + ">";
+            tag = foundFaction.name().toLowerCase();
         }
         return tag;
     }
 
     @Override
-    public default String getEndTag() {
-        String tag = "</" + this.getClass().getSimpleName().toLowerCase() + ">";
-        CreatureFaction foundFaction = this.getFaction();
-        if (foundFaction != null) {
-            tag = "</" + foundFaction.name().toLowerCase() + ">";
-        }
-        return tag;
-    }
-
-    @Override
-    public default String getColorTaggedName() {
-        return getStartTag() + getName() + getEndTag();
+    default String getSimpleContent() {
+        return this.getName();
     }
 
     @Override
@@ -648,10 +659,8 @@ public interface ICreature
 
     public interface CreatureCommandHandler extends CommandHandler {
         final static EnumMap<AMessageType, CommandHandler> creatureCommandHandlers = new EnumMap<>(
-                Map.of(AMessageType.EQUIP, new EquipHandler(),
-                        AMessageType.UNEQUIP, new UnequipHandler(),
-                        AMessageType.INVENTORY, new InventoryHandler(),
-                        AMessageType.STATUS, new StatusHandler()));
+                Map.of(AMessageType.EQUIP, new EquipHandler(), AMessageType.UNEQUIP, new UnequipHandler(),
+                        AMessageType.INVENTORY, new InventoryHandler(), AMessageType.STATUS, new StatusHandler()));
 
         @Override
         default boolean isEnabled(CommandContext ctx) {

@@ -50,18 +50,25 @@ public class User implements CommandInvoker, Comparable<User> {
     }
 
     @Override
-    public String getStartTag() {
-        return "<user>";
+    public String getName() {
+        return username;
     }
 
     @Override
-    public String getEndTag() {
-        return "</user>";
+    public String getTagName() {
+        return "user";
     }
 
     @Override
-    public String getColorTaggedName() {
-        return this.getStartTag() + getUsername() + this.getEndTag();
+    public String getSimpleContent() {
+        return this.getUsername();
+    }
+
+    @Override
+    public Map<String, String> getTagAttributes() {
+        Map<String, String> tagAttr = CommandInvoker.super.getTagAttributes();
+        tagAttr.put("id", this.getUsername());
+        return tagAttr;
     }
 
     @Override

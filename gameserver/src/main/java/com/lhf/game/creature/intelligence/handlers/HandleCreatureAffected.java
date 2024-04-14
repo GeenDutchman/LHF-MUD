@@ -30,7 +30,7 @@ public class HandleCreatureAffected extends AIHandler {
 
     @Override
     public void handle(BasicAI bai, GameEvent event) {
-        if (GameEventType.CREATURE_AFFECTED.equals(event.getEventType())) {
+        if (GameEventType.CREATURE_AFFECTED.equals(event.getXmlEventType())) {
             CreatureAffectedEvent caMessage = (CreatureAffectedEvent) event;
             this.handleOtherDeath(bai, caMessage);
             this.handleOuch(bai, caMessage);

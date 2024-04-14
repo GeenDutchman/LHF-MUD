@@ -1,5 +1,6 @@
 package com.lhf.messages.events;
 
+import com.lhf.OutputBuilder;
 import com.lhf.game.TickType;
 import com.lhf.messages.GameEventType;
 
@@ -61,8 +62,8 @@ public class TickEvent extends GameEvent {
     }
 
     @Override
-    public String print() {
-        return "";
+    public void buildOutput(OutputBuilder builder) {
+        return;
     }
 
 }

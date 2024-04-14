@@ -1,7 +1,6 @@
 package com.lhf.messages.events;
 
-import java.util.StringJoiner;
-
+import com.lhf.OutputBuilder;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD4;
@@ -85,58 +84,59 @@ public class TargetDefendedEvent extends GameEvent {
     }
 
     @Override
-    public String toString() {
-        StringJoiner output = new StringJoiner(" ");
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
         Dice chooser = new DiceD4(1);
         int which = chooser.rollDice().getRoll();
         switch (which) {
-            case 1:
-                output.add(attacker.getColorTaggedName());
-                if (this.offense != null) {
-                    output.add(this.offense.getColorTaggedName());
-                }
-                output.add("misses").add(target.getColorTaggedName());
-                if (this.defense != null) {
-                    output.add(this.defense.getColorTaggedName());
-                }
-                break;
-            case 2:
-                output.add(target.getColorTaggedName()).add("dodged");
-                if (this.defense != null) {
-                    output.add(this.defense.getColorTaggedName());
-                }
-                output.add("the attack");
-                if (this.offense != null) {
-                    output.add(this.offense.getColorTaggedName());
-                }
-                output.add("from").add(attacker.getColorTaggedName());
-                break;
-            case 3:
-                output.add(attacker.getColorTaggedName()).add("whiffed");
-                if (this.offense != null) {
-                    output.add(this.offense.getColorTaggedName());
-                }
-                output.add("their attack on").add(target.getColorTaggedName());
-                if (this.defense != null) {
-                    output.add(this.defense.getColorTaggedName());
-                }
-                break;
-            default:
-                output.add("The attack");
-                if (this.offense != null) {
-                    output.add(this.offense.getColorTaggedName());
-                }
-                output.add("by").add(attacker.getColorTaggedName());
-                output.add("on").add(target.getColorTaggedName());
-                output.add("does not land");
-                if (this.defense != null) {
-                    output.add(this.defense.getColorTaggedName());
-                }
-                break;
+        case 1:
+            builder.appendTaggable(attacker);
+            if (this.offense != null) {
+                builder.appendTaggable(offense);
+            }
+            builder.appendString("misses").appendTaggable(target);
+            if (this.defense != null) {
+                builder.appendTaggable(defense);
+            }
+            break;
+        case 2:
+            builder.appendTaggable(target).appendString("dodged");
+            if (this.defense != null) {
+                builder.appendTaggable(defense);
+            }
+            builder.appendString("the attack");
+            if (this.offense != null) {
+                builder.appendTaggable(offense);
+            }
+            builder.appendString("from").appendTaggable(attacker);
+            break;
+        case 3:
+            builder.appendTaggable(attacker).appendString("whiffed");
+            if (this.offense != null) {
+                builder.appendTaggable(offense);
+            }
+            builder.appendString("their attack on").appendTaggable(target);
+            if (this.defense != null) {
+                builder.appendTaggable(defense);
+            }
+            break;
+        default:
+            builder.appendString("The attack");
+            if (this.offense != null) {
+                builder.appendTaggable(offense);
+            }
+            builder.appendString("by").appendTaggable(attacker).appendString("on").appendTaggable(target)
+                    .appendString("does not land");
+            if (this.defense != null) {
+                builder.appendTaggable(offense);
+            }
+            break;
 
         }
-        output.add("\n");
-        return output.toString();
+        builder.appendString("\r\n");
+
     }
 
     public ICreature getAttacker() {
@@ -153,11 +153,6 @@ public class TargetDefendedEvent extends GameEvent {
 
     public MultiRollResult getDefense() {
         return defense;
-    }
-
-    @Override
-    public String print() {
-        return this.toString();
     }
 
 }

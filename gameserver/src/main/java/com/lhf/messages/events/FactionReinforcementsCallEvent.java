@@ -1,5 +1,6 @@
 package com.lhf.messages.events;
 
+import com.lhf.OutputBuilder;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.GameEventType;
@@ -53,25 +54,27 @@ public class FactionReinforcementsCallEvent extends GameEvent {
         this.caller = builder.getCaller();
     }
 
-    @Override
-    public String toString() {
-        if (!this.isBroadcast()) {
-            if (this.caller.getFaction() == null || CreatureFaction.RENEGADE.equals(this.caller.getFaction())) {
-                return "You are a RENEGADE or not a member of a faction.  No one is obligated to help you.";
-            }
-            return "You call for reinforcements!";
-        } else {
-            return this.caller.getColorTaggedName() + " calls for reinforcements!";
-        }
-    }
-
     public ICreature getCaller() {
         return caller;
     }
 
     @Override
-    public String print() {
-        return this.toString();
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        if (this.isBroadcast()) {
+            builder.appendTaggable(this.caller);
+            builder.appendString("calls for reinforcements!");
+        } else {
+            if (this.caller != null && (this.caller.getFaction() == null
+                    || CreatureFaction.RENEGADE.equals(this.caller.getFaction()))) {
+                builder.appendString(
+                        "You are a RENEGADE or not a member of a faction.  No one is obligated to help you.");
+                return;
+            }
+            builder.appendString("You call for reinvorcements!");
+        }
     }
 
 }

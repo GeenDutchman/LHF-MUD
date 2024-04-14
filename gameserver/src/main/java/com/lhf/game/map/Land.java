@@ -30,7 +30,6 @@ import com.lhf.game.map.Atlas.AtlasMappingItem;
 import com.lhf.game.map.Atlas.TargetedTester;
 import com.lhf.game.map.commandHandlers.LandSeeHandler;
 import com.lhf.game.map.commandHandlers.LandShoutHandler;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -152,12 +151,10 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
         public abstract AreaBuilderAtlas getAtlas();
 
         public default Map<AreaBuilderID, UUID> translateAtlas(Land builtLand, AIRunner aiRunner,
-                ConversationManager conversationManager,
-                boolean fallbackNoConversation) {
+                ConversationManager conversationManager, boolean fallbackNoConversation) {
 
             final Function<AreaBuilder, Area> transformer = (builder) -> {
-                return builder.build(builtLand, builtLand, aiRunner,
-                        conversationManager, fallbackNoConversation);
+                return builder.build(builtLand, builtLand, aiRunner, conversationManager, fallbackNoConversation);
             };
 
             final AreaBuilderAtlas builderAtlas = this.getAtlas();
@@ -172,8 +169,7 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
         }
 
         public abstract Land build(CommandChainHandler successor, AIRunner aiRunner,
-                ConversationManager conversationManager,
-                boolean fallbackNoConversation);
+                ConversationManager conversationManager, boolean fallbackNoConversation);
 
     }
 
@@ -216,21 +212,18 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
     }
 
     public default Area getCreatureArea(ICreature creature) {
-        return this.getAtlas().getAtlasMembers().stream()
-                .filter(area -> area != null && area.hasCreature(creature))
+        return this.getAtlas().getAtlasMembers().stream().filter(area -> area != null && area.hasCreature(creature))
                 .findFirst().orElseGet(() -> null);
     }
 
     public default Area getCreatureArea(String name) {
-        return this.getAtlas().getAtlasMembers().stream()
-                .filter(area -> area != null && area.hasCreature(name, null))
+        return this.getAtlas().getAtlasMembers().stream().filter(area -> area != null && area.hasCreature(name, null))
                 .findFirst().orElseGet(() -> null);
 
     }
 
     public default Area getPlayerArea(UserID id) {
-        return this.getAtlas().getAtlasMembers().stream()
-                .filter(area -> area != null && area.getPlayer(id).isPresent())
+        return this.getAtlas().getAtlasMembers().stream().filter(area -> area != null && area.getPlayer(id).isPresent())
                 .findFirst().orElseGet(() -> null);
 
     }
@@ -242,18 +235,16 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
         if (startingArea != null) {
             creatures.addAll(startingArea.getCreatures());
         }
-        this.getAtlas().getAtlasMembers().stream()
-                .filter(area -> area != null)
+        this.getAtlas().getAtlasMembers().stream().filter(area -> area != null)
                 .forEach(area -> creatures.addAll(area.getCreatures()));
         return Collections.unmodifiableSet(creatures);
     }
 
     public interface LandCommandHandler extends CommandHandler {
 
-        static final EnumMap<AMessageType, CommandHandler> landCommandHandlers = new EnumMap<>(Map.of(
-                AMessageType.GO, new LandGoHandler(),
-                AMessageType.SEE, new LandSeeHandler(),
-                AMessageType.SHOUT, new LandShoutHandler()));
+        static final EnumMap<AMessageType, CommandHandler> landCommandHandlers = new EnumMap<>(
+                Map.of(AMessageType.GO, new LandGoHandler(), AMessageType.SEE, new LandSeeHandler(), AMessageType.SHOUT,
+                        new LandShoutHandler()));
 
         @Override
         public default boolean isEnabled(CommandContext ctx) {
@@ -292,56 +283,53 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
         }
 
         @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == this.getHandleType()) {
-                final GoMessage goMessage = new GoMessage(cmd);
-                final Land land = ctx.getLand();
-                if (ctx.getCreature() == null) {
-                    ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                            .setHelps(ctx.getHelps()).setCommand(cmd).Build());
+        public Reply visit(CommandContext ctx, GoMessage command) {
+            if (command == null) {
+                return ctx.failhandle();
+            }
+            final Land land = ctx.getLand();
+            if (ctx.getCreature() == null) {
+                ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                        .setHelps(ctx.getHelps()).setCommand(command).Build());
+                return ctx.handled();
+            }
+            Directions toGo = command.getDirection();
+            if (ctx.getArea() == null) {
+                ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.NO_ROOM).setAttempted(toGo).Build());
+                return ctx.handled();
+            }
+            Area presentRoom = ctx.getArea();
+            final AtlasMappingItem<Area, UUID> mappingItem = land.getAtlas().getAtlasMappingItem(presentRoom.getUuid());
+            if (mappingItem != null) {
+                Map<Directions, TargetedTester<UUID>> exits = mappingItem.getDirections();
+                if (exits == null || exits.size() == 0 || !exits.containsKey(toGo) || exits.get(toGo) == null) {
+                    ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo).Build());
                     return ctx.handled();
                 }
-                Directions toGo = goMessage.getDirection();
-                if (ctx.getArea() == null) {
-                    ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.NO_ROOM).setAttempted(toGo).Build());
+                TargetedTester<UUID> doorway = exits.get(toGo);
+                final Area nextRoom = land.getAtlas().getAtlasMember(doorway.getTargetId());
+                if (nextRoom == null) {
+                    ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo)
+                            .setAvailable(exits.keySet()).Build());
                     return ctx.handled();
                 }
-                Area presentRoom = ctx.getArea();
-                final AtlasMappingItem<Area, UUID> mappingItem = land.getAtlas()
-                        .getAtlasMappingItem(presentRoom.getUuid());
-                if (mappingItem != null) {
-                    Map<Directions, TargetedTester<UUID>> exits = mappingItem.getDirections();
-                    if (exits == null || exits.size() == 0
-                            || !exits.containsKey(toGo)
-                            || exits.get(toGo) == null) {
-                        ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo).Build());
-                        return ctx.handled();
-                    }
-                    TargetedTester<UUID> doorway = exits.get(toGo);
-                    final Area nextRoom = land.getAtlas().getAtlasMember(doorway.getTargetId());
-                    if (nextRoom == null) {
-                        ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo)
-                                .setAvailable(exits.keySet()).Build());
-                        return ctx.handled();
-                    }
-                    Doorway tester = doorway.getPredicate();
-                    if (tester != null && !tester.testTraversal(ctx.getCreature(), toGo, presentRoom, presentRoom)) {
-                        ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.BLOCKED).setAttempted(toGo)
-                                .setAvailable(exits.keySet()).Build());
-                        return ctx.handled();
-                    }
+                Doorway tester = doorway.getPredicate();
+                if (tester != null && !tester.testTraversal(ctx.getCreature(), toGo, presentRoom, presentRoom)) {
+                    ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.BLOCKED).setAttempted(toGo)
+                            .setAvailable(exits.keySet()).Build());
+                    return ctx.handled();
+                }
 
-                    if (presentRoom.removeCreature(ctx.getCreature(), toGo)) {
-                        ICreature.eventAccepter.accept(ctx.getCreature(),
-                                TickEvent.getBuilder().setTickType(TickType.ROOM).Build());
-                        nextRoom.addCreature(ctx.getCreature());
-                        return ctx.handled();
-                    }
-                } else {
-                    ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.NO_ROOM)
-                            .setAttempted(goMessage.getDirection()).Build());
+                if (presentRoom.removeCreature(ctx.getCreature(), toGo)) {
+                    ICreature.eventAccepter.accept(ctx.getCreature(),
+                            TickEvent.getBuilder().setTickType(TickType.ROOM).Build());
+                    nextRoom.addCreature(ctx.getCreature());
                     return ctx.handled();
                 }
+            } else {
+                ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.NO_ROOM).setAttempted(command.getDirection())
+                        .Build());
+                return ctx.handled();
             }
             return ctx.failhandle();
         }
@@ -374,18 +362,13 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
     }
 
     @Override
-    public default String getStartTag() {
-        return "<Land>";
+    default String getTagName() {
+        return "Land";
     }
 
     @Override
-    public default String getEndTag() {
-        return "</Land>";
-    }
-
-    @Override
-    public default String getColorTaggedName() {
-        return this.getStartTag() + this.getName() + this.getEndTag();
+    default String getSimpleContent() {
+        return this.getName();
     }
 
 }

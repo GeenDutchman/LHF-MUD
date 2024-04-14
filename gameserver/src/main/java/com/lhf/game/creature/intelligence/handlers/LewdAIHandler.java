@@ -75,7 +75,7 @@ public class LewdAIHandler extends AIHandler {
                     this.logger.log(Level.WARNING, String.format("%s proposed to lewd %s, but they aren't a parnter!",
                             lom.getCreature().getName(), bai.toString()));
                     Command cmd = Command.parse("pass"); // then don't!
-                    bai.handleChain(null, cmd);
+                    bai.applyChain(null, cmd);
                     return;
                 }
             }
@@ -83,7 +83,7 @@ public class LewdAIHandler extends AIHandler {
         }
         this.logger.log(Level.FINEST, String.format("%s agreed to lewd %s", bai.toString(), sj.toString()));
         Command cmd = Command.parse("lewd " + sj.toString());
-        bai.handleChain(null, cmd);
+        bai.applyChain(null, cmd);
     }
 
     public void handleDunnit(BasicAI bai, LewdEvent lom) {
@@ -93,15 +93,15 @@ public class LewdAIHandler extends AIHandler {
 
         if (!this.stayInAfter) {
             Command cmd = Command.parse("GO UP");
-            bai.handleChain(null, cmd);
+            bai.applyChain(null, cmd);
         }
     }
 
     @Override
     public void handle(BasicAI bai, GameEvent event) {
-        if (GameEventType.LEWD.equals(event.getEventType())) {
+        if (GameEventType.LEWD.equals(event.getXmlEventType())) {
             LewdEvent lom = (LewdEvent) event;
-            this.logger.log(Level.FINEST, () -> String.format("%s: processing \"%s\"", bai.toString(), lom.print()));
+            this.logger.log(Level.FINEST, () -> String.format("%s: processing \"%s\"", bai.toString(), lom.toString()));
             if (lom.getSubType() == LewdOutMessageType.PROPOSED) {
                 this.handleProposal(bai, lom);
             }

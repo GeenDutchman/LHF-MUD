@@ -1,13 +1,17 @@
 package com.lhf.messages.events;
 
+import com.lhf.OutputBuilder;
+import com.lhf.game.creature.ICreature;
 import com.lhf.messages.GameEventType;
 
 public class CreatureSpawnedEvent extends GameEvent {
 
     private final String creatureName;
+    private final ICreature creature;
 
     public static class Builder extends GameEvent.Builder<Builder> {
         private String creatureName;
+        private ICreature creature;
 
         protected Builder() {
             super(GameEventType.SPAWN);
@@ -22,6 +26,18 @@ public class CreatureSpawnedEvent extends GameEvent {
             return this;
         }
 
+        public Builder setCreature(ICreature spawned) {
+            this.creature = spawned;
+            if (spawned != null) {
+                this.creatureName = spawned.getName();
+            }
+            return this;
+        }
+
+        public ICreature getCreature() {
+            return creature;
+        }
+
         @Override
         public Builder getThis() {
             return this;
@@ -31,6 +47,7 @@ public class CreatureSpawnedEvent extends GameEvent {
         public CreatureSpawnedEvent Build() {
             return new CreatureSpawnedEvent(this);
         }
+
     }
 
     public static Builder getBuilder() {
@@ -40,12 +57,7 @@ public class CreatureSpawnedEvent extends GameEvent {
     public CreatureSpawnedEvent(Builder builder) {
         super(builder);
         this.creatureName = builder.getCreatureName();
-    }
-
-    @Override
-    public String toString() {
-        return "<description>" + (creatureName != null ? creatureName : "Someone") + " has spawned in this room."
-                + "</description>";
+        this.creature = builder.getCreature();
     }
 
     public String getCreatureName() {
@@ -53,7 +65,18 @@ public class CreatureSpawnedEvent extends GameEvent {
     }
 
     @Override
-    public String print() {
-        return this.toString();
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        if (this.creature != null) {
+            builder.appendTaggable(creature);
+        } else if (this.creatureName != null) {
+            builder.appendString(creatureName);
+        } else {
+            builder.appendString("Someone");
+        }
+        builder.appendString("has spawned in this room.");
     }
+
 }

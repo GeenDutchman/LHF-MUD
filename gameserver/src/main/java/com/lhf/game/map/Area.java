@@ -53,9 +53,8 @@ import com.lhf.messages.events.SeeEvent.SeeCategory;
 import com.lhf.messages.in.AMessageType;
 import com.lhf.server.interfaces.NotNull;
 
-public interface Area
-        extends ItemContainer, CreatureContainer, CommandChainHandler, Comparable<Area>, AffectableEntity<RoomEffect>,
-        AreaVisitorAcceptor {
+public interface Area extends ItemContainer, CreatureContainer, CommandChainHandler, Comparable<Area>,
+        AffectableEntity<RoomEffect>, AreaVisitorAcceptor {
 
     public interface AreaBuilder extends Serializable {
 
@@ -133,11 +132,9 @@ public interface Area
         }
 
         public abstract Area build(CommandChainHandler successor, Land land, AIRunner aiRunner,
-                ConversationManager conversationManager,
-                boolean fallbackNoConversation);
+                ConversationManager conversationManager, boolean fallbackNoConversation);
 
-        public default Area build(Land land, AIRunner aiRunner,
-                ConversationManager conversationManager) {
+        public default Area build(Land land, AIRunner aiRunner, ConversationManager conversationManager) {
             return this.build(land, land, aiRunner, conversationManager, true);
         }
     }
@@ -218,16 +215,13 @@ public interface Area
         ItemPartitionCollectionVisitor itemVisitor = new ItemPartitionCollectionVisitor();
         this.acceptItemVisitor(itemVisitor);
         for (final Takeable item : itemVisitor.getTakeables()) {
-            seen.addSeen(item.isVisible() ? SeeCategory.TAKEABLE : SeeCategory.INVISIBLE_TAKEABLE,
-                    item);
+            seen.addSeen(item.isVisible() ? SeeCategory.TAKEABLE : SeeCategory.INVISIBLE_TAKEABLE, item);
         }
         for (final Item item : itemVisitor.getNotes()) {
-            seen.addSeen(item.isVisible() ? SeeCategory.ROOM_ITEM : SeeCategory.INVISIBLE_ROOM_ITEM,
-                    item);
+            seen.addSeen(item.isVisible() ? SeeCategory.ROOM_ITEM : SeeCategory.INVISIBLE_ROOM_ITEM, item);
         }
         for (final InteractObject item : itemVisitor.getInteractObjects()) {
-            seen.addSeen(item.isVisible() ? SeeCategory.ROOM_ITEM : SeeCategory.INVISIBLE_ROOM_ITEM,
-                    item);
+            seen.addSeen(item.isVisible() ? SeeCategory.ROOM_ITEM : SeeCategory.INVISIBLE_ROOM_ITEM, item);
         }
 
         return produceMessage(seen);
@@ -238,14 +232,10 @@ public interface Area
         final static String inBattleString = "You appear to be in a fight, so you cannot do that.";
 
         final static EnumMap<AMessageType, CommandHandler> areaCommandHandlers = new EnumMap<>(
-                Map.of(AMessageType.ATTACK, new AreaAttackHandler(),
-                        AMessageType.CAST, new AreaCastHandler(),
-                        AMessageType.DROP, new AreaDropHandler(),
-                        AMessageType.INTERACT, new AreaInteractHandler(),
-                        AMessageType.REST, new AreaRestHandler(),
-                        AMessageType.SAY, new AreaSayHandler(),
-                        AMessageType.SEE, new AreaSeeHandler(),
-                        AMessageType.TAKE, new AreaTakeHandler(),
+                Map.of(AMessageType.ATTACK, new AreaAttackHandler(), AMessageType.CAST, new AreaCastHandler(),
+                        AMessageType.DROP, new AreaDropHandler(), AMessageType.INTERACT, new AreaInteractHandler(),
+                        AMessageType.REST, new AreaRestHandler(), AMessageType.SAY, new AreaSayHandler(),
+                        AMessageType.SEE, new AreaSeeHandler(), AMessageType.TAKE, new AreaTakeHandler(),
                         AMessageType.USE, new AreaUseHandler()));
 
         @Override
@@ -270,8 +260,8 @@ public interface Area
     public default Collection<GameEventProcessor> getGameEventProcessors() {
         TreeSet<GameEventProcessor> messengers = new TreeSet<>(GameEventProcessor.getComparator());
 
-        this.getCreatures().stream()
-                .filter(creature -> creature != null).forEach(messenger -> messengers.add(messenger));
+        this.getCreatures().stream().filter(creature -> creature != null)
+                .forEach(messenger -> messengers.add(messenger));
 
         return Collections.unmodifiableCollection(messengers);
     }
@@ -309,17 +299,20 @@ public interface Area
     }
 
     @Override
-    public default String getStartTag() {
-        return "<area>";
+    default String getTagName() {
+        return "area";
     }
 
     @Override
-    public default String getEndTag() {
-        return "</area>";
+    default String getSimpleContent() {
+        return this.getName();
     }
 
     @Override
-    public default String getColorTaggedName() {
-        return this.getStartTag() + this.getName() + this.getEndTag();
+    default Map<String, String> getTagAttributes() {
+        Map<String, String> tagAttr = CommandChainHandler.super.getTagAttributes();
+        tagAttr.put("uuid", this.getUuid().toString());
+        return tagAttr;
     }
+
 }

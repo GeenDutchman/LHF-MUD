@@ -2,7 +2,6 @@ package com.lhf.game.magic;
 
 import java.util.List;
 import java.util.Set;
-import java.util.StringJoiner;
 
 import com.lhf.Taggable;
 import com.lhf.game.creature.ICreature;
@@ -16,8 +15,7 @@ public class DungeonTargetingSpellEntry extends SpellEntry {
     protected final boolean addsRoomToDungeon;
 
     public DungeonTargetingSpellEntry(ResourceCost level, String name, Set<DungeonEffectSource> effectSources,
-            Set<VocationName> allowed, String description,
-            boolean addsRoomToDungeon) {
+            Set<VocationName> allowed, String description, boolean addsRoomToDungeon) {
         super(level, name, effectSources, allowed, description);
         this.addsRoomToDungeon = addsRoomToDungeon;
     }
@@ -28,18 +26,12 @@ public class DungeonTargetingSpellEntry extends SpellEntry {
 
     @Override
     public SpellCastingEvent Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
-        StringJoiner sj = new StringJoiner(", ", "Targeting: ", "").setEmptyValue("Targeting nothing");
-        if (targets != null) {
-            for (Taggable taggable : targets) {
-                sj.add(taggable.getColorTaggedName());
-            }
-        }
-        return SpellCastingEvent.getBuilder().setCaster(caster).setSpellEntry(this).setCastEffects(sj.toString())
-                .Build();
+        return SpellCastingEvent.getBuilder().setCaster(caster).setSpellEntry(this).defaultTargetingStyle()
+                .setTargets(targets).Build();
     }
 
     @Override
-    public String printDescription() {
+    public String getDescription() {
         StringBuilder sb = new StringBuilder(this.description);
         if (this.isAddsRoomToDungeon()) {
             sb.append("And will add a room to the current dungeon.");

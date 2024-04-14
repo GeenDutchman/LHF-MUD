@@ -30,43 +30,51 @@ import com.lhf.messages.events.ItemNotPossessedEvent;
 import com.lhf.messages.events.TargetDefendedEvent;
 import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.AttackMessage;
+import com.lhf.messages.in.CommandVisitor;
 
 public class BattleAttackHandler implements PooledBattleManagerCommandHandler {
-    private final static String helpString = new StringJoiner(" ")
-            .add("\"attack [name]\"").add("Attacks a creature").add("\r\n")
-            .add("\"attack [name] with [weapon]\"").add("Attack the named creature with a weapon that you have.")
+    private final static String helpString = new StringJoiner(" ").add("\"attack [name]\"").add("Attacks a creature")
+            .add("\r\n").add("\"attack [name] with [weapon]\"")
+            .add("Attack the named creature with a weapon that you have.")
             .add("In the unlikely event that either the creature or the weapon's name contains 'with', enclose the name in quotation marks.")
             .toString();
 
     @Override
-    public Reply handleCommand(CommandContext ctx, Command cmd) {
+    public Reply apply(CommandContext ctx, Command cmd) {
         if (cmd == null || cmd.getType() != this.getHandleType()) {
             return ctx.failhandle();
         }
-        final AttackMessage attackMessage = new AttackMessage(cmd);
         final SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
-        if (!bm.hasRunningThread("AttackHandler.handle()")) {
-            ICreature attacker = ctx.getCreature();
-            List<ICreature> collected = this.collectTargetsFromRoom(bm, attacker,
-                    attackMessage.getTargets());
-            if (collected == null || collected.size() == 0) {
-                ctx.receive(BadTargetSelectedEvent.getBuilder()
-                        .setNotBroadcast().setBde(BadTargetOption.NOTARGET).Build());
+        final CommandVisitor battleStarter = new CommandVisitor.Blank() {
+            @Override
+            public Reply visit(CommandContext ctx, AttackMessage attackMessage) {
+                if (!bm.hasRunningThread("AttackHandler.handle()")) {
+                    ICreature attacker = ctx.getCreature();
+                    List<ICreature> collected = BattleAttackHandler.this.collectTargetsFromRoom(bm, attacker,
+                            attackMessage.getTargets());
+                    if (collected == null || collected.size() == 0) {
+                        ctx.receive(BadTargetSelectedEvent.getBuilder().setNotBroadcast()
+                                .setBde(BadTargetOption.NOTARGET).Build());
+                        return ctx.handled();
+                    }
+                    BattleAttackHandler.this.log(Level.FINE, "No current battle detected, starting battle");
+                    bm.instigate(attacker, collected);
+                } else {
+                    BattleAttackHandler.this.log(Level.FINE, "Battle detected, empooling command");
+                }
                 return ctx.handled();
             }
-            this.log(Level.FINE, "No current battle detected, starting battle");
-            bm.instigate(attacker, collected);
-        } else {
-            this.log(Level.FINE, "Battle detected, empooling command");
-        }
+        };
+        final Reply reply = cmd.acceptCommandVisitor(ctx, battleStarter);
+
         this.onEmpool(ctx, bm.empool(ctx, cmd));
-        return ctx.handled();
+        return reply;
     }
 
     /**
-     * Collect the targeted creatures from the room.
-     * If it is unclear which target is meant, it will skip that name.
-     * If the self is targeted, then it will be skipped.
+     * Collect the targeted creatures from the room. If it is unclear which target
+     * is meant, it will skip that name. If the self is targeted, then it will be
+     * skipped.
      * 
      * @param attacker Creature who selected the targets
      * @param names    names of the targets
@@ -127,9 +135,9 @@ public class BattleAttackHandler implements PooledBattleManagerCommandHandler {
     }
 
     /**
-     * Gets a designated weapon for a creature, either by name, or by default.
-     * If a name is provided, but is not found or the item found is not a weapon,
-     * then return NULL.
+     * Gets a designated weapon for a creature, either by name, or by default. If a
+     * name is provided, but is not found or the item found is not a weapon, then
+     * return NULL.
      * 
      * @param attacker   The creature who is attacking
      * @param weaponName The name of a weapon
@@ -181,8 +189,7 @@ public class BattleAttackHandler implements PooledBattleManagerCommandHandler {
                     bm.announce(cam);
                 } else {
                     bm.announce(TargetDefendedEvent.getBuilder().setAttacker(attacker).setTarget(target)
-                            .setOffense(attackerResult)
-                            .setDefense(targetResult).Build());
+                            .setOffense(attackerResult).setDefense(targetResult).Build());
                 }
             }
 
@@ -190,54 +197,52 @@ public class BattleAttackHandler implements PooledBattleManagerCommandHandler {
     }
 
     @Override
-    public Reply flushHandle(CommandContext ctx, Command cmd) {
-        if (cmd != null && cmd.getType() == this.getHandleType()) {
-            final AttackMessage aMessage = new AttackMessage(cmd);
-            final SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
-            bm.log(Level.INFO,
-                    ctx.getCreature().getName() + " attempts attacking " + aMessage.getTargets());
+    public Reply visit(CommandContext ctx, AttackMessage aMessage) {
+        if (aMessage == null) {
+            return ctx.failhandle();
+        }
+        final SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
+        bm.log(Level.INFO, ctx.getCreature().getName() + " attempts attacking " + aMessage.getTargets());
 
-            ICreature attacker = ctx.getCreature();
+        ICreature attacker = ctx.getCreature();
 
-            BadTargetSelectedEvent.Builder btMessBuilder = BadTargetSelectedEvent.getBuilder()
-                    .setNotBroadcast();
+        BadTargetSelectedEvent.Builder btMessBuilder = BadTargetSelectedEvent.getBuilder().setNotBroadcast();
 
-            if (aMessage.getNumTargets() == 0) {
-                ctx.receive(btMessBuilder.setBde(BadTargetOption.NOTARGET).Build());
-                return ctx.handled();
-            }
-
-            int numAllowedTargets = 1;
-            Vocation attackerVocation = attacker.getVocation();
-            if (attackerVocation != null && attackerVocation instanceof MultiAttacker) {
-                numAllowedTargets = ((MultiAttacker) attackerVocation).maxAttackCount(false);
-            }
-
-            if (aMessage.getNumTargets() > numAllowedTargets) {
-                String badTarget = aMessage.getTargets().get(numAllowedTargets);
-                ctx.receive(btMessBuilder.setBadTarget(badTarget).setBde(BadTargetOption.TOO_MANY).Build());
-                return ctx.handled();
-            }
-
-            List<ICreature> targets = this.collectTargetsFromRoom(bm, attacker, aMessage.getTargets());
-            if (targets == null || targets.size() == 0) {
-                ctx.receive(btMessBuilder.setBde(BadTargetOption.NOTARGET).Build());
-                return ctx.handled();
-            }
-
-            if (attackerVocation != null && attackerVocation instanceof MultiAttacker) {
-                ((MultiAttacker) attackerVocation).attackNumberOfTargets(targets.size(), false);
-            }
-
-            Weapon weapon = this.getDesignatedWeapon(attacker, aMessage.getWeapon());
-            if (weapon == null) {
-                this.log(Level.SEVERE, () -> String.format("No weapon found! %s %s", ctx, cmd));
-                return ctx.handled();
-            }
-
-            this.applyAttacks(bm, attacker, weapon, targets);
+        if (aMessage.getNumTargets() == 0) {
+            ctx.receive(btMessBuilder.setBde(BadTargetOption.NOTARGET).Build());
             return ctx.handled();
         }
-        return ctx.failhandle();
+
+        int numAllowedTargets = 1;
+        Vocation attackerVocation = attacker.getVocation();
+        if (attackerVocation != null && attackerVocation instanceof MultiAttacker) {
+            numAllowedTargets = ((MultiAttacker) attackerVocation).maxAttackCount(false);
+        }
+
+        if (aMessage.getNumTargets() > numAllowedTargets) {
+            String badTarget = aMessage.getTargets().get(numAllowedTargets);
+            ctx.receive(btMessBuilder.setBadTarget(badTarget).setBde(BadTargetOption.TOO_MANY).Build());
+            return ctx.handled();
+        }
+
+        List<ICreature> targets = this.collectTargetsFromRoom(bm, attacker, aMessage.getTargets());
+        if (targets == null || targets.size() == 0) {
+            ctx.receive(btMessBuilder.setBde(BadTargetOption.NOTARGET).Build());
+            return ctx.handled();
+        }
+
+        if (attackerVocation != null && attackerVocation instanceof MultiAttacker) {
+            ((MultiAttacker) attackerVocation).attackNumberOfTargets(targets.size(), false);
+        }
+
+        Weapon weapon = this.getDesignatedWeapon(attacker, aMessage.getWeapon());
+        if (weapon == null) {
+            this.log(Level.SEVERE, () -> String.format("No weapon found! %s %s", ctx, aMessage));
+            return ctx.handled();
+        }
+
+        this.applyAttacks(bm, attacker, weapon, targets);
+        return ctx.handled();
     }
+
 }

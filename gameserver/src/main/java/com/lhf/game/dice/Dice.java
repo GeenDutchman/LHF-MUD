@@ -46,8 +46,13 @@ public abstract class Dice implements Taggable, Comparable<Dice> {
         }
 
         @Override
-        public String getColorTaggedName() {
-            return this.getStartTag() + this.toString() + this.getEndTag();
+        public String getTagName() {
+            return Dice.this.getTagName();
+        }
+
+        @Override
+        public String getSimpleContent() {
+            return this.toString();
         }
 
         /**
@@ -141,16 +146,6 @@ public abstract class Dice implements Taggable, Comparable<Dice> {
         }
 
         @Override
-        public String getStartTag() {
-            return Dice.this.getStartTag();
-        }
-
-        @Override
-        public String getEndTag() {
-            return Dice.this.getEndTag();
-        }
-
-        @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
             if (this.origin != null) {
@@ -199,18 +194,13 @@ public abstract class Dice implements Taggable, Comparable<Dice> {
     }
 
     @Override
-    public String getStartTag() {
-        return "<dice>";
+    public String getTagName() {
+        return "dice";
     }
 
     @Override
-    public String getEndTag() {
-        return "</dice>";
-    }
-
-    @Override
-    public String getColorTaggedName() {
-        return this.getStartTag() + this.toString() + this.getEndTag();
+    public String getSimpleContent() {
+        return this.toString();
     }
 
     @Override

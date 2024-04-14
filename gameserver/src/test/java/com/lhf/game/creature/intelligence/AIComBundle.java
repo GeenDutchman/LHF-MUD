@@ -72,18 +72,13 @@ public class AIComBundle extends ComBundle implements CommandChainHandler {
     }
 
     @Override
-    public String getColorTaggedName() {
-        return this.getStartTag() + this.getName() + this.getEndTag();
+    public String getTagName() {
+        return "AIComBundle";
     }
 
     @Override
-    public String getEndTag() {
-        return "</AIComBundle>";
-    }
-
-    @Override
-    public String getStartTag() {
-        return "<AIComBundle>";
+    public String getSimpleContent() {
+        return this.getName();
     }
 
     @Override
@@ -127,14 +122,14 @@ public class AIComBundle extends ComBundle implements CommandChainHandler {
     }
 
     @Override
-    public Reply handleChain(CommandContext ctx, Command cmd) {
-        return this.mockedWrappedHandler.handleChain(ctx, cmd);
+    public Reply applyChain(CommandContext ctx, Command cmd) {
+        return this.mockedWrappedHandler.applyChain(ctx, cmd);
     }
 
     @Override
-    public Reply handle(CommandContext ctx, Command cmd) {
+    public Reply apply(CommandContext ctx, Command cmd) {
         this.print(cmd.toString(), true);
-        return this.mockedWrappedHandler.handle(ctx, cmd);
+        return this.mockedWrappedHandler.apply(ctx, cmd);
     }
 
 }

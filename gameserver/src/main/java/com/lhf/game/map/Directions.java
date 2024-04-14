@@ -27,31 +27,31 @@ public enum Directions implements Taggable {
 
     public Directions opposite() {
         switch (this) {
-            case NORTH:
-                return SOUTH;
-            case SOUTH:
-                return NORTH;
-            case EAST:
-                return WEST;
-            case WEST:
-                return EAST;
-            case UP:
-                return DOWN;
-            case DOWN:
-                return UP;
-            default:
-                return null;
+        case NORTH:
+            return SOUTH;
+        case SOUTH:
+            return NORTH;
+        case EAST:
+            return WEST;
+        case WEST:
+            return EAST;
+        case UP:
+            return DOWN;
+        case DOWN:
+            return UP;
+        default:
+            return null;
         }
     }
 
     @Override
-    public String getStartTag() {
-        return "<exit>";
+    public String getTagName() {
+        return "exit";
     }
 
     @Override
-    public String getEndTag() {
-        return "</exit>";
+    public String getSimpleContent() {
+        return this.toString();
     }
 
     @Override
@@ -59,8 +59,4 @@ public enum Directions implements Taggable {
         return this.name().toLowerCase().replace('_', ' ');
     }
 
-    @Override
-    public String getColorTaggedName() {
-        return this.getStartTag() + this.toString() + this.getEndTag();
-    }
 }

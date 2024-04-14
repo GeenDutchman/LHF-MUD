@@ -1,11 +1,23 @@
 package com.lhf.messages.events;
 
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.function.Consumer;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+
+import org.w3c.dom.Document;
+
+import com.lhf.OutputBuilder;
+import com.lhf.OutputBuilder.OutputSequence;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.messages.GameEventProcessor.GameEventProcessorID;
@@ -16,18 +28,15 @@ public abstract class GameEvent implements Comparable<GameEvent> {
     public static abstract class Builder<T extends Builder<T>> {
         private GameEventType type;
         private boolean broadcast;
+        private Consumer<OutputBuilder> outputCallback;
         protected T thisObject;
 
         protected Builder(GameEventType type) {
             this.type = type;
             this.broadcast = false;
+            this.outputCallback = null;
             this.thisObject = this.getThis();
         }
-
-        // public T setType(OutMessageType type) {
-        // this.type = type;
-        // return this.getThis();
-        // }
 
         public GameEventType getType() {
             return this.type;
@@ -47,9 +56,47 @@ public abstract class GameEvent implements Comparable<GameEvent> {
             return this.broadcast;
         }
 
+        public Consumer<OutputBuilder> getOutputCallback() {
+            return outputCallback;
+        }
+
+        public T setOutputCallback(Consumer<OutputBuilder> xmlCallbackFunction) {
+            this.outputCallback = xmlCallbackFunction;
+            return this.getThis();
+        }
+
         public abstract T getThis();
 
         public abstract GameEvent Build();
+
+    }
+
+    protected final static String XML_EVENT_ROOT = "GameEvent";
+    protected final static String XML_EVENT_TYPE = "GameEventType";
+    protected final static String XML_EVENT_TICK = "GameEventTick";
+    protected final static String XML_EVENT_UUID = "GameEventUUID";
+
+    public final static Document documentFromGameEvent(GameEvent event) throws ParserConfigurationException {
+        if (event == null) {
+            throw new IllegalArgumentException("Cannot generate document from null event!");
+        }
+
+        OutputSequence sequence = new OutputSequence(XML_EVENT_ROOT);
+        event.buildOutput(sequence);
+        Consumer<OutputBuilder> callback = event.getOutputCallback();
+        if (callback != null) {
+            callback.accept(sequence);
+        }
+
+        Map<String, String> attributes = new TreeMap<>();
+        attributes.put(XML_EVENT_UUID, event.uuid.toString());
+        attributes.put(XML_EVENT_TYPE, event.type.toString());
+        final TickType tick = event.getTickType();
+        if (tick != null) {
+            attributes.put(XML_EVENT_TICK, tick.toString());
+        }
+
+        return OutputBuilder.documentFromOutputSequence(sequence, attributes);
     }
 
     private final GameEventType type;
@@ -57,6 +104,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
     private final Builder<?> builder;
     private final UUID uuid;
     private final SortedSet<GameEventProcessorID> haveRecieved;
+    private final Consumer<OutputBuilder> outputCallback;
 
     public GameEvent(Builder<?> builder) {
         this.type = builder.getType();
@@ -64,6 +112,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
         this.uuid = UUID.randomUUID();
         this.builder = builder;
         this.haveRecieved = Collections.synchronizedSortedSet(new TreeSet<>());
+        this.outputCallback = builder.getOutputCallback();
     }
 
     /**
@@ -83,7 +132,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
         return this.builder;
     }
 
-    public GameEventType getEventType() {
+    public GameEventType getXmlEventType() {
         return this.type;
     }
 
@@ -91,24 +140,38 @@ public abstract class GameEvent implements Comparable<GameEvent> {
         return this.broadcast;
     }
 
-    protected String addressCreature(ICreature creature, boolean capitalize) {
-        if (!this.isBroadcast()) {
-            return capitalize ? "You" : "you";
-        } else if (creature != null) {
-            return creature.getColorTaggedName();
-        } else {
-            return capitalize ? "Someone" : "someone";
-        }
+    public Consumer<OutputBuilder> getOutputCallback() {
+        return outputCallback;
     }
 
-    protected String possesiveCreature(ICreature creature, boolean capitalize) {
+    protected final OutputBuilder addressCreature(OutputBuilder builder, ICreature creature) {
+        return this.addressCreature(builder, creature, true);
+    }
+
+    protected final OutputBuilder addressCreature(OutputBuilder builder, ICreature creature, boolean capitalize) {
         if (!this.isBroadcast()) {
-            return capitalize ? "Your" : "your";
+            builder.appendString(capitalize ? "You" : "you");
         } else if (creature != null) {
-            return creature.getColorTaggedName() + "'s";
+            builder.appendTaggable(creature);
         } else {
-            return capitalize ? "Their" : "their";
+            builder.appendString(capitalize ? "Someone" : "someone");
         }
+        return builder;
+    }
+
+    protected final OutputBuilder possesiveCreature(OutputBuilder builder, ICreature creature) {
+        return this.possesiveCreature(builder, creature, true);
+    }
+
+    protected final OutputBuilder possesiveCreature(OutputBuilder builder, ICreature creature, boolean capitalize) {
+        if (!this.isBroadcast()) {
+            builder.appendString(capitalize ? "Your" : "your");
+        } else if (creature != null) {
+            builder.appendTaggable(creature, " ", "'s");
+        } else {
+            builder.appendString(capitalize ? "Their" : "their");
+        }
+        return builder;
     }
 
     public UUID getUuid() {
@@ -120,7 +183,32 @@ public abstract class GameEvent implements Comparable<GameEvent> {
     }
 
     // Called to render as a human-readable string
-    public abstract String print();
+    public String printString() {
+        OutputSequence stringOut = new OutputBuilder.OutputSequence();
+        this.buildOutput(stringOut);
+        if (this.outputCallback != null) {
+            this.outputCallback.accept(stringOut);
+        }
+        return stringOut.printString();
+    }
+
+    @Override
+    public final String toString() {
+        return this.printString();
+    }
+
+    public final String printXML() throws ParserConfigurationException, TransformerException {
+        StringWriter writer = new StringWriter();
+        this.writeXML(writer);
+        return writer.toString();
+    }
+
+    public final void writeXML(Writer writer) throws ParserConfigurationException, TransformerException {
+        Document myDocument = GameEvent.documentFromGameEvent(this);
+        OutputBuilder.writeDocument(myDocument, writer);
+    }
+
+    public abstract void buildOutput(OutputBuilder builder);
 
     @Override
     public int hashCode() {
@@ -141,7 +229,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
 
     @Override
     public int compareTo(GameEvent arg0) {
-        int runningCompare = this.type.compareTo(arg0.getEventType());
+        int runningCompare = this.type.compareTo(arg0.getXmlEventType());
         if (runningCompare != 0) {
             return runningCompare;
         }

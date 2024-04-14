@@ -12,6 +12,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
+import com.lhf.OutputBuilder;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.conversation.ConversationManager;
@@ -247,9 +248,9 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public Reply handle(CommandContext ctx, Command cmd) {
+    public Reply apply(CommandContext ctx, Command cmd) {
         this.addSelfToContext(ctx); // just in case
-        Reply reply = wrapped.handle(ctx, cmd);
+        Reply reply = wrapped.apply(ctx, cmd);
         this.addSelfToContext(ctx);
         return reply;
     }
@@ -300,8 +301,8 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public Reply handleChain(CommandContext ctx, Command cmd) {
-        return wrapped.handleChain(ctx, cmd);
+    public Reply applyChain(CommandContext ctx, Command cmd) {
+        return wrapped.applyChain(ctx, cmd);
     }
 
     @Override
@@ -485,8 +486,13 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public String printDescription() {
-        return wrapped.printDescription();
+    public String getDescription() {
+        return wrapped.getDescription();
+    }
+
+    @Override
+    public void produceExtraDescription(OutputBuilder builder) {
+        wrapped.produceExtraDescription(builder);
     }
 
     @Override
@@ -502,18 +508,8 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public String getStartTag() {
-        return wrapped.getStartTag();
-    }
-
-    @Override
-    public String getEndTag() {
-        return wrapped.getEndTag();
-    }
-
-    @Override
-    public String getColorTaggedName() {
-        return wrapped.getColorTaggedName();
+    public String getTagName() {
+        return wrapped.getTagName();
     }
 
     @Override

@@ -144,8 +144,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
 
         public final void register(ICreature c) {
             if (c == null) {
-                this.logger.log(Level.SEVERE,
-                        String.format("Cannot register a null creature on this: %s", this));
+                this.logger.log(Level.SEVERE, String.format("Cannot register a null creature on this: %s", this));
                 return;
             }
             synchronized (this.roundPhaser) {
@@ -160,15 +159,12 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
 
         public final void arrive(ICreature c) {
             if (c == null) {
-                this.logger.log(Level.SEVERE,
-                        String.format("Cannot arrive for a null creature on this: %s", this));
+                this.logger.log(Level.SEVERE, String.format("Cannot arrive for a null creature on this: %s", this));
                 return;
             }
             synchronized (this.roundPhaser) {
                 this.logger.log(Level.FINER,
-                        () -> String.format("Attempting Arrival %s -> Phase pre-update: %s",
-                                c.getName(),
-                                this));
+                        () -> String.format("Attempting Arrival %s -> Phase pre-update: %s", c.getName(), this));
                 this.roundPhaser.arrive();
                 this.onArriaval(c);
             }
@@ -178,15 +174,12 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
 
         public final void arriveAndDeregister(ICreature c) {
             if (c == null) {
-                this.logger.log(Level.SEVERE,
-                        String.format("Cannot deregister for null creature on this: %s", this));
+                this.logger.log(Level.SEVERE, String.format("Cannot deregister for null creature on this: %s", this));
                 return;
             }
             synchronized (this.roundPhaser) {
                 this.logger.log(Level.FINER,
-                        () -> String.format("Attempting Deregister %s -> Phase pre-update: %s",
-                                c.getName(),
-                                this));
+                        () -> String.format("Attempting Deregister %s -> Phase pre-update: %s", c.getName(), this));
                 this.roundPhaser.arriveAndDeregister();
                 this.onArriveAndDeregister(c);
             }
@@ -426,16 +419,16 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         this.cmds.computeIfAbsent(AMessageType.EXIT, key -> new SubAreaExitHandler());
         this.cmds.computeIfAbsent(AMessageType.SPELLBOOK, key -> new SubAreaSpellbookHandler());
         switch (this.allowCasting) {
-            case FLUSH_CASTING:
-                this.cmds.computeIfAbsent(AMessageType.CAST, key -> new SubAreaCastHandler(true));
-                break;
-            case POOLED_CASTING:
-                this.cmds.computeIfAbsent(AMessageType.CAST, key -> new SubAreaCastHandler(false));
-                break;
-            case NO_CASTING:
-                break;
-            default:
-                break;
+        case FLUSH_CASTING:
+            this.cmds.computeIfAbsent(AMessageType.CAST, key -> new SubAreaCastHandler(true));
+            break;
+        case POOLED_CASTING:
+            this.cmds.computeIfAbsent(AMessageType.CAST, key -> new SubAreaCastHandler(false));
+            break;
+        case NO_CASTING:
+            break;
+        default:
+            break;
 
         }
         this.actionPools = Collections.synchronizedNavigableMap(new TreeMap<>());
@@ -510,8 +503,8 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
     }
 
     @Override
-    public final String getColorTaggedName() {
-        return this.getStartTag() + this.getName() + this.getEndTag();
+    public String getSimpleContent() {
+        return this.getName();
     }
 
     @Override
@@ -692,14 +685,12 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
     public interface SubAreaCommandHandler extends CommandHandler {
 
         final static EnumMap<AMessageType, CommandHandler> subAreaCommandHandlers = new EnumMap<>(
-                Map.of(AMessageType.EXIT, new SubAreaExitHandler(),
-                        AMessageType.SAY, new SubAreaSayHandler(),
-                        AMessageType.SEE, new SubAreaSeeHandler(),
-                        AMessageType.SHOUT, new SubAreaShoutHandler()));
+                Map.of(AMessageType.EXIT, new SubAreaExitHandler(), AMessageType.SAY, new SubAreaSayHandler(),
+                        AMessageType.SEE, new SubAreaSeeHandler(), AMessageType.SHOUT, new SubAreaShoutHandler()));
 
-        final static EnumMap<AMessageType, CommandHandler> subAreaThirdPowerHandlers = new EnumMap<>(Map.of(
-                AMessageType.CAST, new SubAreaCastHandler(true),
-                AMessageType.SPELLBOOK, new SubAreaSpellbookHandler()));
+        final static EnumMap<AMessageType, CommandHandler> subAreaThirdPowerHandlers = new EnumMap<>(
+                Map.of(AMessageType.CAST, new SubAreaCastHandler(true), AMessageType.SPELLBOOK,
+                        new SubAreaSpellbookHandler()));
 
         @Override
         public default boolean isEnabled(CommandContext ctx) {
@@ -739,9 +730,9 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
     }
 
     public interface PooledSubAreaCommandHandler extends PooledCommandHandler {
-        final static EnumMap<AMessageType, CommandHandler> subAreaThirdPowerHandlers = new EnumMap<>(Map.of(
-                AMessageType.CAST, new SubAreaCastHandler(false),
-                AMessageType.SPELLBOOK, new SubAreaSpellbookHandler()));
+        final static EnumMap<AMessageType, CommandHandler> subAreaThirdPowerHandlers = new EnumMap<>(
+                Map.of(AMessageType.CAST, new SubAreaCastHandler(false), AMessageType.SPELLBOOK,
+                        new SubAreaSpellbookHandler()));
 
         public default SubArea firstSubArea(CommandContext ctx) {
             for (final SubArea subArea : ctx.getSubAreas()) {

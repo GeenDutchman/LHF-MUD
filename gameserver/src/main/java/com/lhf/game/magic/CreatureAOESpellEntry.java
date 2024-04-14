@@ -6,8 +6,8 @@ import java.util.Set;
 import java.util.StringJoiner;
 
 import com.lhf.Taggable;
-import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.ResourceCost;
 import com.lhf.messages.events.SpellCastingEvent;
@@ -100,13 +100,13 @@ public class CreatureAOESpellEntry extends SpellEntry {
             if (offensiveOverride) {
                 // keep them affected (above 0)
                 return new AutoTargeted(Integer.max(this.npc, other.npc), Integer.max(this.caster, other.caster),
-                        Integer.max(this.allies, other.allies),
-                        Integer.max(this.enemies, other.enemies), Integer.max(this.renegades, other.renegades));
+                        Integer.max(this.allies, other.allies), Integer.max(this.enemies, other.enemies),
+                        Integer.max(this.renegades, other.renegades));
             }
             // keep them defended
             return new AutoTargeted(Integer.min(this.npc, other.npc), Integer.min(this.caster, other.caster),
-                    Integer.min(this.allies, other.allies),
-                    Integer.min(this.enemies, other.enemies), Integer.min(this.renegades, other.renegades));
+                    Integer.min(this.allies, other.allies), Integer.min(this.enemies, other.enemies),
+                    Integer.min(this.renegades, other.renegades));
         }
 
         public boolean areNPCsTargeted() {
@@ -130,8 +130,7 @@ public class CreatureAOESpellEntry extends SpellEntry {
         }
 
         public String printAffected() {
-            StringJoiner sj = new StringJoiner(", ")
-                    .setEmptyValue("nobody");
+            StringJoiner sj = new StringJoiner(", ").setEmptyValue("nobody");
             if (this.areNPCsTargeted()) {
                 sj.add("NPCs");
             }
@@ -151,8 +150,7 @@ public class CreatureAOESpellEntry extends SpellEntry {
         }
 
         public String printUnffected() {
-            StringJoiner sj = new StringJoiner(", ")
-                    .setEmptyValue("nobody");
+            StringJoiner sj = new StringJoiner(", ").setEmptyValue("nobody");
             if (!this.areNPCsTargeted()) {
                 sj.add("NPCs");
             }
@@ -179,14 +177,11 @@ public class CreatureAOESpellEntry extends SpellEntry {
             sb.append("The caster is ").append(caster).append(!this.isCasterTargeted() ? "UNaffected" : "affected")
                     .append("\r\n");
             sb.append("The caster's allies are ").append(allies)
-                    .append(!this.areAlliesTargeted() ? "UNaffected" : "affected")
-                    .append("\r\n");
+                    .append(!this.areAlliesTargeted() ? "UNaffected" : "affected").append("\r\n");
             sb.append("The caster's enemies are ").append(enemies)
-                    .append(!this.areEnemiesTargeted() ? "UNaffected" : "affected")
-                    .append("\r\n");
+                    .append(!this.areEnemiesTargeted() ? "UNaffected" : "affected").append("\r\n");
             sb.append("Renegades are ").append(renegades)
-                    .append(!this.areRenegadesTargeted() ? "UNaffected" : "affected")
-                    .append("\r\n");
+                    .append(!this.areRenegadesTargeted() ? "UNaffected" : "affected").append("\r\n");
 
             return sb.toString();
         }
@@ -220,8 +215,7 @@ public class CreatureAOESpellEntry extends SpellEntry {
     }
 
     public CreatureAOESpellEntry(ResourceCost level, String name, String invocation,
-            Set<CreatureEffectSource> effectSources,
-            Set<VocationName> allowed, String description, AutoTargeted safe) {
+            Set<CreatureEffectSource> effectSources, Set<VocationName> allowed, String description, AutoTargeted safe) {
         super(level, name, invocation, effectSources, allowed, description);
         this.autoSafe = safe;
     }
@@ -232,18 +226,13 @@ public class CreatureAOESpellEntry extends SpellEntry {
 
     @Override
     public SpellCastingEvent Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
-        StringJoiner sj = new StringJoiner(", ", "Targeting: ", "").setEmptyValue("Targeting nothing");
-        if (targets != null) {
-            for (Taggable taggable : targets) {
-                sj.add(taggable.getColorTaggedName());
-            }
-        }
-        return SpellCastingEvent.getBuilder().setCaster(caster).setSpellEntry(this).setCastEffects(sj.toString())
-                .Build();
+
+        return SpellCastingEvent.getBuilder().setCaster(caster).setSpellEntry(this).defaultTargetingStyle()
+                .setTargets(targets).Build();
     }
 
     @Override
-    public String printDescription() {
+    public String getDescription() {
         StringJoiner sj = new StringJoiner(" ");
         sj.add(this.description);
         if (this.autoSafe != null) {

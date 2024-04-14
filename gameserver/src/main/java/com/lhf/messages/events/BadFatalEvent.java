@@ -1,5 +1,8 @@
 package com.lhf.messages.events;
 
+import com.lhf.OutputBuilder;
+import com.lhf.Taggable;
+import com.lhf.Taggable.BasicTaggable;
 import com.lhf.messages.GameEventType;
 
 public class BadFatalEvent extends GameEvent {
@@ -62,20 +65,6 @@ public class BadFatalEvent extends GameEvent {
         this.exception = builder.getException();
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder("You made a fatal mistake");
-        if (this.extraInfo != null && !this.extraInfo.isBlank()) {
-            sb.append(":").append(this.extraInfo);
-        }
-        sb.append("\n");
-        sb.append("MessageUUID:").append(this.getUuid()).append("\n");
-        if (this.exception != null) {
-            sb.append("Error:").append(this.exception.toString());
-        }
-        return sb.toString();
-    }
-
     public String getExtraInfo() {
         return extraInfo;
     }
@@ -85,8 +74,21 @@ public class BadFatalEvent extends GameEvent {
     }
 
     @Override
-    public String print() {
-        return this.toString();
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        builder.appendString("You made a fatal mistake");
+        if (this.extraInfo != null && !this.extraInfo.isBlank()) {
+            builder.appendString(this.extraInfo, ":", ".");
+        } else {
+            builder.appendString(".");
+        }
+
+        if (this.exception != null) {
+            Taggable taggableException = BasicTaggable.customTaggable("Exception", this.exception.toString());
+            builder.appendTaggable(taggableException);
+        }
     }
 
 }

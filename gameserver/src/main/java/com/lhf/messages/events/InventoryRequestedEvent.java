@@ -4,11 +4,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.StringJoiner;
 
+import com.lhf.OutputBuilder;
 import com.lhf.game.TickType;
 import com.lhf.game.enums.EquipmentSlots;
-import com.lhf.game.item.AItem;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Takeable;
 import com.lhf.messages.GameEventType;
@@ -66,36 +65,6 @@ public class InventoryRequestedEvent extends GameEvent {
         this.equipment = builder.getEquipment();
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("INVENTORY: ").append("\n");
-        StringJoiner sj = new StringJoiner(", ");
-        sj.setEmptyValue("You have nothing in your inventory");
-        if (this.items != null) {
-            for (Takeable item : this.items) {
-                sj.add(item.getColorTaggedName());
-            }
-        }
-        sb.append(sj.toString()).append("\n");
-        sj = new StringJoiner(", ");
-        sj.setEmptyValue("You have nothing equipped.");
-        if (this.equipment != null && this.equipment.size() > 0) {
-            for (EquipmentSlots slot : EquipmentSlots.values()) {
-                AItem item = this.equipment.get(slot);
-
-                if (item == null) {
-                    sj.add(slot.getColorTaggedName() + ": " + "empty. ");
-                } else {
-                    sj.add(slot.getColorTaggedName() + ": " + item.getColorTaggedName());
-                }
-            }
-        }
-        sb.append(sj.toString());
-
-        return sb.toString();
-    }
-
     public Collection<Takeable> getItems() {
         return items;
     }
@@ -110,8 +79,37 @@ public class InventoryRequestedEvent extends GameEvent {
     }
 
     @Override
-    public String print() {
-        return this.toString();
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+
+        builder.appendString("INVENTORY", " ", "\r\n");
+
+        if ((this.items == null || this.items.isEmpty()) && (this.equipment == null || this.equipment.isEmpty())) {
+            builder.appendString("You have nothing in your inventory.");
+            return;
+        }
+
+        if (this.items != null && !this.items.isEmpty()) {
+            OutputBuilder inventory = builder.produceSubBuilder("Inventory");
+            inventory.appendTaggables(this.items);
+        }
+
+        if (this.equipment != null && !this.equipment.isEmpty()) {
+            OutputBuilder equipped = builder.produceSubBuilder("Equipped");
+            for (EquipmentSlots slot : EquipmentSlots.values()) {
+                Equipable item = this.equipment.get(slot);
+                equipped.appendTaggable(slot, "\r\n", ":");
+                if (item != null) {
+                    equipped.appendTaggable(item);
+                } else {
+                    equipped.appendString("empty");
+                }
+            }
+        } else {
+            builder.appendString("You have nothing equipped.");
+        }
     }
 
 }

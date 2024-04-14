@@ -24,18 +24,13 @@ public enum EquipmentTypes implements Taggable {
     }
 
     @Override
-    public String getStartTag() {
-        return "<equipType>";
+    public String getTagName() {
+        return "equipType";
     }
 
     @Override
-    public String getEndTag() {
-        return "</equipType>";
-    }
-
-    @Override
-    public String getColorTaggedName() {
-        return this.getStartTag() + this.name() + this.getEndTag();
+    public String getSimpleContent() {
+        return this.name();
     }
 
 }

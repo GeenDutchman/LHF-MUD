@@ -1,7 +1,7 @@
 package com.lhf.messages.events;
 
-import java.util.StringJoiner;
-
+import com.lhf.OutputBuilder;
+import com.lhf.Taggable.BasicTaggable;
 import com.lhf.messages.GameEventType;
 
 public class BattleRoundWastedEvent extends BattleRoundEvent {
@@ -60,20 +60,17 @@ public class BattleRoundWastedEvent extends BattleRoundEvent {
     }
 
     @Override
-    public String print() {
-        return this.toString();
-    }
-
-    @Override
-    public String toString() {
-        StringJoiner sj = new StringJoiner(" ").setEmptyValue("This is a turn notification");
-        sj.add(super.toString());
-
-        if (this.wastedPenalty != 0) {
-            sj.add(this.addressCreature(this.about, true)).add("incurred a penalty of")
-                    .add(Integer.toString(this.wastedPenalty)).add("damage");
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
         }
-        return sj.toString() + "!";
+        if (this.wastedPenalty != 0) {
+            this.addressCreature(builder, about);
+            builder.appendString("incurred a penalty of");
+            builder.appendTaggable(BasicTaggable.customTaggable("WastedPenalty", Integer.toString(wastedPenalty)));
+            builder.appendString("damage!", " ", "\r\n");
+        }
+        super.buildOutput(builder);
     }
 
 }

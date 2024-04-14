@@ -1,7 +1,6 @@
 package com.lhf.messages.events;
 
-import java.util.StringJoiner;
-
+import com.lhf.OutputBuilder;
 import com.lhf.Taggable;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.Usable;
@@ -119,39 +118,72 @@ public class ItemUsedEvent extends GameEvent {
         return message;
     }
 
-    private String printItem() {
-        return this.usable != null ? this.usable.getColorTaggedName() : "item";
-    }
-
     @Override
-    public String toString() {
-        StringJoiner sj = new StringJoiner(" ");
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
         if (this.subType == null) {
-            sj.add(this.addressCreature(this.itemUser, true)).add("used this").add(
-                    this.printItem() + (this.target != null ? "on " + this.target.getColorTaggedName() + "." : "."));
+            this.addressCreature(builder, itemUser);
+            builder.appendString(" used this ");
+            if (this.usable != null) {
+                builder.appendTaggable(this.usable);
+            } else {
+                builder.appendString("item");
+            }
+            if (this.target != null) {
+                builder.appendString(" on ");
+                builder.appendTaggable(this.target);
+            }
+            builder.appendString(".", null, null);
         } else {
             switch (this.subType) {
-                case NO_USES:
-                    sj.add("You cannot use this").add(this.printItem()).add("like that!");
-                case USED_UP:
-                    sj.add("This").add(this.printItem()).add("has been used up.");
-                case REQUIRE_EQUIPPED:
-                    sj.add("You need to have this").add(this.printItem())
-                            .add("equipped in order to use it!");
-                case OK:
-                default:
-                    sj.add(this.addressCreature(this.itemUser, true)).add("used this").add(this.printItem()
-                            + (this.target != null ? "on " + this.target.getColorTaggedName() + "." : "."));
+            case NO_USES:
+                builder.appendString("You cannot use this ");
+                if (this.usable != null) {
+                    builder.appendTaggable(this.usable);
+                } else {
+                    builder.appendString("item");
+                }
+                builder.appendString(" like that!");
+                break;
+            case USED_UP:
+                builder.appendString("This ");
+                if (this.usable != null) {
+                    builder.appendTaggable(this.usable);
+                } else {
+                    builder.appendString("item");
+                }
+                builder.appendString(" has been used up.");
+                break;
+            case REQUIRE_EQUIPPED:
+                builder.appendString("YOu need to have this ");
+                if (this.usable != null) {
+                    builder.appendTaggable(this.usable);
+                } else {
+                    builder.appendString("item");
+                }
+                builder.appendString(" equipped in order to use it!");
+                break;
+            case OK:
+            default:
+                this.addressCreature(builder, itemUser);
+                builder.appendString(" used this ");
+                if (this.usable != null) {
+                    builder.appendTaggable(this.usable);
+                } else {
+                    builder.appendString("item");
+                }
+                if (this.target != null) {
+                    builder.appendString(" on ");
+                    builder.appendTaggable(this.target);
+                }
+                builder.appendString(".", null, null);
             }
         }
         if (this.message != null && !this.message.isBlank()) {
-            sj.add(this.getMessage());
+            builder.appendString(this.message);
         }
-        return sj.toString();
     }
 
-    @Override
-    public String print() {
-        return this.toString();
-    }
 }

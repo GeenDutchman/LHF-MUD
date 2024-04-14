@@ -14,7 +14,6 @@ import com.lhf.game.item.Usable;
 import com.lhf.game.map.Area.AreaCommandHandler;
 import com.lhf.game.map.SubArea;
 import com.lhf.game.map.SubArea.SubAreaSort;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.events.BadMessageEvent;
@@ -28,13 +27,11 @@ import com.lhf.messages.in.UseMessage;
 
 public class AreaUseHandler implements AreaCommandHandler {
 
-    private final static String helpString = new StringJoiner(" ")
-            .add("\"use [itemname]\"").add("Uses an item that you have on yourself, if applicable.")
-            .add("Like \"use potion\"").add("\r\n")
+    private final static String helpString = new StringJoiner(" ").add("\"use [itemname]\"")
+            .add("Uses an item that you have on yourself, if applicable.").add("Like \"use potion\"").add("\r\n")
             .add("\"use [itemname] on [otherthing]\"")
             .add("Uses an item that you have on something or someone else, if applicable.")
-            .add("Like \"use potion on Bob\"")
-            .toString();
+            .add("Like \"use potion on Bob\"").toString();
 
     @Override
     public AMessageType getHandleType() {
@@ -53,16 +50,15 @@ public class AreaUseHandler implements AreaCommandHandler {
     }
 
     @Override
-    public Reply handleCommand(CommandContext ctx, Command cmd) {
-        if (cmd == null || cmd.getType() != this.getHandleType()) {
+    public Reply visit(CommandContext ctx, UseMessage useMessage) {
+        if (useMessage == null) {
             return ctx.failhandle();
         }
         if (ctx.getCreature() == null) {
             ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                    .setHelps(ctx.getHelps()).setCommand(cmd).Build());
+                    .setHelps(ctx.getHelps()).setCommand(useMessage).Build());
             return ctx.handled();
         }
-        UseMessage useMessage = new UseMessage(cmd);
         ItemNameSearchVisitor visitor = new ItemNameSearchVisitor(useMessage.getUsefulItem());
         ctx.getCreature().acceptItemVisitor(visitor);
         Optional<Usable> maybeItem = visitor.getUsable();
@@ -84,13 +80,14 @@ public class AreaUseHandler implements AreaCommandHandler {
             if (!ctx.getCreature().isInBattle() && targetCreature.isInBattle()) {
                 final SubArea subArea = ctx.getArea().getSubAreaForSort(SubAreaSort.BATTLE);
                 if (subArea == null) {
-                    this.log(Level.SEVERE, String.format(
-                            "How can we target someone in battle without the Room having a battle sub area? %s",
-                            ctx.getArea().getSubAreas()));
+                    this.log(Level.SEVERE,
+                            String.format(
+                                    "How can we target someone in battle without the Room having a battle sub area? %s",
+                                    ctx.getArea().getSubAreas()));
                     return ctx.failhandle();
                 }
                 subArea.addCreature(ctx.getCreature());
-                return subArea.handleChain(ctx, cmd);
+                return subArea.applyChain(ctx, useMessage);
             }
             usable.useOn(ctx, creatureList.get(0));
             return ctx.handled();
@@ -112,7 +109,6 @@ public class AreaUseHandler implements AreaCommandHandler {
         ctx.receive(BadTargetSelectedEvent.getBuilder().setBde(BadTargetOption.UNCLEAR)
                 .setBadTarget(useMessage.getTarget()).Build());
         return ctx.handled();
-
     }
 
 }

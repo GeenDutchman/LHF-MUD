@@ -74,11 +74,9 @@ public class CommandContext {
         @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
-            builder.append("Reply [handled=").append(handled)
-                    .append(",messageTypes=")
-                    .append(this.getMessages().stream().map(gameEvent -> gameEvent.getEventType()).toList())
-                    .append(",helps=").append(this.getHelps().keySet())
-                    .append("]");
+            builder.append("Reply [handled=").append(handled).append(",messageTypes=")
+                    .append(this.getMessages().stream().map(gameEvent -> gameEvent.getXmlEventType()).toList())
+                    .append(",helps=").append(this.getHelps().keySet()).append("]");
             return builder.toString();
         }
 

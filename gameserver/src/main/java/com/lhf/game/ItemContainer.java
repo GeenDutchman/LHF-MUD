@@ -174,4 +174,9 @@ public interface ItemContainer extends Examinable {
         return this.getItems().size();
     }
 
+    @Override
+    default String getTagName() {
+        return "ItemContainer";
+    }
+
 }

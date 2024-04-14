@@ -6,7 +6,7 @@ import java.util.Set;
 import java.util.StringJoiner;
 
 import com.lhf.Taggable;
-import com.lhf.TaggedExaminable;
+import com.lhf.Examinable;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
@@ -14,7 +14,7 @@ import com.lhf.game.enums.ResourceCost;
 import com.lhf.messages.events.SpellCastingEvent;
 import com.lhf.messages.events.SeeEvent;
 
-public abstract class SpellEntry implements TaggedExaminable, Comparable<SpellEntry> {
+public abstract class SpellEntry implements Examinable, Comparable<SpellEntry> {
     private final String className;
     protected final ResourceCost level;
     protected final String name;
@@ -24,8 +24,7 @@ public abstract class SpellEntry implements TaggedExaminable, Comparable<SpellEn
     protected final Set<? extends EntityEffectSource> effectSources;
 
     public SpellEntry(ResourceCost level, String name, Set<? extends EntityEffectSource> effectSources,
-            Set<VocationName> allowed,
-            String description) {
+            Set<VocationName> allowed, String description) {
         this.className = this.getClass().getName();
         this.level = level != null ? level : ResourceCost.NO_COST;
         this.name = name;
@@ -36,9 +35,7 @@ public abstract class SpellEntry implements TaggedExaminable, Comparable<SpellEn
     }
 
     public SpellEntry(ResourceCost level, String name, String invocation,
-            Set<? extends EntityEffectSource> effectSources,
-            Set<VocationName> allowed,
-            String description) {
+            Set<? extends EntityEffectSource> effectSources, Set<VocationName> allowed, String description) {
         this.className = this.getClass().getName();
         this.level = level != null ? level : ResourceCost.NO_COST;
         this.name = name;
@@ -107,18 +104,13 @@ public abstract class SpellEntry implements TaggedExaminable, Comparable<SpellEn
     abstract public SpellCastingEvent Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets);
 
     @Override
-    public String getColorTaggedName() {
-        return this.getStartTag() + this.getName() + this.getEndTag();
+    public String getTagName() {
+        return "spell";
     }
 
     @Override
-    public String getEndTag() {
-        return "</spell>";
-    }
-
-    @Override
-    public String getStartTag() {
-        return "<spell>";
+    public String getSimpleContent() {
+        return this.getName();
     }
 
     @Override
@@ -131,14 +123,14 @@ public abstract class SpellEntry implements TaggedExaminable, Comparable<SpellEn
         if (this.effectSources.size() > 0) {
             sb.append("\r\n");
             for (EntityEffectSource source : this.effectSources) {
-                sb.append(source.printDescription()).append("\r\n");
+                sb.append(source.getDescription()).append("\r\n");
             }
         }
         return sb.toString();
     }
 
     @Override
-    public String printDescription() {
+    public String getDescription() {
         StringBuilder sb = new StringBuilder(this.description);
         sb.append(this.printEffectDescriptions());
         return sb.toString();
@@ -147,16 +139,16 @@ public abstract class SpellEntry implements TaggedExaminable, Comparable<SpellEn
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(this.getColorTaggedName()).append("\r\n");
+        sb.append(this.getName()).append("\r\n");
         sb.append("Level:").append(this.getLevel()).append("\r\n");
         sb.append("Invocation:\"").append(this.getInvocation()).append("\"\r\n");
         sb.append("Can be cast by:");
         StringJoiner sj = new StringJoiner(", ").setEmptyValue("anyone with magical powers.");
         for (VocationName vocName : this.getAllowedVocations()) {
-            sj.add(vocName.getColorTaggedName());
+            sj.add(vocName.toString());
         }
         sb.append(sj.toString()).append("\r\n");
-        sb.append(this.printDescription()).append("\r\n");
+        sb.append(this.getDescription()).append("\r\n");
         return sb.toString();
     }
 
@@ -196,7 +188,7 @@ public abstract class SpellEntry implements TaggedExaminable, Comparable<SpellEn
         if (diff != 0) {
             return diff;
         }
-        diff = this.printDescription().compareTo(other.printDescription());
+        diff = this.getDescription().compareTo(other.getDescription());
         if (diff != 0) {
             return diff;
         }

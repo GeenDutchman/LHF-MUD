@@ -1,30 +1,27 @@
 package com.lhf.messages.events;
 
-import com.lhf.Taggable;
+import com.lhf.OutputBuilder;
+import com.lhf.Taggable.BasicTaggable;
+import com.lhf.game.creature.ICreature;
 import com.lhf.messages.GameEventType;
 
 public class PlayerReincarnatedEvent extends GameEvent {
-    private final String taggedName;
+    private final BasicTaggable reincarnator;
 
     public static class Builder extends GameEvent.Builder<Builder> {
-        private String taggedName;
+        private BasicTaggable reincarnator;
 
         protected Builder() {
             super(GameEventType.REINCARNATION);
         }
 
-        public String getTaggedName() {
-            return taggedName;
+        public BasicTaggable getReincarnator() {
+            return reincarnator;
         }
 
-        public Builder setTaggedName(String taggedName) {
-            this.taggedName = taggedName;
-            return this;
-        }
-
-        public Builder setTaggedName(Taggable taggable) {
-            if (taggable != null) {
-                this.taggedName = taggable.getColorTaggedName();
+        public Builder setCreature(ICreature creature) {
+            if (creature != null) {
+                this.reincarnator = creature.basicTaggable();
             }
             return this;
         }
@@ -47,24 +44,22 @@ public class PlayerReincarnatedEvent extends GameEvent {
 
     public PlayerReincarnatedEvent(Builder builder) {
         super(builder);
-        this.taggedName = builder.getTaggedName();
+        this.reincarnator = builder.getReincarnator();
     }
 
     @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("*******************************X_X*********************************************").append("\r\n");
-        sb.append(this.taggedName).append(", You have died. Out of mercy you have been reborn back where you began.");
-        return sb.toString();
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        builder.appendString("*******************************X_X*********************************************")
+                .appendString("\r\n");
+        builder.appendTaggable(reincarnator)
+                .appendString(", You have died. Out of mercy you have been reborn back where you began.", null, null);
     }
 
-    public String getTaggedName() {
-        return taggedName;
-    }
-
-    @Override
-    public String print() {
-        return this.toString();
+    public BasicTaggable getReincarnator() {
+        return reincarnator;
     }
 
 }

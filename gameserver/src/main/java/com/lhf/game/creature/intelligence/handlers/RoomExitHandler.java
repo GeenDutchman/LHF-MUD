@@ -15,7 +15,7 @@ public class RoomExitHandler extends AIHandler {
 
     @Override
     public void handle(BasicAI bai, GameEvent event) {
-        if (GameEventType.ROOM_EXITED.equals(event.getEventType())) {
+        if (GameEventType.ROOM_EXITED.equals(event.getXmlEventType())) {
             RoomExitedEvent slr = (RoomExitedEvent) event;
             if (slr.getLeaveTaker() != null) {
                 INonPlayerCharacter npc = bai.getNpc();

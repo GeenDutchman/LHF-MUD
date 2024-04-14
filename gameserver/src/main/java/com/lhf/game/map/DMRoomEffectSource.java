@@ -40,7 +40,7 @@ public class DMRoomEffectSource extends RoomEffectSource {
         Builder builder = new Builder(other.getName());
         builder.setPersistence(other.getPersistence());
         builder.setResistance(other.getResistance());
-        builder.setDescription(other.printDescription());
+        builder.setDescription(other.getDescription());
         builder.setNpcToSummon(other.getNpcToSummon());
         builder.setMonsterToSummon(other.getMonsterToSummon());
         return builder.build();
@@ -51,8 +51,8 @@ public class DMRoomEffectSource extends RoomEffectSource {
     }
 
     @Override
-    public String printDescription() {
-        StringBuilder sb = new StringBuilder(super.printDescription());
+    public String getDescription() {
+        StringBuilder sb = new StringBuilder(super.getDescription());
         if (this.ensoulUserAndSend) {
             sb.append(" This spell will ensoul and send off users. ");
         }

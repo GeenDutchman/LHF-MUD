@@ -4,10 +4,11 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringJoiner;
+import java.util.function.Predicate;
 
-import com.lhf.game.creature.ICreatureBuildInfo;
+import com.lhf.OutputBuilder;
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.creature.ICreatureBuildInfo;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.lewd.LewdAnswer;
 import com.lhf.messages.GameEventType;
@@ -102,117 +103,32 @@ public class LewdEvent extends GameEvent {
         this.templates = builder.getTemplates();
     }
 
-    private String statusString() {
-        StringJoiner sj = new StringJoiner(", ");
+    private void buildStatus(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
         if (this.party != null && this.party.size() > 0) {
             for (ICreature creature : this.party.keySet()) {
-                sj.add(creature.getColorTaggedName() + ":"
-                        + this.party.getOrDefault(creature, LewdAnswer.ASKED).name());
+                builder.appendTaggable(creature, " ", ":")
+                        .appendString(this.party.getOrDefault(creature, LewdAnswer.ASKED).name(), null, "\r\n");
             }
-            return sj.toString();
         } else {
-            return "No one wants to do it right now. ";
+            builder.appendString("No one wants to do it right now.");
         }
     }
 
-    private String acceptedNamesString(ICreature skip) {
-        StringJoiner sj = new StringJoiner(" and ");
-        sj.setEmptyValue(" no one ");
-
+    private void buildAboutParty(OutputBuilder builder, Predicate<Map.Entry<ICreature, LewdAnswer>> filter) {
+        if (builder == null) {
+            return;
+        }
         if (this.party != null && this.party.size() > 1) {
-            for (ICreature creature : this.party.keySet()) {
-                if (skip != null && creature == skip) {
-                    continue;
-                }
-                if (LewdAnswer.ACCEPTED.equals(this.party.get(creature))) {
-                    sj.add(creature.getColorTaggedName());
-                }
-            }
+            builder.appendTaggables(this.party.entrySet().stream()
+                    .filter(entry -> entry != null && entry.getKey() != null
+                            && (filter != null ? filter.test(entry) : true))
+                    .map(entry -> entry.getKey()).toList(), "and", " ", null, "no one");
+        } else {
+            builder.appendString("no one");
         }
-        return sj.toString();
-    }
-
-    private String notDeniedNamesString(ICreature skip) {
-        StringJoiner sj = new StringJoiner(" and ");
-        sj.setEmptyValue(" no one ");
-
-        if (this.party != null && this.party.size() > 1) {
-            for (ICreature creature : this.party.keySet()) {
-                if (skip != null && creature == skip) {
-                    continue;
-                }
-                if (!LewdAnswer.DENIED.equals(this.party.get(creature))) {
-                    sj.add(creature.getColorTaggedName());
-                }
-            }
-        }
-        return sj.toString();
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        if (this.subType == null) {
-            sb.append(this.statusString());
-            return sb.toString();
-        }
-        switch (this.subType) {
-            case DENIED:
-                if (this.creature != null) {
-                    sb.append(this.creature.getColorTaggedName())
-                            .append(" does not wish to do it or is wearing ARMOR and cannot participate. ");
-                    sb.append("\r\n").append(this.statusString());
-                } else {
-                    sb.append("No one wants to do it.");
-                }
-                break;
-            case ACCEPTED:
-                if (this.creature != null) {
-                    sb.append(this.creature.getColorTaggedName()).append(" is excited to join! ");
-                    sb.append("\r\n").append(this.statusString());
-                } else {
-                    sb.append("Let's do it! ");
-                }
-                break;
-            case PROPOSED:
-                if (this.creature != null) {
-                    sb.append(this.creature.getColorTaggedName()).append(" has asked to lewd ")
-                            .append(this.notDeniedNamesString(this.creature)).append("! \r\n");
-                } else {
-                    sb.append("There is a proposal to be lewd!\r\n");
-                }
-                sb.append("You can agree by entering \"lewd\", or you can pass on all lewding by entering \"pass\". ");
-                sb.append("If in the lucky circumstance you are in more than one group,")
-                        .append(" enter \"lewd\" followed by a comma separated list of who you want to be with! \r\n");
-                sb.append(this.statusString());
-                break;
-            case DUNNIT:
-                sb.append("A blur covers ").append(this.acceptedNamesString(null)).append(" as they do it! ");
-                break;
-            case NOT_READY:
-                sb.append("Your ").append(EquipmentSlots.ARMOR)
-                        .append(" equipment slot must be empty in order to participate and you must be in bed and not in a fight! ");
-                sb.append(" The same goes for everyone you invite!");
-                break;
-            case NO_BODY:
-                sb.append("You need to have a body in order to participate in that! ");
-                break;
-            case ORGY_UNSUPPORTED:
-                sb.append("You are trying to lewd too many people! Perhaps you need to be more selective? ");
-                break;
-            case SOLO_UNSUPPORTED:
-                sb.append("Your lewdness is meant to be shared!  Don't go flyin' solo!");
-                break;
-            case MISSED:
-                sb.append("It looks like that lewdness has already been lewded. ");
-                break;
-            case STATUS:
-                // fallthrough
-            default:
-                sb.append(this.statusString());
-                break;
-        }
-        return sb.toString();
     }
 
     public LewdOutMessageType getSubType() {
@@ -235,8 +151,76 @@ public class LewdEvent extends GameEvent {
     }
 
     @Override
-    public String print() {
-        return this.toString();
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        if (this.subType == null) {
+            this.buildStatus(builder);
+            return;
+        }
+        switch (this.subType) {
+        case DENIED:
+            if (this.creature != null) {
+                builder.appendTaggable(this.creature);
+                builder.appendString(" does not wish to do it or is wearing ARMOR and cannot participate. ");
+                this.buildStatus(builder);
+            } else {
+                builder.appendString("No one wants to do it.");
+            }
+            break;
+        case ACCEPTED:
+            if (this.creature != null) {
+                builder.appendTaggable(this.creature);
+                builder.appendString("is excited to join!");
+                this.buildStatus(builder);
+            } else {
+                builder.appendString("Let's do it!");
+            }
+            break;
+        case PROPOSED:
+            if (this.creature != null) {
+                builder.appendTaggable(creature);
+                builder.appendString("has asked to lewd");
+                this.buildAboutParty(builder, entry -> !LewdAnswer.DENIED.equals(entry.getValue()));
+                builder.appendString("!", null, "\r\n");
+            } else {
+                builder.appendString("There is a proposal to be lewd!\r\n");
+            }
+            builder.appendString(
+                    "You can agree by entering \"lewd\", or you can pass on all lewding by entering \"pass\". ");
+            builder.appendString("If in the lucky circumstance you are in more than one group,").appendString(
+                    " enter \"lewd\" followed by a comma separated list of who you want to be with! \r\n");
+            this.buildStatus(builder);
+            break;
+        case DUNNIT:
+            builder.appendString("A blur covers");
+            this.buildAboutParty(builder, entry -> LewdAnswer.ACCEPTED.equals(entry.getValue()));
+            builder.appendString("as they do it!");
+            break;
+        case NOT_READY:
+            builder.appendString("Your").appendTaggable(EquipmentSlots.ARMOR).appendString(
+                    " equipment slot must be empty in order to participate and you must be in bed and not in a fight! ");
+            builder.appendString(" The same goes for everyone you invite!");
+            break;
+        case NO_BODY:
+            builder.appendString("You need to have a body in order to participate in that! ");
+            break;
+        case ORGY_UNSUPPORTED:
+            builder.appendString("You are trying to lewd too many people! Perhaps you need to be more selective? ");
+            break;
+        case SOLO_UNSUPPORTED:
+            builder.appendString("Your lewdness is meant to be shared!  Don't go flyin' solo!");
+            break;
+        case MISSED:
+            builder.appendString("It looks like that lewdness has already been lewded. ");
+            break;
+        case STATUS:
+            // fallthrough
+        default:
+            this.buildStatus(builder);
+            break;
+        }
     }
 
 }

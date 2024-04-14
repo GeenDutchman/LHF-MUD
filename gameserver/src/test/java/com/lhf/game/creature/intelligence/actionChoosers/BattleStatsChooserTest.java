@@ -49,79 +49,61 @@ public class BattleStatsChooserTest {
         BattleStatsChooser chooser = new BattleStatsChooser();
 
         SortedMap<String, Double> targets = chooser.choose(
-                battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING).stream()
-                        .collect(Collectors.toSet()),
-                finder.getNPC().getHarmMemories(),
-                List.of());
+                battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING).stream().collect(Collectors.toSet()),
+                finder.getNPC().getHarmMemories(), List.of());
 
         Truth.assertThat(targets).hasSize(3); // includes finder
         for (Double value : targets.values()) {
-            Truth.assertThat(value).isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
-                    .of(AIChooser.MIN_VALUE);
+            Truth.assertThat(value).isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE).of(AIChooser.MIN_VALUE);
         }
 
         // attacker does harm but no aggro
 
         CreatureEffectSource source = new CreatureEffectSource.Builder("test").instantPersistence()
                 .setDescription("For a test")
-                .setOnApplication(new Deltas()
-                        .addDamage(new DamageDice(1, DieType.HUNDRED,
-                                DamageFlavor.BLUDGEONING)))
+                .setOnApplication(new Deltas().addDamage(new DamageDice(1, DieType.HUNDRED, DamageFlavor.BLUDGEONING)))
                 .build();
 
         CreatureAffectedEvent cam = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
-                .setCreatureResponsible(attacker.getNPC())
-                .setGeneratedBy(attacker.getNPC())
-                .setDamages(source.getOnApplication().rollDamages())
-                .setHighlightedDelta(source.getOnApplication()).Build();
+                .setCreatureResponsible(attacker.getNPC()).setGeneratedBy(attacker.getNPC())
+                .setDamages(source.getOnApplication().rollDamages()).setHighlightedDelta(source.getOnApplication())
+                .Build();
 
         finder.getNPC().getHarmMemories().update(cam);
         battleStats.update(cam);
 
         targets = chooser.choose(
-                battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING).stream()
-                        .collect(Collectors.toSet()),
-                finder.getNPC().getHarmMemories(),
-                List.of());
+                battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING).stream().collect(Collectors.toSet()),
+                finder.getNPC().getHarmMemories(), List.of());
 
         Truth.assertThat(targets).hasSize(3); // includes finder
-        Truth.assertThat(targets.get(attacker.getNPC().getName()))
-                .isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
+        Truth.assertThat(targets.get(attacker.getNPC().getName())).isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
                 .of(AIChooser.MIN_VALUE);
         Truth.assertThat(targets.get(subAttacker.getNPC().getName()))
-                .isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
-                .of(AIChooser.MIN_VALUE);
+                .isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE).of(AIChooser.MIN_VALUE);
 
         // attacker does harm with aggro
 
         CreatureEffectSource source2 = new CreatureEffectSource.Builder("test2").instantPersistence()
                 .setDescription("For a test")
-                .setOnApplication(new Deltas()
-                        .addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.AGGRO)))
-                .build();
+                .setOnApplication(new Deltas().addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.AGGRO))).build();
 
         CreatureAffectedEvent cam2 = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
-                .setCreatureResponsible(subAttacker.getNPC())
-                .setGeneratedBy(subAttacker.getNPC())
-                .setDamages(source2.getOnApplication().rollDamages())
-                .setHighlightedDelta(source2.getOnApplication())
+                .setCreatureResponsible(subAttacker.getNPC()).setGeneratedBy(subAttacker.getNPC())
+                .setDamages(source2.getOnApplication().rollDamages()).setHighlightedDelta(source2.getOnApplication())
                 .Build();
 
         finder.getNPC().getHarmMemories().update(cam2);
         battleStats.update(cam2);
 
         targets = chooser.choose(
-                battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING).stream()
-                        .collect(Collectors.toSet()),
-                finder.getNPC().getHarmMemories(),
-                List.of());
+                battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING).stream().collect(Collectors.toSet()),
+                finder.getNPC().getHarmMemories(), List.of());
 
         Truth.assertThat(targets).hasSize(3); // includes finder
         Truth.assertThat(targets.get(subAttacker.getNPC().getName()))
-                .isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
-                .of((double) 1);
-        Truth.assertThat(targets.get(attacker.getNPC().getName()))
-                .isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
+                .isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE).of((double) 1);
+        Truth.assertThat(targets.get(attacker.getNPC().getName())).isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
                 .of(AIChooser.MIN_VALUE);
 
     }
@@ -132,23 +114,19 @@ public class BattleStatsChooserTest {
         finder.getNPC().setFaction(CreatureFaction.RENEGADE);
         AIComBundle attacker = new AIComBundle();
 
-        BattleStats battleStats = new BattleStats()
-                .initialize(List.of(finder.getNPC(), attacker.getNPC()));
+        BattleStats battleStats = new BattleStats().initialize(List.of(finder.getNPC(), attacker.getNPC()));
 
         CreatureEffectSource source = new CreatureEffectSource.Builder("test").instantPersistence()
                 .setDescription("For a test")
-                .setOnApplication(new Deltas()
-                        .addDamage(new DamageDice(1, DieType.HUNDRED,
-                                DamageFlavor.BLUDGEONING))
+                .setOnApplication(new Deltas().addDamage(new DamageDice(1, DieType.HUNDRED, DamageFlavor.BLUDGEONING))
                         .addDamage(new DamageDice(2, DieType.SIX, DamageFlavor.AGGRO)))
                 .build();
 
         CreatureAffectedEvent cam = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
-                .setHighlightedDelta(source.getOnApplication())
-                .setDamages(source.getOnApplication().rollDamages()).setCreatureResponsible(attacker.getNPC())
-                .setGeneratedBy(attacker.getNPC()).Build();
+                .setHighlightedDelta(source.getOnApplication()).setDamages(source.getOnApplication().rollDamages())
+                .setCreatureResponsible(attacker.getNPC()).setGeneratedBy(attacker.getNPC()).Build();
 
-        System.out.println(cam.print());
+        System.out.println(cam);
 
         battleStats.update(cam);
 

@@ -11,6 +11,7 @@ import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.lhf.OutputBuilder;
 import com.lhf.game.LockableItemContainer;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.IItem;
@@ -38,8 +39,7 @@ public class Chest extends InteractObject implements LockableItemContainer {
     }
 
     public Chest(ChestDescriptor descriptor) {
-        super(ChestDescriptor.generateDescription(descriptor),
-                ChestDescriptor.generateDescription(descriptor));
+        super(ChestDescriptor.generateDescription(descriptor), ChestDescriptor.generateDescription(descriptor));
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
         this.descriptionString = "A " + this.descriptionString;
@@ -48,8 +48,7 @@ public class Chest extends InteractObject implements LockableItemContainer {
     }
 
     public Chest(ChestDescriptor descriptor, boolean initialLock, boolean removeOnEmpty) {
-        super(ChestDescriptor.generateDescription(descriptor),
-                ChestDescriptor.generateDescription(descriptor));
+        super(ChestDescriptor.generateDescription(descriptor), ChestDescriptor.generateDescription(descriptor));
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
         this.descriptionString = "A " + this.descriptionString;
@@ -79,9 +78,9 @@ public class Chest extends InteractObject implements LockableItemContainer {
     }
 
     @Override
-    public String printDescription() {
+    public String getDescription() {
         StringJoiner sj = new StringJoiner(" ");
-        sj.add(super.printDescription() + ".");
+        sj.add(super.getDescription() + ".");
         if (this.isUnlocked()) {
             sj.add("It is unlocked.");
             sj.add(this.isEmpty() ? "It is empty." : "Something is inside.");
@@ -107,18 +106,32 @@ public class Chest extends InteractObject implements LockableItemContainer {
         if (creature == null) {
             return;
         }
-        ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setTaggable(this);
-        if (this.isUnlocked() && this.isEmpty() && this.isRemoveOnEmpty() && this.area != null) {
+        ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setTaggable(this)
+                .setInteractor(creature);
+        final boolean unlockedState = this.isUnlocked();
+        if (unlockedState && this.isEmpty() && this.isRemoveOnEmpty() && this.area != null) {
             area.removeItem(this);
-            builder.setDescription(
-                    String.format("%s discovers that the %s is contains nothing and it crumbles to dust.",
-                            creature.getColorTaggedName(), this.getColorTaggedName()));
-        } else if (this.isUnlocked()) {
-            builder.setDescription(String.format("%s tries the %s and finds it unlocked", creature.getColorTaggedName(),
-                    this.getColorTaggedName()));
+            builder.setOutputCallback(nodeGenerator -> {
+                if (nodeGenerator == null) {
+                    return;
+                }
+                OutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                description.appendTaggable(creature);
+                description.appendString("discovers that the");
+                description.appendTaggable(this);
+                description.appendString("contains nothing and it crumbles to dust.");
+            });
         } else {
-            builder.setDescription(String.format("%s tries the %s and finds it locked", creature.getColorTaggedName(),
-                    this.getColorTaggedName()));
+            builder.setOutputCallback(nodeGenerator -> {
+                if (nodeGenerator == null) {
+                    return;
+                }
+                OutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                description.appendTaggable(creature);
+                description.appendString("tries the");
+                description.appendTaggable(this);
+                description.appendString(String.format("and finds it %s.", unlockedState ? "unlocked" : "locked"));
+            });
         }
         this.broadcast(creature, builder);
         this.interactCount++;
@@ -237,8 +250,8 @@ public class Chest extends InteractObject implements LockableItemContainer {
         }
 
         @Override
-        public String printDescription() {
-            return Chest.this.printDescription();
+        public String getDescription() {
+            return Chest.this.getDescription();
         }
 
         @Override

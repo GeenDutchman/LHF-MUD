@@ -24,7 +24,7 @@ public class QuestEffect extends CreatureEffect {
         if (tickEvent == null) {
             return false;
         }
-        if (GameEventType.QUEST.equals(tickEvent.getEventType()) && tickEvent instanceof QuestEvent questEvent
+        if (GameEventType.QUEST.equals(tickEvent.getXmlEventType()) && tickEvent instanceof QuestEvent questEvent
                 && this.getName().equals(questEvent.getQuestName())) {
             if (QuestEventType.COMPLETED.equals(questEvent.getQuestEventType())
                     || QuestEventType.FAILED.equals(questEvent.getQuestEventType())) {

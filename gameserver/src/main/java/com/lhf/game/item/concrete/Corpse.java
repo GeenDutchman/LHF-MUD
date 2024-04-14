@@ -22,9 +22,8 @@ public class Corpse extends Chest {
     }
 
     @Override
-    public String printDescription() {
-        return "This is " + this.getColorTaggedName()
-                + ".  They are quite clearly dead.  You can't quite tell the cause...";
+    public String getDescription() {
+        return "They are quite clearly dead.  You can't quite tell the cause...";
     }
 
     @Override

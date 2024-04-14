@@ -17,10 +17,9 @@ import com.lhf.messages.events.SpellCastingEvent;
 
 public class Thaumaturgy extends RoomTargetingSpellEntry {
 
-    private static final Set<RoomEffectSource> spellEffects = Set
-            .of(new RoomEffectSource.Builder("Announce yourself").instantPersistence()
-                    .setResistance(new EffectResistance(Attributes.CHA, 5, TargetResistAmount.ALL))
-                    .setDescription("Announce yourself to the room!").build());
+    private static final Set<RoomEffectSource> spellEffects = Set.of(new RoomEffectSource.Builder("Announce yourself")
+            .instantPersistence().setResistance(new EffectResistance(Attributes.CHA, 5, TargetResistAmount.ALL))
+            .setDescription("Announce yourself to the room!").build());
 
     public Thaumaturgy() {
         super(ResourceCost.NO_COST, "Thaumaturgy", "zarmamoo", spellEffects, new HashSet<VocationName>(),
@@ -38,17 +37,13 @@ public class Thaumaturgy extends RoomTargetingSpellEntry {
                 longest = split.length();
             }
         }
-        sb.append(caster.getStartTag()).append("\\").append("|".repeat(longest)).append("/")
-                .append(caster.getEndTag()).append("\n");
+        sb.append("\\").append("|".repeat(longest)).append("/").append("\n");
         for (String split : splitname) {
-            sb.append(caster.getStartTag()).append("-").append(split)
-                    .append(" ".repeat(longest - split.length())).append("-").append(caster.getEndTag())
-                    .append("\n");
+            sb.append("-").append(split).append(" ".repeat(longest - split.length())).append("-").append("\n");
         }
-        sb.append(caster.getStartTag()).append("/").append("|".repeat(longest)).append("\\")
-                .append(caster.getEndTag()).append("\n");
-        return SpellCastingEvent.getBuilder().setCaster(caster).setSpellEntry(this).setCastEffects(sb.toString())
-                .Build();
+        sb.append("/").append("|".repeat(longest)).append("\\").append("\n");
+        return SpellCastingEvent.getBuilder().setCaster(caster).setSpellEntry(this).setTargets(targets)
+                .setExtras(sb.toString()).Build();
     }
 
 }

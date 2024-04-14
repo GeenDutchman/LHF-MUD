@@ -1,8 +1,8 @@
 package com.lhf.messages.events;
 
 import java.util.List;
-import java.util.StringJoiner;
 
+import com.lhf.OutputBuilder;
 import com.lhf.game.TickType;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.AItem;
@@ -91,129 +91,95 @@ public class ItemEquippedEvent extends GameEvent {
         this.attemptedSlot = builder.getAttemptedSlot();
     }
 
-    private String printItemName(String defaultItemName) {
+    private void printItemName(OutputBuilder builder, String defaultItemName) {
         if (this.item != null) {
-            return this.item.getColorTaggedName();
+            builder.appendTaggable(this.item);
         } else if (this.attemptedItemName != null && !this.attemptedItemName.isBlank()) {
-            return "'" + this.attemptedItemName + "'";
+            builder.appendString(this.attemptedItemName, " '", "'");
         } else if (defaultItemName != null && !defaultItemName.isBlank()) {
-            return defaultItemName;
+            builder.appendString(defaultItemName);
         } else {
-            return "item";
+            builder.appendString("item");
         }
     }
 
     @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
         if (this.isBroadcast()) {
-            sb.append("Someone ");
-            if (this.getSubType() == EquipResultType.SUCCESS) {
-                sb.append("equipped ");
-            } else {
-                sb.append("attempted to equip ");
-            }
-            sb.append("an item.");
-            return sb.toString();
+            builder.appendString(String.format("Someone %s an item.",
+                    this.getSubType() == EquipResultType.SUCCESS ? "equipped" : "attempted to equip"));
+            return;
         }
         if (this.subType == null) {
-            sb.append("You searched to equip ");
-            if (this.attemptedItemName != null && this.attemptedItemName.length() > 0) {
-                sb.append("'").append(this.attemptedItemName).append("' ");
-            } else {
-                sb.append("an item ");
-            }
+            builder.appendString(String.format("You searched to equip %s",
+                    this.attemptedItemName != null ? "'" + this.attemptedItemName + "'" : "an item"));
             if (this.attemptedSlot != null) {
-                sb.append("to your ").append(this.attemptedSlot.getColorTaggedName()).append(" equipment slot ");
+                builder.appendString("to your");
+                builder.appendTaggable(this.attemptedSlot);
+                builder.appendString("equipment slot");
             }
             if (this.item != null) {
-                sb.append(", and found ").append(this.item.getColorTaggedName()).append(" ");
-                if (this.item instanceof Equipable) {
-                    sb.append("which could equip to any of these slots: ");
-                    StringJoiner sj = new StringJoiner(", ");
-                    for (EquipmentSlots slots : this.getCorrectSlots()) {
-                        sj.add(slots.getColorTaggedName());
-                    }
-                    sb.append(sj.toString()).append(". ");
-                    if (this.attemptedSlot != null) {
-                        sb.append("And you equipped it.");
-                    }
+                builder.appendString(", and found", null, null);
+                builder.appendTaggable(this.item);
+                if (this.attemptedSlot != null) {
+                    builder.appendString("and you equipped it.");
                 }
             } else {
-                sb.append(" but did not find such in your inventory. ");
+                builder.appendString("but did not find such in your inventory.");
             }
-            return sb.toString();
+            return;
         }
         switch (this.subType) {
-            case SUCCESS:
-                sb.append("You successfully equipped your ").append(this.printItemName(null));
-                if (this.attemptedSlot != null) {
-                    sb.append(" to your ").append(this.attemptedSlot.getColorTaggedName()).append(" equiment slot");
-                }
-                sb.append(".");
-                break;
-            case BADSLOT:
-                if (this.attemptedSlot != null) {
-                    sb.append(this.attemptedSlot.getColorTaggedName());
-                } else {
-                    sb.append("That slot");
-                }
-                sb.append(" is not an appropriate slot for equipping ");
-                sb.append(this.printItemName("that item"));
-                sb.append(".");
-                if (this.item != null && this.getCorrectSlots().size() > 0) {
-                    sb.append("You can equip it to: ");
-                    StringJoiner sj = new StringJoiner(", ");
-                    for (EquipmentSlots slots : this.getCorrectSlots()) {
-                        sj.add(slots.getColorTaggedName());
-                    }
-                    sb.append(sj.toString());
-                }
-                break;
-            case NOTEQUIPBLE:
-                if (this.item != null) {
-                    sb.append(this.item.getColorTaggedName());
-                } else if (this.attemptedItemName != null) {
-                    sb.append("'").append(this.attemptedItemName).append("'");
-                } else {
-                    sb.append("that");
-                }
-                sb.append(" is not equippable!");
-                break;
-            default:
-                sb.append("You searched to equip ");
-                if (this.attemptedItemName != null && this.attemptedItemName.length() > 0) {
-                    sb.append("'").append(this.attemptedItemName).append("' ");
-                } else {
-                    sb.append("an item ");
-                }
-                if (this.attemptedSlot != null) {
-                    sb.append("to your ").append(this.attemptedSlot.getColorTaggedName()).append(" equipment slot ");
-                }
-                if (this.item != null) {
-                    sb.append(", and found ").append(this.item.getColorTaggedName()).append(" ");
-                    if (this.item instanceof Equipable) {
-                        sb.append("which could equip to any of these slots: ");
-                        StringJoiner sj = new StringJoiner(", ");
-                        for (EquipmentSlots slots : this.getCorrectSlots()) {
-                            sj.add(slots.getColorTaggedName());
-                        }
-                        sb.append(sj.toString()).append(". ");
-                        if (this.attemptedSlot != null) {
-                            sb.append("And you equipped it.");
-                        }
-                    }
-                } else {
-                    sb.append(" but did not find such in your inventory. ");
-                }
-                break;
-        }
-        return sb.toString();
-    }
+        case SUCCESS:
+            builder.appendString("You successfully equipped your");
+            this.printItemName(builder, null);
+            if (this.attemptedSlot != null) {
+                builder.appendString("to your");
+                builder.appendTaggable(this.attemptedSlot);
+                builder.appendString("equipment slot");
+            }
+            builder.appendString(".", null, null);
+            break;
+        case BADSLOT:
+            if (this.attemptedSlot != null) {
+                builder.appendTaggable(attemptedSlot);
+            } else {
+                builder.appendString("That slot");
+            }
 
-    @Override
-    public String print() {
-        return this.toString();
+            builder.appendString("is not an appropriate slot for equippeing");
+            this.printItemName(builder, "that item");
+            builder.appendString(".", null, null);
+            if (this.item != null && this.getCorrectSlots().size() > 0) {
+                builder.appendTaggables(this.getCorrectSlots(), ", ", "You can equip it to:", ".", "No slots");
+            }
+            break;
+        case NOTEQUIPBLE:
+            this.printItemName(builder, "that item");
+            builder.appendString("is not equippable!");
+            break;
+        default:
+            builder.appendString(String.format("You searched to equip %s",
+                    this.attemptedItemName != null ? "'" + this.attemptedItemName + "'" : "an item"));
+            if (this.attemptedSlot != null) {
+                builder.appendString("to your");
+                builder.appendTaggable(this.attemptedSlot);
+                builder.appendString("equipment slot");
+            }
+            if (this.item != null) {
+                builder.appendString(", and found", null, null);
+                builder.appendTaggable(this.item);
+                if (this.attemptedSlot != null) {
+                    builder.appendString("and you equipped it.");
+                }
+            } else {
+                builder.appendString("but did not find such in your inventory.");
+            }
+            break;
+        }
     }
 
     public EquipResultType getSubType() {

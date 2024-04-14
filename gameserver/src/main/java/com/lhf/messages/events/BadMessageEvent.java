@@ -1,5 +1,6 @@
 package com.lhf.messages.events;
 
+import com.lhf.OutputBuilder;
 import com.lhf.messages.Command;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.in.AMessageType;
@@ -76,36 +77,40 @@ public class BadMessageEvent extends HelpNeededEvent {
     }
 
     @Override
-    public String toString() {
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
         if (this.type == null) {
-            return super.toString();
+            super.buildOutput(builder);
+            return;
         }
-        StringBuilder sb = new StringBuilder();
         switch (this.type) {
-            case CREATURES_ONLY:
-                sb.append("You must be more than just a User to perform the action: ").append(this.commandType)
-                        .append("\r\n")
-                        .append("Here are the available commands:\r\n");
-                break;
-            case UNHANDLED:
-                sb.append("That command \"").append(this.cmd).append("\" was not handled.\n")
-                        .append("Here are the available commands:\r\n");
-                break;
-            case UNRECOGNIZED:
-                sb.append("That command \"").append(this.cmd).append("\" was not recognized.\n")
-                        .append("Here are the available commands:\r\n");
-                break;
-            case OTHER:
-                sb.append("Your command\"").append(this.cmd)
-                        .append("\" was really not recognized, you just have no luck, huh?\r\n");
-                break;
-            default:
-                sb.append("Your command\"").append(this.cmd)
-                        .append("\" was really not recognized, you just have no luck, huh?\r\n");
+        case CREATURES_ONLY:
+            builder.appendString("You must be more than just a User to perform the action:")
+                    .appendTaggable(this.commandType, " ", "\r\n");
+            builder.appendString("Here are the available commands:\r\n");
+            break;
+        case UNHANDLED:
+            builder.appendString("That command \"", null, null).appendString(this.cmd)
+                    .appendString("\" was not handled.\r\n", null, null);
+            builder.appendString("Here are the available commands:\r\n");
+            break;
+        case UNRECOGNIZED:
+            builder.appendString("That command \"", null, null).appendString(this.cmd)
+                    .appendString("\" was not recognized.\r\n", null, null);
+            builder.appendString("Here are the available commands:\r\n");
 
-                break;
+            break;
+        case OTHER:
+            // fallthrough
+        default:
+            builder.appendString("Your command \"", null, null).appendString(this.cmd)
+                    .appendString("\" was not recognized, you just have no luck, huh?\r\n", null, null);
+
+            break;
         }
-        return sb.append(super.toString()).toString();
+        super.buildOutput(builder);
     }
 
     public BadMessageType getType() {

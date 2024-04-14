@@ -14,7 +14,7 @@ public class FleeHandler extends AIHandler {
 
     @Override
     public void handle(BasicAI bai, GameEvent event) {
-        if (event.getEventType().equals(GameEventType.FLEE)) {
+        if (event.getXmlEventType().equals(GameEventType.FLEE)) {
             BattleCreatureFledEvent flee = (BattleCreatureFledEvent) event;
             if (flee.isFled() && flee.getRunner() != null) {
                 if (flee.getRunner() == bai.getNpc()) {

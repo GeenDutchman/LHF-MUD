@@ -17,34 +17,26 @@ import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.magic.CreatureTargetingSpellEntry;
 import com.lhf.messages.events.SpellCastingEvent;
+import com.lhf.messages.events.SpellCastingEvent.TargetingStyle;
 
 public class ShockBolt extends CreatureTargetingSpellEntry {
-    private static final Set<CreatureEffectSource> spellEffects = Set.of(
-            new CreatureEffectSource.Builder("Zap").instantPersistence()
-                    .setResistance(new EffectResistance(
-                            EnumSet.of(Attributes.INT, Attributes.WIS, Attributes.CHA),
-                            Stats.AC))
-                    .setDescription("This spell zaps things.")
-                    .setOnApplication(new Deltas().addDamage(
-                            new DamageDice(1, DieType.FOUR, DamageFlavor.LIGHTNING)))
-                    .build());
+    private static final Set<CreatureEffectSource> spellEffects = Set.of(new CreatureEffectSource.Builder("Zap")
+            .instantPersistence()
+            .setResistance(new EffectResistance(EnumSet.of(Attributes.INT, Attributes.WIS, Attributes.CHA), Stats.AC))
+            .setDescription("This spell zaps things.")
+            .setOnApplication(new Deltas().addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.LIGHTNING))).build());
 
     public ShockBolt() {
-        super(ResourceCost.NO_COST, "Shock Bolt", "Astra Horeb", spellEffects,
-                Set.of(),
+        super(ResourceCost.NO_COST, "Shock Bolt", "Astra Horeb", spellEffects, Set.of(),
                 "A small spark of electricity shocks a creature you choose as a target", true);
     }
 
     @Override
     public SpellCastingEvent Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
-        StringBuilder sb = new StringBuilder();
-        for (Taggable target : targets) {
-            sb.append("A small spark zips from").append(caster.getColorTaggedName())
-                    .append("'s finger and flies toward").append(target.getColorTaggedName())
-                    .append("!");
-        }
+
         return SpellCastingEvent.getBuilder().setCaster(caster).setSpellEntry(this)
-                .setCastEffects(sb.toString())
+                .setTargetingStyle(
+                        new TargetingStyle(true, "A small spark zips from ", "'s finger and flies toward ", "!"))
                 .Build();
     }
 

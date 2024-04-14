@@ -5,10 +5,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.TreeSet;
 
+import com.lhf.OutputBuilder;
+import com.lhf.Taggable;
+import com.lhf.Taggable.BasicTaggable;
 import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.battle.BattleStats.BattleStatRecord.BattleStat;
 import com.lhf.messages.GameEventType;
@@ -106,12 +110,47 @@ public class BattleStatsRequestedEvent extends GameEvent {
     }
 
     @Override
-    public String print() {
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        if (this.records.isEmpty()) {
+            builder.appendString("No records found.");
+            return;
+        }
+        if (this.roundCount.isPresent()) {
+            builder.appendTaggable(Taggable.BasicTaggable.customTaggable("Round", this.roundCount.get().toString()),
+                    " Round:", null);
+        }
+        if (this.turnCount.isPresent()) {
+            builder.appendTaggable(Taggable.BasicTaggable.customTaggable("Turn", this.turnCount.get().toString()),
+                    " Turn:", null);
+        }
+        OutputBuilder battleStats = builder.produceSubBuilder("BattleStats");
+        for (final BattleStatRecord battleStatRecord : records) {
+            OutputBuilder battleStat = battleStats.produceSubBuilder("BattleStatRecord");
+            battleStat.appendTaggable(BasicTaggable.customTaggable("TargetName", battleStatRecord.getTargetName()));
+            battleStat
+                    .appendTaggable(BasicTaggable.customTaggable("Faction", battleStatRecord.getFaction().toString()));
+            battleStat.appendTaggable(battleStatRecord.getVocation());
+            battleStat.appendTaggable(battleStatRecord.getBucket());
+            OutputBuilder stats = battleStat.produceSubBuilder("Stats");
+            for (final Entry<BattleStat, Integer> entry : battleStatRecord.getStats().entrySet()) {
+                final String key = entry.getKey().toString();
+                final String value = entry.getValue().toString();
+                OutputBuilder stat = stats.produceSubBuilder(key);
+                stat.appendString(key);
+                stat.appendString(value, ":", null);
+            }
+        }
+    }
+
+    public String printString() {
         String header = "";
         if (this.records.size() > 0) {
             header = HEADER_STRING + "\n" + DELINEATOR_STRING + "\n";
         }
-        StringJoiner sj = new StringJoiner("\n", "<BattleStats>\nBattle Statistics\n" + header, "\n</BattleStats>")
+        StringJoiner sj = new StringJoiner("\n", "Battle Statistics\n" + header, "\n")
                 .setEmptyValue("No statistics found.");
         this.records.stream().forEach(record -> {
             ArrayList<Object> toFormat = new ArrayList<>();
@@ -129,11 +168,6 @@ public class BattleStatsRequestedEvent extends GameEvent {
             sj.add("Turn: " + String.valueOf(this.turnCount.get()));
         }
         return sj.toString();
-    }
-
-    @Override
-    public String toString() {
-        return this.print();
     }
 
     public Collection<BattleStatRecord> getRecords() {

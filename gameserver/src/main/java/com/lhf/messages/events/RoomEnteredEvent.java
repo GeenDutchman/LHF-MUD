@@ -1,5 +1,6 @@
 package com.lhf.messages.events;
 
+import com.lhf.OutputBuilder;
 import com.lhf.messages.GameEventType;
 import com.lhf.server.client.CommandInvoker;
 
@@ -44,16 +45,20 @@ public class RoomEnteredEvent extends GameEvent {
     }
 
     @Override
-    public String toString() {
-        return (this.newbie != null ? this.newbie.getColorTaggedName() : "Someone") + " has entered the room";
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        if (this.newbie != null) {
+            builder.appendTaggable(newbie);
+        } else {
+            builder.appendString("Someone");
+        }
+        builder.appendString("has entered the room.");
     }
 
     public CommandInvoker getNewbie() {
         return newbie;
     }
 
-    @Override
-    public String print() {
-        return this.toString();
-    }
 }

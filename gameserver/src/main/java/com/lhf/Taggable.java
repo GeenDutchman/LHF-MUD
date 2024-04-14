@@ -1,21 +1,28 @@
 package com.lhf;
 
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 
 public interface Taggable {
-    String getStartTag();
+    public String getTagName();
 
-    String getEndTag();
+    public String getSimpleContent();
 
-    String getColorTaggedName();
+    public static Map<String, String> produceBasicTagAttributes() {
+        Map<String, String> tagAttributes = new TreeMap<>();
+        tagAttributes.put("colored", "true");
+        return tagAttributes;
+    }
+
+    public default Map<String, String> getTagAttributes() {
+        return Taggable.produceBasicTagAttributes();
+    }
 
     public static String extract(Taggable taggable) {
-        int lenStart = taggable.getStartTag().length();
-        int lenEnd = taggable.getEndTag().length();
-        String extracted = taggable.getColorTaggedName();
-        int extractSize = extracted.length() - lenEnd;
-        extracted = extracted.substring(lenStart, extractSize);
-        return extracted;
+        return taggable.getSimpleContent();
     }
 
     public default BasicTaggable basicTaggable() {
@@ -29,43 +36,48 @@ public interface Taggable {
         return new BasicTaggable(taggable);
     }
 
-    public static final class BasicTaggable implements Taggable {
-        public final String startTag;
-        public final String endTag;
+    public static final class BasicTaggable implements Taggable, Serializable {
+        public final String tagName;
         public final String contents;
+        public final Map<String, String> tagAttributes;
 
-        public static BasicTaggable customTaggable(final String startTag, final String contents, final String endTag) {
-            return new BasicTaggable(startTag, contents, endTag);
+        public static BasicTaggable customTaggable(final String tagName, final String contents,
+                final Map<String, String> tagAttributes) {
+            return new BasicTaggable(tagName, contents, tagAttributes);
+        }
+
+        public static BasicTaggable customTaggable(final String tagName, final String contents) {
+            return new BasicTaggable(tagName, contents, Taggable.produceBasicTagAttributes());
         }
 
         private BasicTaggable(final Taggable from) {
-            this(from.getStartTag(), Taggable.extract(from), from.getEndTag());
+            this(from.getTagName(), Taggable.extract(from), from.getTagAttributes());
         }
 
-        private BasicTaggable(final String startTag, final String contents, final String endTag) {
-            this.startTag = startTag;
+        private BasicTaggable(final String tagName, final String contents, final Map<String, String> tagAttributes) {
+            this.tagName = tagName;
             this.contents = contents;
-            this.endTag = endTag;
+            this.tagAttributes = Collections.unmodifiableMap(tagAttributes);
         }
 
         @Override
-        public String getStartTag() {
-            return this.startTag;
+        public String getTagName() {
+            return this.tagName;
         }
 
         @Override
-        public String getEndTag() {
-            return this.endTag;
+        public String getSimpleContent() {
+            return this.contents;
         }
 
         @Override
-        public String getColorTaggedName() {
-            return this.getStartTag() + this.contents + this.getEndTag();
+        public Map<String, String> getTagAttributes() {
+            return this.tagAttributes;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(startTag, endTag, contents);
+            return Objects.hash(tagName, contents);
         }
 
         @Override
@@ -75,15 +87,13 @@ public interface Taggable {
             if (!(obj instanceof BasicTaggable))
                 return false;
             BasicTaggable other = (BasicTaggable) obj;
-            return Objects.equals(startTag, other.startTag) && Objects.equals(endTag, other.endTag)
-                    && Objects.equals(contents, other.contents);
+            return Objects.equals(tagName, other.tagName) && Objects.equals(contents, other.contents);
         }
 
         @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
-            builder.append("BasicTaggable [startTag=").append(startTag).append(", contents=").append(contents)
-                    .append(", endTag=").append(endTag)
+            builder.append("BasicTaggable [tagName=").append(tagName).append(", contents=").append(contents)
                     .append("]");
             return builder.toString();
         }

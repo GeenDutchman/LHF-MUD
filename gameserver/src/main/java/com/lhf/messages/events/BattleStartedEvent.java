@@ -1,5 +1,6 @@
 package com.lhf.messages.events;
 
+import com.lhf.OutputBuilder;
 import com.lhf.game.creature.ICreature;
 import com.lhf.messages.GameEventType;
 
@@ -42,21 +43,21 @@ public class BattleStartedEvent extends GameEvent {
         this.instigator = builder.getInstigator();
     }
 
-    @Override
-    public String toString() {
-        if (!this.isBroadcast()) {
-            return "You are in the fight!";
-        }
-        return this.instigator.getColorTaggedName() + " started a fight!";
-    }
-
     public ICreature getInstigator() {
         return instigator;
     }
 
     @Override
-    public String print() {
-        return this.toString();
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        if (this.isBroadcast()) {
+            builder.appendTaggable(instigator);
+            builder.appendString("started a fight!");
+        } else {
+            builder.appendString("You are in the fight!");
+        }
     }
 
 }

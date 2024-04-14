@@ -1,5 +1,6 @@
 package com.lhf.messages.events;
 
+import com.lhf.OutputBuilder;
 import com.lhf.game.creature.ICreature;
 import com.lhf.messages.GameEventType;
 
@@ -44,34 +45,29 @@ public class FactionRenegadeJoined extends GameEvent {
         this.turned = builder.getTurned();
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        if (this.isBroadcast()) {
-            sb.append(this.addressCreature(turned, true))
-                    .append(" has attacked a member or ally of their faction and thus became a RENEGADE. ")
-                    .append("Until ").append(turned.getColorTaggedName())
-                    .append(" rejoins a faction (certain spells can do this) consequences for attacking ")
-                    .append(turned.getColorTaggedName()).append(" are removed.");
-        } else {
-            sb.append("You have attacked someone in your faction, or a faction ally, and have become a RENEGADE.")
-                    .append("\n");
-            sb.append(
-                    "You may lose bonuses that you previously had, and consequences for attacking you are removed.")
-                    .append("\n");
-            sb.append(
-                    "If you want to rejoin a faction, some Cube Holders have spells that can join you to a faction.");
-        }
-        return sb.toString();
-    }
-
     public ICreature getTurned() {
         return this.turned;
     }
 
     @Override
-    public String print() {
-        return this.toString();
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        if (this.isBroadcast()) {
+            this.addressCreature(builder, turned);
+            builder.appendString("has attacked a member or ally of their faciton and thus became a RENEGADE. Until");
+            builder.appendTaggable(turned);
+            builder.appendString(
+                    "rejoins a faciton (certain spells can do this) consequences for attacking them are removed.");
+        } else {
+            builder.appendString(
+                    "You have attacked someone in your faction, or a faction ally, and have become a RENEGADE.");
+            builder.appendString(
+                    "You may lose bonuses that you previously had, and consequences for attacking you are removed.");
+            builder.appendString(
+                    "If you want to rejoin a faction, some Cube Holders have spells that can join you to a faction.");
+        }
     }
 
 }

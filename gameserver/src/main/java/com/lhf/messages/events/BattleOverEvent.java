@@ -1,5 +1,6 @@
 package com.lhf.messages.events;
 
+import com.lhf.OutputBuilder;
 import com.lhf.game.TickType;
 import com.lhf.messages.GameEventType;
 
@@ -31,21 +32,17 @@ public class BattleOverEvent extends GameEvent {
     }
 
     @Override
-    public String toString() {
-        if (!this.isBroadcast()) {
-            return "Take a deep breath.  You have survived this battle!";
-        }
-        return "The fight is over!";
-    }
-
-    @Override
     public TickType getTickType() {
         return TickType.BATTLE;
     }
 
     @Override
-    public String print() {
-        return this.toString();
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        builder.appendString(
+                this.isBroadcast() ? "The fight is over!" : "Take a deep breath.  You have survived this battle!");
     }
 
 }

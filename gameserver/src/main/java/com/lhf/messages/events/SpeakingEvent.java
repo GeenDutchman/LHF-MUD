@@ -1,16 +1,18 @@
 package com.lhf.messages.events;
 
+import com.lhf.OutputBuilder;
+import com.lhf.OutputBuilder.OutputSequence;
 import com.lhf.messages.GameEventType;
 import com.lhf.server.client.CommandInvoker;
 
 public class SpeakingEvent extends GameEvent {
-    private final String message;
+    private final OutputSequence message;
     private final CommandInvoker sayer;
     private final CommandInvoker hearer;
     private final boolean shouting;
 
     public static class Builder extends GameEvent.Builder<Builder> {
-        private String message;
+        private OutputBuilder message;
         private CommandInvoker sayer;
         private CommandInvoker hearer;
         private boolean shouting = false;
@@ -19,11 +21,17 @@ public class SpeakingEvent extends GameEvent {
             super(GameEventType.SPEAKING);
         }
 
-        public String getMessage() {
+        public OutputBuilder getMessage() {
             return message;
         }
 
+        @Deprecated(forRemoval = false)
         public Builder setMessage(String message) {
+            this.message = message != null ? new OutputSequence().appendString(message, null, null) : null;
+            return this;
+        }
+
+        public Builder setMessage(OutputBuilder message) {
             this.message = message;
             return this;
         }
@@ -74,31 +82,36 @@ public class SpeakingEvent extends GameEvent {
     public SpeakingEvent(Builder builder) {
         super(builder);
         this.sayer = builder.getSayer();
-        this.message = builder.getMessage();
+        this.message = OutputSequence.copy(builder.getMessage());
         this.shouting = builder.isShouting();
         this.hearer = builder.getHearer();
     }
 
     @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
         if (this.sayer != null) {
-            sb.append(this.sayer.getColorTaggedName());
+            builder.appendTaggable(sayer);
         } else {
-            sb.append("Someone");
+            builder.appendString("Someone");
         }
         if (this.shouting) {
-            sb.append(" SHOUTS ");
+            builder.appendString("SHOUTS");
         }
         if (this.hearer != null) {
-            sb.append(" to ").append(this.hearer.getColorTaggedName());
+            builder.appendTaggable(hearer, " to ", null);
         }
-        sb.append(":").append(this.message);
-        return sb.toString();
+        builder.appendOutputBuilder(message, ":", null);
     }
 
-    public String getMessage() {
-        return message;
+    public OutputSequence getMessage() {
+        return OutputSequence.copy(message);
+    }
+
+    public String getMessageAsString() {
+        return this.message != null ? this.message.printString() : null;
     }
 
     public CommandInvoker getSayer() {
@@ -113,8 +126,4 @@ public class SpeakingEvent extends GameEvent {
         return shouting;
     }
 
-    @Override
-    public String print() {
-        return this.toString();
-    }
 }

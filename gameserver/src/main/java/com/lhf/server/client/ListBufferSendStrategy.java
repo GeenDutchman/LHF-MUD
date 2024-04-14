@@ -36,7 +36,7 @@ public class ListBufferSendStrategy extends StringBufferSendStrategy {
     public GameEvent getMostRecent(GameEventType type) {
         for (int i = this.lBuffer.size() - 1; i >= 0; i--) {
             GameEvent found = this.lBuffer.get(i);
-            if (found.getEventType().equals(type)) {
+            if (found.getXmlEventType().equals(type)) {
                 return found;
             }
         }

@@ -1,5 +1,6 @@
 package com.lhf.messages.events;
 
+import com.lhf.OutputBuilder;
 import com.lhf.messages.GameEventType;
 
 public class BadUserDuplicationEvent extends WelcomeEvent {
@@ -29,13 +30,14 @@ public class BadUserDuplicationEvent extends WelcomeEvent {
         super(builder);
     }
 
-    public String toString() {
-        return super.toString()
-                + "\r\nAn adventurer by that name already exists! Please name your adventurer something unique.";
+    @Override
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        super.buildOutput(builder);
+        builder.appendString(
+                "An adventurer by that name already exists!  Please name your adventurer something unique.");
     }
 
-    @Override
-    public String print() {
-        return this.toString();
-    }
 }

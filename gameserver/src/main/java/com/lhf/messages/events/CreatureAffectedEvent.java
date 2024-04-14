@@ -2,13 +2,13 @@ package com.lhf.messages.events;
 
 import java.util.EnumSet;
 import java.util.Map;
-import java.util.StringJoiner;
 
-import com.lhf.game.creature.ICreature;
-import com.lhf.game.creature.CreatureEffectSource.Deltas;
+import com.lhf.OutputBuilder;
 import com.lhf.Taggable;
 import com.lhf.Taggable.BasicTaggable;
 import com.lhf.game.creature.CreatureEffect;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.DamageFlavor;
@@ -45,8 +45,7 @@ public class CreatureAffectedEvent extends GameEvent {
         /**
          * Pulls data from the effect, defaults to application deltas
          * 
-         * @deprecated
-         *             Prefer the piecemeal {@link #setCreatureResponsible(ICreature)},
+         * @deprecated Prefer the piecemeal {@link #setCreatureResponsible(ICreature)},
          *             {@link #setGeneratedBy(Taggable)},
          *             {@link #setDamages(MultiRollResult)} and
          *             {@link #setHighlightedDelta(Deltas)}
@@ -57,8 +56,7 @@ public class CreatureAffectedEvent extends GameEvent {
         @Deprecated
         public Builder fromCreatureEffect(CreatureEffect effect) {
             if (effect != null) {
-                this.setCreatureResponsible(effect.creatureResponsible())
-                        .setGeneratedBy(effect.getGeneratedBy());
+                this.setCreatureResponsible(effect.creatureResponsible()).setGeneratedBy(effect.getGeneratedBy());
             }
             return this;
         }
@@ -165,76 +163,88 @@ public class CreatureAffectedEvent extends GameEvent {
     }
 
     @Override
-    public String toString() {
-        StringJoiner sj = new StringJoiner(" ");
-        if (this.creatureResponsible != null) {
-            sj.add(this.creatureResponsible.getColorTaggedName());
-            if (this.generatedBy != null) {
-                sj.add("used").add(this.generatedBy.getColorTaggedName()).add("on");
-            } else {
-                sj.add("affected");
-            }
-            sj.add(this.addressCreature(this.affected, false) + "!");
-        } else if (this.generatedBy != null) {
-            sj.add(this.generatedBy.getColorTaggedName()).add("affected")
-                    .add(this.addressCreature(this.affected, false) + "!");
-        } else {
-            sj.add(this.addressCreature(creatureResponsible, false)).add("is affected!");
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
         }
-        sj.add("\r\n");
+        OutputBuilder affectation = builder.produceSubBuilder("Affectation");
+        if (this.creatureResponsible != null) {
+            affectation.appendTaggable(this.creatureResponsible);
+            if (this.generatedBy != null) {
+                affectation.appendString("used");
+                affectation.appendTaggable(this.generatedBy);
+                affectation.appendString("on");
+            } else {
+                affectation.appendString("affected");
+            }
+            this.addressCreature(affectation, this.affected, false);
+            affectation.appendString("!", null, null);
+        } else if (this.generatedBy != null) {
+            affectation.appendTaggable(this.generatedBy);
+            affectation.appendString("affected");
+            this.addressCreature(affectation, this.affected, false);
+            affectation.appendString("!", null, null);
+        } else {
+            affectation.appendString("The affected one is");
+            this.addressCreature(affectation, this.affected, false);
+            affectation.appendString(".", null, null);
+        }
+
         MultiRollResult damageResults = this.getDamages();
         if (damageResults != null && !damageResults.isEmpty()) {
-            if (!this.isBroadcast()) {
-                sj.add("Your");
-            } else if (this.affected != null) {
-                sj.add(this.affected.getColorTaggedName() + "'s");
-            } else {
-                sj.add("Their");
-            }
-            sj.add("health will change by");
-            sj.add(damageResults.getColorTaggedName()); // already reversed, if applicable
-            sj.add("\r\n");
+            OutputBuilder damages = builder.produceSubBuilder("Damages");
+            this.possesiveCreature(damages, this.affected);
+            damages.appendString("health will change by");
+            OutputBuilder healthDelta = damages.produceSubBuilder("Amount");
+            healthDelta.appendTaggable(damageResults);
         }
-        if (this.highlightedDelta == null) {
-            return sj.toString();
-        }
-        if (this.highlightedDelta.getStatChanges().size() > 0) {
-            sj.add(this.affected.getColorTaggedName() + "'s");
-            for (Map.Entry<Stats, Integer> deltas : this.highlightedDelta.getStatChanges().entrySet()) {
-                int amount = deltas.getValue();
-                sj.add(deltas.getKey().toString()).add("stat will change by").add(String.valueOf(amount));
-            }
-            sj.add("\r\n");
-        }
-        if (this.isResultedInDeath()) {
-            sj.add("And as a result of these things,").add(this.affected.getColorTaggedName()).add("has died.");
-            return sj.toString();
-        }
-        if (this.highlightedDelta.getAttributeScoreChanges().size() > 0) {
-            sj.add(this.affected.getColorTaggedName() + "'s");
-            for (Map.Entry<Attributes, Integer> deltas : this.highlightedDelta.getAttributeScoreChanges().entrySet()) {
-                int amount = deltas.getValue();
-                sj.add(deltas.getKey().toString()).add("score will change by").add(String.valueOf(amount));
-            }
-            sj.add("\r\n");
-        }
-        if (this.highlightedDelta.getAttributeBonusChanges().size() > 0) {
-            sj.add(this.affected.getColorTaggedName() + "'s");
-            for (Map.Entry<Attributes, Integer> deltas : this.highlightedDelta.getAttributeBonusChanges().entrySet()) {
-                int amount = deltas.getValue();
-                sj.add(deltas.getKey().toString()).add("bonus will change by").add(String.valueOf(amount));
-            }
-            sj.add("\r\n");
-        }
-        if (this.highlightedDelta.isRestoreFaction()) {
-            sj.add(this.affected.getColorTaggedName() + "'s").add("faction will be restored!");
-        }
-        return sj.toString();
-    }
 
-    @Override
-    public String print() {
-        return this.toString();
+        if (this.highlightedDelta == null) {
+            if (this.isResultedInDeath()) {
+                OutputBuilder deathNotice = builder.produceSubBuilder("Notice");
+                deathNotice.appendString("As a result of these things");
+                this.addressCreature(deathNotice, this.affected, false);
+                deathNotice.appendString("has died.");
+            }
+            return;
+        }
+
+        if (this.highlightedDelta != null && this.highlightedDelta.getStatChanges().size() > 0) {
+            OutputBuilder statChanges = builder.produceSubBuilder("Stats");
+            for (Map.Entry<Stats, Integer> deltas : this.highlightedDelta.getStatChanges().entrySet()) {
+                statChanges.appendString(deltas.getKey().toString(), "\r\n", " ").appendString("will change by")
+                        .appendString(deltas.getValue().toString());
+            }
+        }
+
+        if (this.isResultedInDeath()) {
+            OutputBuilder deathNotice = builder.produceSubBuilder("Notice");
+            deathNotice.appendString("As a result of these things");
+            this.addressCreature(deathNotice, this.affected, false);
+            deathNotice.appendString("has died.");
+            return;
+        }
+
+        if (this.highlightedDelta.getAttributeScoreChanges().size() > 0) {
+            OutputBuilder attributeScoreChanges = builder.produceSubBuilder("Scores");
+            for (Map.Entry<Attributes, Integer> deltas : this.highlightedDelta.getAttributeScoreChanges().entrySet()) {
+                attributeScoreChanges.appendString(deltas.getKey().toString(), "\r\n", " ")
+                        .appendString("score will change by").appendString(deltas.getValue().toString());
+            }
+        }
+
+        if (this.highlightedDelta.getAttributeBonusChanges().size() > 0) {
+            OutputBuilder attributeBonusChanges = builder.produceSubBuilder("Bonuses");
+            for (Map.Entry<Attributes, Integer> deltas : this.highlightedDelta.getAttributeBonusChanges().entrySet()) {
+                attributeBonusChanges.appendString(deltas.getKey().toString(), "\r\n", " ")
+                        .appendString("bonus will change by").appendString(deltas.getValue().toString());
+            }
+        }
+
+        if (this.highlightedDelta.isRestoreFaction()) {
+            this.possesiveCreature(builder, this.affected);
+            builder.appendString("faction will be restored!");
+        }
     }
 
 }

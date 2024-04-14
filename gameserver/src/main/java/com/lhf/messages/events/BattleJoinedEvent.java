@@ -1,7 +1,6 @@
 package com.lhf.messages.events;
 
-import java.util.StringJoiner;
-
+import com.lhf.OutputBuilder;
 import com.lhf.game.creature.ICreature;
 import com.lhf.messages.GameEventType;
 
@@ -57,18 +56,6 @@ public class BattleJoinedEvent extends GameEvent {
         this.ongoing = builder.isOngoing();
     }
 
-    @Override
-    public String toString() {
-        StringJoiner sj = new StringJoiner(" ");
-        sj.add(this.addressCreature(this.joiner, true));
-        sj.add("joined the");
-        if (this.ongoing) {
-            sj.add("ongoing");
-        }
-        sj.add("battle!");
-        return sj.toString();
-    }
-
     public ICreature getJoiner() {
         return joiner;
     }
@@ -78,8 +65,12 @@ public class BattleJoinedEvent extends GameEvent {
     }
 
     @Override
-    public String print() {
-        return this.toString();
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        this.addressCreature(builder, joiner, true);
+        builder.appendString(String.format("joined the %sbattle!", this.ongoing ? "ongoing" : ""));
     }
 
 }

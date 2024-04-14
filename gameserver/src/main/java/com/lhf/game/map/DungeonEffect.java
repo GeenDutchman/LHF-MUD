@@ -12,7 +12,7 @@ public class DungeonEffect extends EntityEffect {
     protected RoomBuilder roomToMake;
 
     private void setDefaultDescription() {
-        this.createdRoomDescription = "Created by " + this.creatureResponsible().getColorTaggedName();
+        this.createdRoomDescription = "Created by " + this.creatureResponsible().getName();
     }
 
     public DungeonEffect(DungeonEffectSource source, ICreature creatureResponsible, Taggable generatedBy,
@@ -53,8 +53,7 @@ public class DungeonEffect extends EntityEffect {
     public RoomBuilder getRoomToMake() {
         if (this.roomToMake == null) {
             this.roomToMake = RoomBuilder.getInstance();
-            this.roomToMake.setName(this.getRoomName())
-                    .setDescription(this.getRoomDescription());
+            this.roomToMake.setName(this.getRoomName()).setDescription(this.getRoomDescription());
         }
         return roomToMake;
     }

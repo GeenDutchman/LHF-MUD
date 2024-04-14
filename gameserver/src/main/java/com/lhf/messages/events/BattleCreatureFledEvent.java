@@ -1,5 +1,6 @@
 package com.lhf.messages.events;
 
+import com.lhf.OutputBuilder;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.messages.GameEventType;
@@ -69,25 +70,20 @@ public class BattleCreatureFledEvent extends GameEvent {
     }
 
     @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(this.addressCreature(this.runner, true));
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        this.addressCreature(builder, runner, true);
         if (this.fled) {
-            sb.append(" successfully fled from the battle");
+            builder.appendString("successfully fled from the battle");
         } else {
-            sb.append(" attempted fleeing from the battle, but failed");
+            builder.appendString("attempted fleeing from the battle, but failed");
         }
         if (!this.isBroadcast() && this.roll != null) {
-            sb.append(" ").append(this.roll.getColorTaggedName());
+            builder.appendTaggable(this.roll);
         }
-        sb.append("!");
-
-        return sb.toString();
-    }
-
-    @Override
-    public String print() {
-        return this.toString();
+        builder.appendString("!", null, null);
     }
 
     public ICreature getRunner() {

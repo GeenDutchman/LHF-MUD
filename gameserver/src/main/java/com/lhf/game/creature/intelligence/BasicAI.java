@@ -62,12 +62,12 @@ public class BasicAI extends Client {
             return;
         }
         if (event != null) {
-            AIHandler ai = handlers.get(event.getEventType());
+            AIHandler ai = handlers.get(event.getXmlEventType());
             if (ai != null) {
                 ai.handle(this, event);
             } else {
                 this.log(Level.WARNING,
-                        () -> String.format("No handler found for %s: %s", event.getEventType(), event.print()));
+                        () -> String.format("No handler found for %s: %s", event.getXmlEventType(), event.toString()));
             }
         }
     }

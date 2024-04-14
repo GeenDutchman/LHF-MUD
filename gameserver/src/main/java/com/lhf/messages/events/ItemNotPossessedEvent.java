@@ -1,5 +1,6 @@
 package com.lhf.messages.events;
 
+import com.lhf.OutputBuilder;
 import com.lhf.Taggable;
 import com.lhf.messages.GameEventType;
 
@@ -80,16 +81,15 @@ public class ItemNotPossessedEvent extends GameEvent {
     }
 
     @Override
-    public String toString() {
-        if (this.found == null) {
-            return "You do not have that " + this.itemType.toString() + " named '" + this.itemName.toString() + "'";
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
         }
-        return this.found.getColorTaggedName() + " is not a " + this.itemType.toString();
-    }
-
-    @Override
-    public String print() {
-        return this.toString();
+        if (this.found == null) {
+            builder.appendString(String.format("You do not have that %s named %s.", this.itemType, this.itemName));
+        } else {
+            builder.appendTaggable(this.found).appendString(String.format("is not a %s", this.itemType));
+        }
     }
 
 }

@@ -1,5 +1,6 @@
 package com.lhf.messages.events;
 
+import com.lhf.OutputBuilder;
 import com.lhf.messages.GameEventType;
 
 public class UserCreatedEvent extends GameEvent {
@@ -28,12 +29,11 @@ public class UserCreatedEvent extends GameEvent {
     }
 
     @Override
-    public String toString() {
-        return "New User in Server\r\n";
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        builder.appendString("New user in Server\r\n");
     }
 
-    @Override
-    public String print() {
-        return this.toString();
-    }
 }

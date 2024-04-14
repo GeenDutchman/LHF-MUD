@@ -33,7 +33,6 @@ import com.lhf.game.map.Land;
 import com.lhf.game.map.RoomEffect;
 import com.lhf.game.map.SubArea;
 import com.lhf.game.map.SubArea.SubAreaSort;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -59,10 +58,8 @@ public class ThirdPower implements CommandChainHandler {
     // summon banish
 
     /*
-     * Some spells target creatures
-     * Some spells target items
-     * Some spells target rooms
-     * Some spells target the dungeon
+     * Some spells target creatures Some spells target items Some spells target
+     * rooms Some spells target the dungeon
      * 
      * 
      */
@@ -120,8 +117,8 @@ public class ThirdPower implements CommandChainHandler {
     }
 
     protected class CastHandler implements ThirdPowerCommandHandler {
-        private final static String helpString = new StringJoiner(" ")
-                .add("\"cast [invocation]\"").add("Casts the spell that has the matching invocation.").add("\n")
+        private final static String helpString = new StringJoiner(" ").add("\"cast [invocation]\"")
+                .add("Casts the spell that has the matching invocation.").add("\n")
                 .add("\"cast [invocation] at [target]\"").add("Some spells need you to name a target.").add("\n")
                 .add("\"cast [invocation] use [level]\"")
                 .add("Sometimes you want to put more power into your spell, so put a higher level number for the level.")
@@ -169,8 +166,7 @@ public class ThirdPower implements CommandChainHandler {
                         ThirdPower.this.channelizeMessage(ctx, cam, spell.isOffensive(), caster, target);
                     } else {
                         TargetDefendedEvent missMessage = TargetDefendedEvent.getBuilder().setAttacker(caster)
-                                .setTarget(target)
-                                .setOffense(casterResult).setDefense(targetResult).Build();
+                                .setTarget(target).setOffense(casterResult).setDefense(targetResult).Build();
 
                         ThirdPower.this.channelizeMessage(ctx, missMessage, spell.isOffensive());
                     }
@@ -188,8 +184,8 @@ public class ThirdPower implements CommandChainHandler {
             final ICreature caster = ctx.getCreature();
             final Area localRoom = ctx.getArea();
             if (caster == null || localRoom == null) {
-                ctx.receive(SpellFizzledEvent.getBuilder().setAttempter(caster)
-                        .setNotBroadcast().setSubType(SpellFizzleType.OTHER).setNotBroadcast().Build());
+                ctx.receive(SpellFizzledEvent.getBuilder().setAttempter(caster).setNotBroadcast()
+                        .setSubType(SpellFizzleType.OTHER).setNotBroadcast().Build());
                 return ctx.handled();
             }
             final CreatureTargetingSpell spell = new CreatureTargetingSpell(entry, caster);
@@ -207,17 +203,15 @@ public class ThirdPower implements CommandChainHandler {
                     return ctx.handled();
                 }
                 possTargets.add(found.get(0));
-                this.log(Level.FINER, () -> String.format("Target '%s' found and added",
-                        targetName));
+                this.log(Level.FINER, () -> String.format("Target '%s' found and added", targetName));
             }
 
             SubArea bm = localRoom.getSubAreaForSort(SubAreaSort.BATTLE);
             if (bm != null && !bm.hasRunningThread(this.getClass().getName() + "::handleCastCreatureTargeting()")
                     && spell.isOffensive()) {
-                this.log(Level.INFO,
-                        () -> String.format("Starting battle with offensive spell %s", spell));
+                this.log(Level.INFO, () -> String.format("Starting battle with offensive spell %s", spell));
                 bm.instigate(caster, possTargets);
-                return bm.handleChain(ctx, casting.getCommand()); // loop back
+                return bm.applyChain(ctx, casting); // loop back
             }
 
             this.log(Level.FINE, "Casting creature targeting spell");
@@ -240,14 +234,13 @@ public class ThirdPower implements CommandChainHandler {
             final ICreature caster = ctx.getCreature();
             final Area localRoom = ctx.getArea();
             if (caster == null || localRoom == null) {
-                ctx.receive(SpellFizzledEvent.getBuilder().setAttempter(caster)
-                        .setNotBroadcast().setSubType(SpellFizzleType.OTHER).setNotBroadcast().Build());
+                ctx.receive(SpellFizzledEvent.getBuilder().setAttempter(caster).setNotBroadcast()
+                        .setSubType(SpellFizzleType.OTHER).setNotBroadcast().Build());
                 return ctx.handled();
             }
 
             int castLevel = casting.getLevel() != null ? casting.getLevel() : entry.getLevel().toInt();
-            AutoTargeted upcasted = AutoTargeted.upCast(entry.getAutoSafe(),
-                    castLevel - entry.getLevel().toInt(),
+            AutoTargeted upcasted = AutoTargeted.upCast(entry.getAutoSafe(), castLevel - entry.getLevel().toInt(),
                     entry.isOffensive());
             CreatureAOESpell spell = new CreatureAOESpell(entry, caster, upcasted);
 
@@ -261,8 +254,7 @@ public class ThirdPower implements CommandChainHandler {
                 }
                 if (upcasted.areNPCsTargeted() && CreatureFaction.NPC.equals(possTarget.getFaction())) {
                     targets.add(possTarget);
-                } else if (upcasted.areAlliesTargeted()
-                        && !caster.getFaction().competing(possTarget.getFaction())) {
+                } else if (upcasted.areAlliesTargeted() && !caster.getFaction().competing(possTarget.getFaction())) {
                     targets.add(possTarget);
                 } else if (upcasted.areEnemiesTargeted() && caster.getFaction().competing(possTarget.getFaction())
                         && !CreatureFaction.RENEGADE.equals(possTarget.getFaction())) {
@@ -276,10 +268,9 @@ public class ThirdPower implements CommandChainHandler {
             SubArea bm = localRoom.getSubAreaForSort(SubAreaSort.BATTLE);
             if (bm != null && !bm.hasRunningThread(this.getClass().getName() + "::handleCastCreatureAOETargeting()")
                     && spell.isOffensive()) {
-                this.log(Level.INFO,
-                        () -> String.format("Starting battle with offensive AOE spell %s", spell));
+                this.log(Level.INFO, () -> String.format("Starting battle with offensive AOE spell %s", spell));
                 bm.instigate(caster, targets);
-                return bm.handleChain(ctx, casting.getCommand()); // loop back
+                return bm.applyChain(ctx, casting); // loop back
             }
 
             this.log(Level.FINE, "Casting AOE creature targeting spell");
@@ -330,15 +321,14 @@ public class ThirdPower implements CommandChainHandler {
             final ICreature caster = ctx.getCreature();
             final Area localRoom = ctx.getArea();
             if (caster == null || localRoom == null || !(localRoom instanceof DMRoom)) {
-                ctx.receive(SpellFizzledEvent.getBuilder().setAttempter(caster)
-                        .setNotBroadcast().setSubType(SpellFizzleType.OTHER).setNotBroadcast().Build());
+                ctx.receive(SpellFizzledEvent.getBuilder().setAttempter(caster).setNotBroadcast()
+                        .setSubType(SpellFizzleType.OTHER).setNotBroadcast().Build());
                 return ctx.failhandle();
             }
             final DMRoom dmRoom = (DMRoom) localRoom;
 
-            this.log(Level.INFO,
-                    () -> String.format("Caster '%s' is affecting a DMRoom with spell '%s'", caster.getName(),
-                            entry.getName()));
+            this.log(Level.INFO, () -> String.format("Caster '%s' is affecting a DMRoom with spell '%s'",
+                    caster.getName(), entry.getName()));
 
             DMRoomTargetingSpell spell = new DMRoomTargetingSpell(entry, caster);
 
@@ -354,17 +344,14 @@ public class ThirdPower implements CommandChainHandler {
                     }
                     final Taggable foundUser = dmRoom.getUser(target);
                     if (foundUser == null) {
-                        this.log(Level.WARNING,
-                                () -> String.format("User '%s' is not in the DMRoom", target));
-                        ctx.receive(
-                                SpellFizzledEvent.getBuilder().setSubType(SpellFizzleType.OTHER).setAttempter(caster)
-                                        .setNotBroadcast().Build());
+                        this.log(Level.WARNING, () -> String.format("User '%s' is not in the DMRoom", target));
+                        ctx.receive(SpellFizzledEvent.getBuilder().setSubType(SpellFizzleType.OTHER)
+                                .setAttempter(caster).setNotBroadcast().Build());
                         return ctx.handled();
                     }
                     taggedTargets.add(foundUser);
-                    this.log(Level.FINE,
-                            () -> String.format("Caster '%s' is targeting '%s' in the DMRoom", caster.getName(),
-                                    target));
+                    this.log(Level.FINE, () -> String.format("Caster '%s' is targeting '%s' in the DMRoom",
+                            caster.getName(), target));
                     final List<String> vocationNames = casting.getMetadata(Prepositions.AS);
                     Vocation vocation = null;
                     if (vocationNames != null && !vocationNames.isEmpty()) {
@@ -373,11 +360,9 @@ public class ThirdPower implements CommandChainHandler {
                     if (vocation != null) {
                         spell.addUsernameToEnsoul(target, vocation);
                     } else {
-                        this.log(Level.WARNING,
-                                () -> String.format("Cannot ensoul %s without vocation!", foundUser));
-                        ctx.receive(
-                                SpellFizzledEvent.getBuilder().setSubType(SpellFizzleType.OTHER).setAttempter(caster)
-                                        .setNotBroadcast().Build());
+                        this.log(Level.WARNING, () -> String.format("Cannot ensoul %s without vocation!", foundUser));
+                        ctx.receive(SpellFizzledEvent.getBuilder().setSubType(SpellFizzleType.OTHER)
+                                .setAttempter(caster).setNotBroadcast().Build());
                         return ctx.handled();
                     }
                 }
@@ -405,8 +390,8 @@ public class ThirdPower implements CommandChainHandler {
             final ICreature caster = ctx.getCreature();
             final Area localRoom = ctx.getArea();
             if (caster == null || localRoom == null) {
-                ctx.receive(SpellFizzledEvent.getBuilder().setAttempter(caster)
-                        .setNotBroadcast().setSubType(SpellFizzleType.OTHER).setNotBroadcast().Build());
+                ctx.receive(SpellFizzledEvent.getBuilder().setAttempter(caster).setNotBroadcast()
+                        .setSubType(SpellFizzleType.OTHER).setNotBroadcast().Build());
                 return ctx.handled();
             }
 
@@ -434,15 +419,13 @@ public class ThirdPower implements CommandChainHandler {
                     casterVocation != null ? casterVocation.getVocationName() : null, null, casting.getInvocation(),
                     null);
             if (foundByInvocation.isEmpty()) {
-                this.log(Level.INFO,
-                        () -> String.format("Invocation by '%s' -> '%s' not found", caster.getName(),
-                                casting.getInvocation()));
+                this.log(Level.INFO, () -> String.format("Invocation by '%s' -> '%s' not found", caster.getName(),
+                        casting.getInvocation()));
 
                 return null;
             }
             SpellEntry entry = foundByInvocation.first();
-            this.log(Level.INFO,
-                    () -> String.format("Invocation by '%s' found -> %s", caster.getName(), entry));
+            this.log(Level.INFO, () -> String.format("Invocation by '%s' found -> %s", caster.getName(), entry));
             return entry;
         }
 
@@ -459,9 +442,8 @@ public class ThirdPower implements CommandChainHandler {
                 }
                 return ctx.handled();
             }
-            this.log(Level.INFO,
-                    () -> String.format("Invocation by '%s' -> '%s' found: '%s'", caster.getName(),
-                            casting.getInvocation(), entry.getName()));
+            this.log(Level.INFO, () -> String.format("Invocation by '%s' -> '%s' found: '%s'", caster.getName(),
+                    casting.getInvocation(), entry.getName()));
 
             if (entry instanceof CreatureTargetingSpellEntry creatureTargetingSpellEntry) {
                 return this.handleCastCreatureTargeting(ctx, casting, creatureTargetingSpellEntry);
@@ -477,14 +459,13 @@ public class ThirdPower implements CommandChainHandler {
         }
 
         @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == this.getHandleType()) {
+        public Reply visit(CommandContext ctx, CastMessage castMessage) {
+            if (castMessage != null && castMessage.getType() == this.getHandleType()) {
                 if (ctx.getCreature() == null) {
                     ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                            .setHelps(ctx.getHelps()).setCommand(cmd).Build());
+                            .setHelps(ctx.getHelps()).setCommand(castMessage).Build());
                     return ctx.handled();
                 }
-                final CastMessage castmessage = new CastMessage(cmd);
                 final ICreature attempter = ctx.getCreature();
                 final Area area = ctx.getArea();
                 if (attempter.getVocation() == null || !(attempter.getVocation() instanceof CubeHolder)) {
@@ -501,9 +482,9 @@ public class ThirdPower implements CommandChainHandler {
                     SubArea bm = area.getSubAreaForSort(SubAreaSort.BATTLE);
                     bm.addCreature(attempter);
                     ctx.addSubArea(bm);
-                    return bm.handleChain(ctx, castmessage.getCommand()); // delegate back to the nearby battle
+                    return bm.applyChain(ctx, castMessage); // delegate back to the nearby battle
                 } else {
-                    return this.handleCast(ctx, castmessage);
+                    return this.handleCast(ctx, castMessage);
                 }
             }
             return ctx.failhandle();
@@ -517,11 +498,9 @@ public class ThirdPower implements CommandChainHandler {
     }
 
     protected class SpellbookHandler implements ThirdPowerCommandHandler {
-        private final static String helpString = new StringJoiner(" ")
-                .add("\"spellbook\"")
-                .add("Lets you see what spells are available to you, taking into account how much power you still have.")
-                .add("\n")
-                .add("\"spellbook [spellname]\"")
+        private final static String helpString = new StringJoiner(" ").add("\"spellbook\"").add(
+                "Lets you see what spells are available to you, taking into account how much power you still have.")
+                .add("\n").add("\"spellbook [spellname]\"")
                 .add("Looks up a specific spell by name, as long as your vocation allows it.").add("\n").toString();
 
         @Override
@@ -535,8 +514,7 @@ public class ThirdPower implements CommandChainHandler {
         }
 
         @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            final SpellbookMessage spellbookMessage = new SpellbookMessage(cmd);
+        public Reply visit(CommandContext ctx, SpellbookMessage spellbookMessage) {
             final ICreature caster = ctx.getCreature();
             if (caster.getVocation() == null || !(caster.getVocation() instanceof CubeHolder)) {
                 SpellEntryRequestedEvent.Builder notCaster = SpellEntryRequestedEvent.getBuilder().setNotCubeHolder()
@@ -555,8 +533,7 @@ public class ThirdPower implements CommandChainHandler {
                 }
             }
             NavigableSet<SpellEntry> entries = ThirdPower.this.spellbook.filter(filters,
-                    caster.getVocation().getVocationName(),
-                    spellbookMessage.getSpellName(), null,
+                    caster.getVocation().getVocationName(), spellbookMessage.getSpellName(), null,
                     ((CubeHolder) caster.getVocation()).availableMagnitudes());
             ctx.receive(SpellEntryRequestedEvent.getBuilder().setEntries(entries).Build());
             return ctx.handled();
@@ -629,18 +606,13 @@ public class ThirdPower implements CommandChainHandler {
     }
 
     @Override
-    public String getColorTaggedName() {
-        return this.getStartTag() + "Third Power" + this.getEndTag();
+    public String getTagName() {
+        return "ThirdPower";
     }
 
     @Override
-    public String getEndTag() {
-        return "</ThirdPower>";
-    }
-
-    @Override
-    public String getStartTag() {
-        return "<ThirdPower>";
+    public String getSimpleContent() {
+        return "Third Power";
     }
 
 }

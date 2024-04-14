@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeSet;
 
+import com.lhf.OutputBuilder;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.inventory.InventoryOwner;
 import com.lhf.messages.CommandContext;
@@ -37,11 +38,19 @@ public class GuardedChest extends Chest {
             super.doAction(ctx);
             return;
         }
-        StringJoiner sj = new StringJoiner(", ", " It is guarded by: ", ". ").setEmptyValue("");
+        final StringJoiner sj = new StringJoiner(", ", " It is guarded by: ", ". ").setEmptyValue("");
         this.listGuards().stream().filter(name -> name != null).forEachOrdered(name -> sj.add(name));
-        String message = String.format("%s finds that they cannot access %s.%s%s", creature.getColorTaggedName(),
-                this.getColorTaggedName(), this.isUnlocked() ? "" : " It is locked. ", sj.toString());
-        builder.setDescription(message);
+        final boolean unlockedState = this.isUnlocked();
+        builder.setOutputCallback(nodeGenerator -> {
+            if (nodeGenerator == null) {
+                return;
+            }
+            OutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+            description.appendTaggable(creature);
+            description.appendString("finds that they cannot access");
+            description.appendTaggable(this);
+            description.appendString(String.format("%s%s", unlockedState ? "" : " It is locked. ", sj.toString()));
+        });
         this.broadcast(creature, builder);
         this.interactCount++;
     }

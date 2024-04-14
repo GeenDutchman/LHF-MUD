@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.lhf.OutputBuilder;
+import com.lhf.Taggable;
 import com.lhf.messages.GameEventType;
 
 public class PlayersListedEvent extends GameEvent {
@@ -60,19 +62,15 @@ public class PlayersListedEvent extends GameEvent {
         return playerNames;
     }
 
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("All players currently on this server:\r\n");
-        for (String username : this.playerNames) {
-            sb.append("<player>");
-            sb.append(username);
-            sb.append("</player>\r\n");
+    @Override
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
         }
-        return sb.toString();
+        builder.appendString("All players currently on this server:\r\n");
+        for (String name : playerNames) {
+            builder.appendTaggable(Taggable.BasicTaggable.customTaggable("Player", name), null, "\r\n");
+        }
     }
 
-    @Override
-    public String print() {
-        return this.toString();
-    }
 }

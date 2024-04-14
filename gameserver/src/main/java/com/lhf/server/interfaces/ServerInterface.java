@@ -16,18 +16,13 @@ public interface ServerInterface extends CommandChainHandler {
     }
 
     @Override
-    default String getColorTaggedName() {
-        return this.getStartTag() + "Server" + this.getEndTag();
+    default String getTagName() {
+        return "Server";
     }
 
     @Override
-    default String getEndTag() {
-        return "</Server>";
-    }
-
-    @Override
-    default String getStartTag() {
-        return "<Server>";
+    default String getSimpleContent() {
+        return this.getClass().getSimpleName();
     }
 
 }

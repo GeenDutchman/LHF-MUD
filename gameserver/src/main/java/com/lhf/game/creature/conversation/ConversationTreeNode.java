@@ -6,27 +6,59 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.lhf.OutputBuilder.OutputSequence;
+import com.lhf.OutputBuilder.OutputSequenceElement;
+import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
+
 public class ConversationTreeNode implements Comparable<ConversationTreeNode>, Serializable {
+    public final static String NPC_CONVERSATION_TAG = "NPCConversation";
     public static final String EMPTY = "...";
     private final UUID nodeID;
-    private String body;
-    private List<String> prompts;
+    private final OutputSequence bodySequence;
+    private List<OutputSequence> prompts;
 
     public ConversationTreeNode(String someBody) {
         this.nodeID = UUID.randomUUID();
-        this.addBody(someBody);
+        this.bodySequence = new OutputSequence(NPC_CONVERSATION_TAG);
+        this.bodySequence.appendString(someBody, null, null);
         this.prompts = new ArrayList<>();
     }
 
-    public void addBody(String bodyText) {
-        if (this.body != null) {
-            this.body += ' ' + new String(bodyText);
-            return;
-        }
-        this.body = new String(bodyText);
+    public ConversationTreeNode addBody(String moreBody) {
+        this.bodySequence.appendString(moreBody);
+        return this;
     }
 
-    public boolean addPrompt(String prompt) {
+    public ConversationTreeNode addMetaSignal(ConversationContextKey meta) {
+        if (meta != null) {
+            return this.addMetaSignal(meta.name());
+        }
+        return this;
+    }
+
+    public ConversationTreeNode addMetaSignal(String meta) {
+        if (meta != null) {
+            this.bodySequence.appendOutputBuilderElement(OutputSequenceElement.ofMetaSignal(meta));
+        }
+        return this;
+    }
+
+    public OutputSequence getBodySequence() {
+        if (bodySequence == null || bodySequence.getElements().size() == 0) {
+            return new OutputSequence().appendString(EMPTY, null, null);
+        }
+        return OutputSequence.copy(bodySequence);
+    }
+
+    public String getBodyAsString() {
+        return this.getBodySequence().printString();
+    }
+
+    public boolean addPrompt(String promptBody) {
+        return this.addPrompt(new OutputSequence().appendString(promptBody, null, null));
+    }
+
+    public boolean addPrompt(OutputSequence prompt) {
         return this.prompts.add(prompt);
     }
 
@@ -34,27 +66,8 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode>, S
         return this.nodeID;
     }
 
-    public String getBody() {
-        if (this.body == null) {
-            return this.getEmptyStatement();
-        }
-        return this.body;
-    }
-
-    public List<String> getPrompts() {
+    public List<OutputSequence> getPrompts() {
         return this.prompts;
-    }
-
-    public ConversationTreeNodeResult getResult() {
-        ConversationTreeNodeResult result = new ConversationTreeNodeResult(this.getBody());
-        for (String prompt : this.getPrompts()) {
-            result.addPrompt(prompt);
-        }
-        return result;
-    }
-
-    public String getEmptyStatement() {
-        return ConversationTreeNode.EMPTY;
     }
 
     @Override
@@ -85,7 +98,7 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode>, S
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("ConversationTreeNode [body=").append(body).append(", nodeID=").append(nodeID)
+        builder.append("ConversationTreeNode [nodeID=").append(nodeID).append(", bodySequence=").append(bodySequence)
                 .append(", prompts=").append(prompts).append("]");
         return builder.toString();
     }

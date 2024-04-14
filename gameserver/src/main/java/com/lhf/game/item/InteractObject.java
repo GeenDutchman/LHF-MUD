@@ -72,14 +72,14 @@ public class InteractObject extends AItem {
         if (ctx == null || ctx.getCreature() == null) {
             return;
         }
-        ctx.receive(ItemInteractionEvent.getBuilder().setTaggable(this)
-                .setSubType(InteractOutMessageType.NO_METHOD).Build());
+        ctx.receive(ItemInteractionEvent.getBuilder().setTaggable(this).setSubType(InteractOutMessageType.NO_METHOD)
+                .Build());
         this.interactCount++;
     }
 
     @Override
-    public String printDescription() {
-        String otherDescription = super.printDescription();
+    public String getDescription() {
+        String otherDescription = super.getDescription();
         if (interactCount > 0) {
             otherDescription += " It looks like it has been interacted with already, it might not work again.";
         }
@@ -95,12 +95,8 @@ public class InteractObject extends AItem {
     }
 
     @Override
-    public String getStartTag() {
-        return "<interactable>";
+    public String getTagName() {
+        return "interactable";
     }
 
-    @Override
-    public String getEndTag() {
-        return "</interactable>";
-    }
 }

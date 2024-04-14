@@ -1,5 +1,12 @@
 package com.lhf.messages.events;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+
+import com.lhf.OutputBuilder;
+import com.lhf.Taggable;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.magic.SpellEntry;
 import com.lhf.messages.GameEventType;
@@ -7,12 +14,71 @@ import com.lhf.messages.GameEventType;
 public class SpellCastingEvent extends GameEvent {
     private final ICreature caster;
     private final SpellEntry spellEntry;
-    private final String castEffects;
+    private final Collection<Taggable> targets;
+    private final TargetingStyle targetingStyle;
+    private final String extras;
+
+    public static class TargetingStyle {
+        private final boolean forEach;
+        private final String prefix;
+        private final String infix;
+        private final String suffix;
+
+        public TargetingStyle() {
+            this.forEach = false;
+            this.prefix = "";
+            this.infix = " is targeting ";
+            this.suffix = "!";
+        }
+
+        public TargetingStyle(boolean forEach, String prefix, String infix, String suffix) {
+            this.forEach = forEach;
+            this.prefix = prefix;
+            this.infix = infix;
+            this.suffix = suffix;
+        }
+
+        public void buildOutput(OutputBuilder builder, ICreature caster, Collection<Taggable> targets) {
+            if (builder == null || caster == null || targets == null || targets.isEmpty()) {
+                return;
+            }
+            if (this.forEach) {
+                for (Taggable taggable : targets) {
+                    if (this.prefix != null) {
+                        builder.appendString(this.prefix);
+                    }
+                    builder.appendTaggable(caster);
+                    if (this.infix != null) {
+                        builder.appendString(infix);
+                    }
+                    builder.appendTaggable(taggable);
+                    if (this.suffix != null) {
+                        builder.appendString(suffix);
+                    }
+                }
+            } else {
+                if (this.prefix != null) {
+                    builder.appendString(this.prefix);
+                }
+                builder.appendTaggable(caster);
+                if (this.infix != null) {
+                    builder.appendString(infix);
+                }
+                builder.appendTaggables(targets);
+                if (this.suffix != null) {
+                    builder.appendString(suffix);
+                }
+            }
+        }
+
+    }
 
     public static class Builder extends GameEvent.Builder<Builder> {
         private ICreature caster;
         private SpellEntry spellEntry;
-        private String castEffects;
+        private Collection<Taggable> targets;
+        private TargetingStyle targetingStyle = new TargetingStyle();
+        private String extras;
 
         public Builder() {
             super(GameEventType.CASTING);
@@ -36,12 +102,63 @@ public class SpellCastingEvent extends GameEvent {
             return this;
         }
 
-        public String getCastEffects() {
-            return castEffects;
+        public Collection<Taggable> getTargets() {
+            return targets;
         }
 
-        public Builder setCastEffects(String castEffects) {
-            this.castEffects = castEffects;
+        public Builder setTargets(Collection<Taggable> targets) {
+            this.targets = targets;
+            return this;
+        }
+
+        public Builder setTargets(Taggable... targets) {
+            if (this.targets == null) {
+                this.targets = new LinkedHashSet<>();
+            }
+            Collections.addAll(this.targets, targets);
+            return this;
+        }
+
+        public Builder setTargets(List<? extends Taggable> targets2) {
+            if (this.targets == null) {
+                this.targets = new LinkedHashSet<>();
+            }
+            if (targets2 != null) {
+                this.targets.addAll(targets2);
+            }
+            return this;
+        }
+
+        public Builder addTarget(Taggable target) {
+            if (target != null) {
+                if (this.targets == null) {
+                    this.targets = new LinkedHashSet<>();
+                }
+                this.targets.add(target);
+            }
+            return this;
+        }
+
+        public TargetingStyle getTargetingStyle() {
+            return targetingStyle != null ? targetingStyle : new TargetingStyle();
+        }
+
+        public Builder setTargetingStyle(TargetingStyle style) {
+            this.targetingStyle = style != null ? style : new TargetingStyle();
+            return this;
+        }
+
+        public Builder defaultTargetingStyle() {
+            this.targetingStyle = new TargetingStyle();
+            return this;
+        }
+
+        public String getExtras() {
+            return extras;
+        }
+
+        public Builder setExtras(String extras) {
+            this.extras = extras;
             return this;
         }
 
@@ -65,32 +182,17 @@ public class SpellCastingEvent extends GameEvent {
         super(builder);
         this.caster = builder.getCaster();
         this.spellEntry = builder.getSpellEntry();
-        this.castEffects = builder.getCastEffects();
+        this.targets = builder.getTargets();
+        this.targetingStyle = builder.getTargetingStyle();
+        this.extras = builder.getExtras();
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        if (this.caster != null) {
-            sb.append(this.caster.getColorTaggedName());
-        } else {
-            sb.append("Someone");
-        }
-        sb.append(" casts ");
-        if (this.spellEntry != null) {
-            sb.append(this.spellEntry.getColorTaggedName());
-        } else {
-            sb.append("a spell");
-        }
-        sb.append("!");
-        if (this.castEffects != null && !this.castEffects.isBlank()) {
-            sb.append("\r\n").append(this.castEffects);
-        }
-        return sb.toString();
+    public Collection<Taggable> getTargets() {
+        return Collections.unmodifiableCollection(targets);
     }
 
-    public String getCastEffects() {
-        return castEffects;
+    public final TargetingStyle getTargetingStyle() {
+        return targetingStyle != null ? targetingStyle : new TargetingStyle();
     }
 
     public ICreature getCaster() {
@@ -102,8 +204,26 @@ public class SpellCastingEvent extends GameEvent {
     }
 
     @Override
-    public String print() {
-        return this.toString();
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        this.addressCreature(builder, caster);
+        builder.appendString("casts");
+        if (this.spellEntry != null) {
+            builder.appendTaggable(this.spellEntry);
+        } else {
+            builder.appendString("a spell");
+        }
+        builder.appendString("!", null, "\r\n");
+        final TargetingStyle style = this.getTargetingStyle();
+        final Collection<Taggable> foundTargets = this.getTargets();
+        if (foundTargets != null && !foundTargets.isEmpty()) {
+            style.buildOutput(builder, caster, foundTargets);
+        }
+        if (this.extras != null) {
+            builder.appendString(extras, "\r\n", null);
+        }
     }
 
 }

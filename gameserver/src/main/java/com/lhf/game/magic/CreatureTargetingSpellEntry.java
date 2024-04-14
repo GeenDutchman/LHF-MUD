@@ -21,8 +21,8 @@ public class CreatureTargetingSpellEntry extends SpellEntry {
     }
 
     public CreatureTargetingSpellEntry(ResourceCost level, String name, String invocation,
-            Set<CreatureEffectSource> effectSources,
-            Set<VocationName> allowed, String description, boolean singleTarget) {
+            Set<CreatureEffectSource> effectSources, Set<VocationName> allowed, String description,
+            boolean singleTarget) {
         super(level, name, invocation, effectSources, allowed, description);
         this.singleTarget = singleTarget;
     }
@@ -33,18 +33,12 @@ public class CreatureTargetingSpellEntry extends SpellEntry {
 
     @Override
     public SpellCastingEvent Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
-        StringJoiner sj = new StringJoiner(", ", "Targeting: ", "").setEmptyValue("Targeting nothing");
-        if (targets != null) {
-            for (Taggable taggable : targets) {
-                sj.add(taggable.getColorTaggedName());
-            }
-        }
-        return SpellCastingEvent.getBuilder().setCaster(caster).setSpellEntry(this).setCastEffects(sj.toString())
-                .Build();
+        return SpellCastingEvent.getBuilder().setCaster(caster).setSpellEntry(this).defaultTargetingStyle()
+                .setTargets(targets).Build();
     }
 
     @Override
-    public String printDescription() {
+    public String getDescription() {
         StringJoiner sj = new StringJoiner(" ");
         sj.add(this.description);
         if (this.singleTarget) {

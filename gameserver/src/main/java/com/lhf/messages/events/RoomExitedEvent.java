@@ -1,5 +1,6 @@
 package com.lhf.messages.events;
 
+import com.lhf.OutputBuilder;
 import com.lhf.Taggable;
 import com.lhf.game.map.Directions;
 import com.lhf.messages.GameEventType;
@@ -74,22 +75,23 @@ public class RoomExitedEvent extends GameEvent {
     }
 
     @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        if (this.leaveTaker == null) {
-            sb.append("Someone");
-        } else {
-            sb.append(leaveTaker.getColorTaggedName());
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
         }
-        sb.append(" left the room");
+        if (this.leaveTaker == null) {
+            builder.appendString("Someone");
+        } else {
+            builder.appendTaggable(leaveTaker);
+        }
+        builder.appendString("left the room");
         if (this.whichWay != null) {
-            sb.append(" going ").append(this.whichWay.getColorTaggedName());
+            builder.appendString("going").appendTaggable(this.whichWay);
         }
         if (this.becauseOf != null) {
-            sb.append(" because of ").append(this.becauseOf.getColorTaggedName());
+            builder.appendString("because of").appendTaggable(becauseOf);
         }
-        sb.append(".");
-        return sb.toString();
+        builder.appendString(".", null, null);
     }
 
     public CommandInvoker getLeaveTaker() {
@@ -102,11 +104,6 @@ public class RoomExitedEvent extends GameEvent {
 
     public Taggable getBecauseOf() {
         return becauseOf;
-    }
-
-    @Override
-    public String print() {
-        return this.toString();
     }
 
 }

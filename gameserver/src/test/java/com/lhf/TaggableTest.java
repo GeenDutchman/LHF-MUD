@@ -10,18 +10,13 @@ public class TaggableTest {
         public String tag = "testing";
 
         @Override
-        public String getStartTag() {
-            return "<" + tag + ">";
+        public String getTagName() {
+            return tag;
         }
 
         @Override
-        public String getEndTag() {
-            return "</" + tag + ">";
-        }
-
-        @Override
-        public String getColorTaggedName() {
-            return this.getStartTag() + this.contents + this.getEndTag();
+        public String getSimpleContent() {
+            return contents;
         }
 
     }

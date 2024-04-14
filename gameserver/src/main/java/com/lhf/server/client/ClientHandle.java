@@ -10,12 +10,12 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.events.BadFatalEvent;
 import com.lhf.messages.in.AMessageType;
+import com.lhf.messages.in.RepeatInMessage;
 import com.lhf.server.interfaces.ConnectionListener;
 
 public class ClientHandle extends Client implements Runnable {
@@ -72,7 +72,7 @@ public class ClientHandle extends Client implements Runnable {
         }
 
         @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
+        public Reply visit(CommandContext ctx, RepeatInMessage command) {
             Client client = ctx.getClient();
             if (client != null && client instanceof ClientHandle cHandle) {
                 String repeater = cHandle.getRepeatCommand();
@@ -93,7 +93,10 @@ public class ClientHandle extends Client implements Runnable {
     protected ClientHandle(Socket socket, ConnectionListener cl) throws IOException {
         super();
         this.socket = socket;
-        this.out = new PrintWriterSendStrategy(socket.getOutputStream());
+        this.out = new ModalSendStrategy(this.getLogger(), Level.INFO)
+                .addStrategy("xml", new XMLPrintWriterSendStrategy(socket.getOutputStream()))
+                .addStrategy("plain", new PrintWriterSendStrategy(socket.getOutputStream()));
+        this.out.metaControl("xml");
         this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         connected = true;
         killIt = false;
@@ -107,8 +110,14 @@ public class ClientHandle extends Client implements Runnable {
         String value;
         try {
             while (!this.killIt && ((value = in.readLine()) != null)) {
-                this.ProcessString(value);
-                this.setRepeatCommand(value);
+                if (value.equals("meta:xml=on")) {
+                    this.out.metaControl("xml");
+                } else if (value.equals("meta:xml=off")) {
+                    this.out.metaControl("plain");
+                } else {
+                    this.ProcessString(value);
+                    this.setRepeatCommand(value);
+                }
             }
         } catch (IOException e) {
             final BadFatalEvent fatal = BadFatalEvent.getBuilder().setException(e).setExtraInfo("recoverable").Build();

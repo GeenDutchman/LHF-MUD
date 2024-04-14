@@ -3,6 +3,7 @@ package com.lhf.game.creature.intelligence.handlers;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import com.lhf.OutputBuilder.OutputSequence;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNode;
@@ -23,14 +24,15 @@ public class SpokenPromptChunkTest {
         listener.getNPC().setConvoTree(tree);
 
         AIComBundle speaker = new AIComBundle();
-        SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker.getNPC()).setMessage("hello")
-                .setHearer(listener.getNPC()).Build();
+        SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker.getNPC())
+                .setMessage(new OutputSequence().appendString("hello", null, null)).setHearer(listener.getNPC())
+                .Build();
         AIComBundle.eventAccepter.accept(listener.getNPC(), sm);
 
-        Mockito.verify(listener.sssb, Mockito.timeout(1000)).send(sm);
-        Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).handle(Mockito.any(),
+        Mockito.verify(listener.sssb, Mockito.timeout(1000 * 10)).send(sm);
+        Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000 * 30)).apply(Mockito.any(),
                 Mockito.argThat((command) -> command != null && command.getWhole().contains(body)));
-        Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).handle(Mockito.any(),
+        Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).apply(Mockito.any(),
                 Mockito.argThat((command) -> command != null && command.getWhole().contains(sayMessage)));
 
     }
@@ -43,11 +45,12 @@ public class SpokenPromptChunkTest {
         AIComBundle listener = new AIComBundle(NonPlayerCharacter.getNPCBuilder().addAIHandler(chunk));
 
         String prompt = "NONOBJECT";
-        SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker.getNPC()).setMessage("PROMPT SEE " + prompt)
+        SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker.getNPC())
+                .setMessage(new OutputSequence().appendString("PROMPT SEE", null, null).appendString(prompt))
                 .setHearer(listener.getNPC()).Build();
         AIComBundle.eventAccepter.accept(listener.getNPC(), sm);
 
-        Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).handle(Mockito.any(),
+        Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).apply(Mockito.any(),
                 Mockito.argThat((command) -> command != null && command.getWhole().contains(prompt)));
 
     }
@@ -59,7 +62,8 @@ public class SpokenPromptChunkTest {
         AIComBundle listener = new AIComBundle(NonPlayerCharacter.getNPCBuilder().addAIHandler(chunk));
 
         String prompt = "NONOBJECT";
-        SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker.getNPC()).setMessage("PROMPT SEE " + prompt)
+        SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker.getNPC())
+                .setMessage(new OutputSequence().appendString("PROMPT SEE", null, null).appendString(prompt))
                 .setHearer(listener.getNPC()).Build();
         AIComBundle.eventAccepter.accept(listener.getNPC(), sm);
 

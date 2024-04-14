@@ -85,9 +85,9 @@ public class GameEventTester implements Predicate<GameEvent>, Comparable<GameEve
             return false;
         }
 
-        if (this.type != null && this.type != argument.getEventType()) {
+        if (this.type != null && this.type != argument.getXmlEventType()) {
             this.failHook(argument, String.format("Expected type '%s', but got type '%s', no match", this.type,
-                    argument.getEventType()));
+                    argument.getXmlEventType()));
             return false;
         }
 

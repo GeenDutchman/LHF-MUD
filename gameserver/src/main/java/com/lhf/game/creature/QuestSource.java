@@ -1,6 +1,5 @@
 package com.lhf.game.creature;
 
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.StringJoiner;
 
@@ -29,16 +28,12 @@ public class QuestSource extends CreatureEffectSource {
         }
 
         public Builder setSuccessDeltas(Deltas onSuccess) {
-            this.setDeltaForTester(
-                    Builder.produceSuccessTester(getThis()),
-                    onSuccess);
+            this.setDeltaForTester(Builder.produceSuccessTester(getThis()), onSuccess);
             return getThis();
         }
 
         public Builder setFailureDeltas(Deltas onFailure) {
-            this.setDeltaForTester(
-                    Builder.produceFailureTester(getThis()),
-                    onFailure);
+            this.setDeltaForTester(Builder.produceFailureTester(getThis()), onFailure);
             return getThis();
         }
 
@@ -69,36 +64,19 @@ public class QuestSource extends CreatureEffectSource {
     }
 
     @Override
-    public String printDescription() {
+    public String getTagName() {
+        return "Quest";
+    }
+
+    @Override
+    public String getDescription() {
         StringJoiner sj = new StringJoiner(" ");
-        sj.add("This quest").add(String.format("\"%s\"", this.getName())).add("entails the following:");
-        sj.add(this.description).add("\r\n");
-        if (this.onApplication != null) {
-            final String applicationDescription = this.onApplication.printDescription();
-            if (applicationDescription.length() > 0) {
-                sj.add("On application:").add(applicationDescription);
-            }
+        if (this.description != null && !this.description.isEmpty() && !this.description.isBlank()) {
+            sj.add("This quest").add("entails the following:");
+            sj.add(this.description).add("\r\n");
         }
-        if (this.onTickEvent != null && this.onTickEvent.size() > 0) {
-            for (final Entry<GameEventTester, Deltas> tickDeltas : this.onTickEvent.entrySet()) {
-                final GameEventTester tester = tickDeltas.getKey();
-                final Deltas deltas = tickDeltas.getValue();
-                if (tester == null || deltas == null) {
-                    continue;
-                }
-                final String tickDescription = deltas.printDescription();
-                if (tickDescription.length() > 0) {
-                    sj.add(tester.toString()).add(tickDescription);
-                }
-            }
-        }
-        if (this.onRemoval != null) {
-            final String removalDescription = this.onRemoval.printDescription();
-            if (removalDescription.length() > 0) {
-                sj.add("On removal:").add(removalDescription);
-            }
-        }
-        return sj.toString();
+        return sj.add(super.getDescription()).toString();
+
     }
 
 }

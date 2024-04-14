@@ -172,15 +172,13 @@ public class Room implements Area {
             return this.name != null ? this.name : "Room " + UUID.randomUUID().toString();
         }
 
-        protected Set<INonPlayerCharacter> buildCreatures(
-                AIRunner aiRunner, Room successor,
+        protected Set<INonPlayerCharacter> buildCreatures(AIRunner aiRunner, Room successor,
                 ConversationManager conversationManager, boolean fallbackNoConversation) {
             Collection<INonPlayerCharacterBuildInfo> toBuild = this.getNPCsToBuild();
             if (toBuild == null) {
                 return Set.of();
             }
-            CreatureFactory factory = CreatureFactory.fromAIRunner(successor, conversationManager,
-                    aiRunner,
+            CreatureFactory factory = CreatureFactory.fromAIRunner(successor, conversationManager, aiRunner,
                     fallbackNoConversation);
 
             for (final INonPlayerCharacterBuildInfo builder : toBuild) {
@@ -199,12 +197,11 @@ public class Room implements Area {
 
         @Override
         public Room build(CommandChainHandler successor, Land land, AIRunner aiRunner,
-                ConversationManager conversationManager,
-                boolean fallbackNoConversation) {
+                ConversationManager conversationManager, boolean fallbackNoConversation) {
             this.logger.log(Level.INFO, () -> String.format("Building room '%s'", this.name));
             return Room.fromBuilder(this, () -> land, () -> successor, () -> (room) -> {
-                final Set<INonPlayerCharacter> creaturesBuilt = this.buildCreatures(aiRunner, room,
-                        conversationManager, fallbackNoConversation);
+                final Set<INonPlayerCharacter> creaturesBuilt = this.buildCreatures(aiRunner, room, conversationManager,
+                        fallbackNoConversation);
                 room.addCreatures(creaturesBuilt, false);
                 for (final ISubAreaBuildInfo subAreaBuilder : this.getSubAreasToBuild()) {
                     room.addSubArea(subAreaBuilder);
@@ -240,8 +237,7 @@ public class Room implements Area {
     }
 
     static Room fromBuilder(RoomBuilder builder, Supplier<Land> landSupplier,
-            Supplier<CommandChainHandler> successorSupplier,
-            Supplier<Consumer<? super Room>> postOperations) {
+            Supplier<CommandChainHandler> successorSupplier, Supplier<Consumer<? super Room>> postOperations) {
         Room created = new Room(builder, landSupplier, successorSupplier);
         if (postOperations != null) {
             Consumer<? super Room> postOp = postOperations.get();
@@ -252,8 +248,7 @@ public class Room implements Area {
         return created;
     }
 
-    Room(RoomBuilder builder, Supplier<Land> landSupplier,
-            Supplier<CommandChainHandler> successorSupplier) {
+    Room(RoomBuilder builder, Supplier<Land> landSupplier, Supplier<CommandChainHandler> successorSupplier) {
         this.name = builder.getName();
         this.logger = Logger.getLogger(this.getClass().getName() + "."
                 + (this.name != null && !this.name.isBlank() ? this.name.replaceAll("\\W", "_")
@@ -282,13 +277,8 @@ public class Room implements Area {
     }
 
     @Override
-    public String getStartTag() {
-        return "<room>";
-    }
-
-    @Override
-    public String getEndTag() {
-        return "</room>";
+    public String getTagName() {
+        return "room";
     }
 
     @Override
@@ -475,17 +465,17 @@ public class Room implements Area {
     }
 
     @Override
-    public String printDescription() {
-        return "<description>" + this.description + "</description>";
+    public String getDescription() {
+        return this.description;
     }
 
     @Override
     public SeeEvent produceMessage(boolean seeInvisible, boolean seeDirections) {
-        SeeEvent.Builder seeOutMessage = (SeeEvent.Builder) Area.super.produceMessage(seeInvisible,
-                seeDirections).copyBuilder();
+        SeeEvent.Builder seeOutMessage = (SeeEvent.Builder) Area.super.produceMessage(seeInvisible, seeDirections)
+                .copyBuilder();
 
         for (final SubArea subArea : this.subAreas) {
-            seeOutMessage.addExtraInfo(subArea.printDescription());
+            seeOutMessage.addExtraInfo(subArea.getDescription());
         }
         return seeOutMessage.Build();
     }
@@ -513,7 +503,7 @@ public class Room implements Area {
         this.log(Level.INFO,
                 () -> String.format(
                         "Current room effects (among which '%s'), cannot really happen on any event (like '%s')",
-                        effect.getName(), event.getEventType()));
+                        effect.getName(), event.getXmlEventType()));
         return null;
     }
 
