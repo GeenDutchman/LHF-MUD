@@ -60,7 +60,7 @@ public interface OutputBuilder {
         if (elements != null) {
             for (final OutputBuilderElement outputSequenceElement : elements) {
                 if (outputSequenceElement != null) {
-                    sb.append(outputSequenceElement.printString());
+                    sb.append(outputSequenceElement.printString(instructions));
                 }
             }
         }
