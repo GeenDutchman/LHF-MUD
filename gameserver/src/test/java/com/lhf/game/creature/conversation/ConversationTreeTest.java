@@ -226,7 +226,7 @@ public class ConversationTreeTest {
         Mockito.when(this.talker.getSimpleContent()).thenCallRealMethod();
 
         RichOutputBuilder builder = new RichOutputBuilder(ConversationTreeNode.NPC_CONVERSATION_TAG)
-                .appendChild("I greet you back").appendOutputBuilderElement(
+                .appendChild("I greet you back").appendRichOutputElement(
                         RichOutputElement.ofMetaSignal(ConversationContextKey.TALKER_TAGGED_NAME.name()));
         ConversationTreeNode start = new ConversationTreeNode(builder.build());
         ConversationTree tree = new ConversationTree(start);
@@ -253,7 +253,7 @@ public class ConversationTreeTest {
 
         RichOutputBuilder builder = new RichOutputBuilder(ConversationTreeNode.NPC_CONVERSATION_TAG)
                 .appendChild("I greet you back")
-                .appendOutputBuilderElement(
+                .appendRichOutputElement(
                         RichOutputElement.ofMetaSignal(ConversationContextKey.TALKER_TAGGED_NAME.name()))
                 .appendChild("I will test the welcome and the unwelcome both");
         ConversationTreeNode start = new ConversationTreeNode(builder.build());
@@ -322,7 +322,7 @@ public class ConversationTreeTest {
 
         RichOutputBuilder builder = new RichOutputBuilder(ConversationTreeNode.NPC_CONVERSATION_TAG)
                 .appendChild("I greet you back")
-                .appendOutputBuilderElement(
+                .appendRichOutputElement(
                         RichOutputElement.ofMetaSignal(ConversationContextKey.TALKER_TAGGED_NAME.name()))
                 .appendChild("I will test the welcome and the unwelcome both");
         ConversationTreeNode start = new ConversationTreeNode(builder.build());
@@ -367,7 +367,7 @@ public class ConversationTreeTest {
     void testSerialization() {
         RichOutputBuilder builder = new RichOutputBuilder(ConversationTreeNode.NPC_CONVERSATION_TAG)
                 .appendChild("I greet you back")
-                .appendOutputBuilderElement(
+                .appendRichOutputElement(
                         RichOutputElement.ofMetaSignal(ConversationContextKey.TALKER_TAGGED_NAME.name()))
                 .appendChild("I will test the welcome and the unwelcome both");
         ConversationTreeNode start = new ConversationTreeNode(builder.build());
@@ -408,7 +408,7 @@ public class ConversationTreeTest {
     void testMermaid() {
         RichOutputBuilder builder = new RichOutputBuilder(ConversationTreeNode.NPC_CONVERSATION_TAG)
                 .appendChild("I greet you back")
-                .appendOutputBuilderElement(
+                .appendRichOutputElement(
                         RichOutputElement.ofMetaSignal(ConversationContextKey.TALKER_TAGGED_NAME.name()))
                 .appendChild("I will test the welcome and the unwelcome both");
         ConversationTreeNode start = new ConversationTreeNode(builder.build());

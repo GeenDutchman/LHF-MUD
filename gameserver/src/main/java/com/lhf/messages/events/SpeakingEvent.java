@@ -103,7 +103,7 @@ public class SpeakingEvent extends GameEvent {
         if (this.hearer != null) {
             builder.appendTaggable(hearer, " to ", null);
         }
-        builder.appendOutputBuilder(message, ":", null);
+        builder.appendRichOutput(message, ":", null);
     }
 
     public RichOutput getMessage() {

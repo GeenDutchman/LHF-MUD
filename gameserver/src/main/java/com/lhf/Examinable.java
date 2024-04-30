@@ -106,7 +106,7 @@ public interface Examinable extends Taggable {
             if (builder == null) {
                 return;
             }
-            builder.appendOutputBuilder(extraDescription, null, null);
+            builder.appendRichOutput(extraDescription, null, null);
         }
 
         @Override

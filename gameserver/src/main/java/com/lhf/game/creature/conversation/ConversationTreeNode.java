@@ -29,7 +29,7 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode>, S
         } else if (NPC_CONVERSATION_TAG.equals(output.getBuilderName())) {
             this.bodySequence = output;
         } else {
-            this.bodySequence = new RichOutputBuilder(NPC_CONVERSATION_TAG).appendOutputBuilder(output, null, null)
+            this.bodySequence = new RichOutputBuilder(NPC_CONVERSATION_TAG).appendRichOutput(output, null, null)
                     .build();
         }
         this.prompts = new ArrayList<>();

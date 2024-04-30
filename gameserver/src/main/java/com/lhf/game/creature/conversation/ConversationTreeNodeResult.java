@@ -56,7 +56,7 @@ public class ConversationTreeNodeResult {
             RichOutputBuilder builder = new RichOutputBuilder(prompt.getBuilderName());
             for (RichOutputElement element : prompt.getElements()) {
                 if (element != null) {
-                    builder.appendOutputBuilderElement(transformer.apply(element), null, null);
+                    builder.appendRichOutputElement(transformer.apply(element), null, null);
                 }
             }
             promptResults.add(builder.build());
@@ -105,7 +105,7 @@ public class ConversationTreeNodeResult {
             }
             RichOutput sub = current.getOutputBuilder();
             if (sub != null) {
-                bodyResult.appendOutputBuilder(
+                bodyResult.appendRichOutput(
                         ConversationTreeNodeResult.transformOutputBuilder(transformer, sub, branchPatterns), null,
                         null); // recursion
                 continue;
@@ -113,7 +113,7 @@ public class ConversationTreeNodeResult {
 
             String chars = current.getCharSequenceAsString();
             if (chars == null || chars.length() == 0) {
-                bodyResult.appendOutputBuilderElement(transformer.apply(current), null, null);
+                bodyResult.appendRichOutputElement(transformer.apply(current), null, null);
                 continue;
             }
 
@@ -122,7 +122,7 @@ public class ConversationTreeNodeResult {
                 continue;
             }
 
-            bodyResult.appendOutputBuilderElement(transformer.apply(current), null, null);
+            bodyResult.appendRichOutputElement(transformer.apply(current), null, null);
         }
         return bodyResult.build();
     }
