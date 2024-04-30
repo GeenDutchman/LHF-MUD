@@ -51,7 +51,7 @@ public class SpeakOnOtherEntry extends AIHandler {
                             () -> String.format("Using fallback \"Hello There!\" for AI %s", bai.toString()));
                     sayit = ConversationTreeNodeResult.fromString(transformer, "Hello There!", null, null);
                 }
-                SayMessage say = SayMessage.fromOutputBuilder(sayit.getBodySequence(), reom.getNewbie().getName());
+                SayMessage say = SayMessage.fromOutputBuilder(sayit.getBody(), reom.getNewbie().getName());
                 bai.applyChain(null, say);
             }
         }

@@ -52,7 +52,7 @@ public class SpokenPromptChunk extends AIHandler {
                     () -> String.format("%s has no noderesult for message '%s'", bai.toString(), sm.getMessage()));
             return;
         }
-        SayMessage say = SayMessage.fromOutputBuilder(result.getBodySequence(), sm.getSayer().getName());
+        SayMessage say = SayMessage.fromOutputBuilder(result.getBody(), sm.getSayer().getName());
         bai.applyChain(null, say);
 
         if (result.getPromptsAsStrings() != null) {
