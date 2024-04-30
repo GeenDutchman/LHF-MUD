@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
-import com.lhf.OutputBuilder;
+import com.lhf.RichOutput;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.conversation.ConversationManager;
@@ -491,7 +491,7 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public void produceExtraDescription(OutputBuilder builder) {
+    public void produceExtraDescription(RichOutput builder) {
         wrapped.produceExtraDescription(builder);
     }
 

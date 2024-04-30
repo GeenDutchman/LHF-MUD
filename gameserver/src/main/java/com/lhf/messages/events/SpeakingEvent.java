@@ -1,7 +1,7 @@
 package com.lhf.messages.events;
 
-import com.lhf.OutputBuilder;
-import com.lhf.OutputBuilder.OutputSequence;
+import com.lhf.RichOutput;
+import com.lhf.RichOutput.OutputSequence;
 import com.lhf.messages.GameEventType;
 import com.lhf.server.client.CommandInvoker;
 
@@ -12,7 +12,7 @@ public class SpeakingEvent extends GameEvent {
     private final boolean shouting;
 
     public static class Builder extends GameEvent.Builder<Builder> {
-        private OutputBuilder message;
+        private RichOutput message;
         private CommandInvoker sayer;
         private CommandInvoker hearer;
         private boolean shouting = false;
@@ -21,7 +21,7 @@ public class SpeakingEvent extends GameEvent {
             super(GameEventType.SPEAKING);
         }
 
-        public OutputBuilder getMessage() {
+        public RichOutput getMessage() {
             return message;
         }
 
@@ -31,7 +31,7 @@ public class SpeakingEvent extends GameEvent {
             return this;
         }
 
-        public Builder setMessage(OutputBuilder message) {
+        public Builder setMessage(RichOutput message) {
             this.message = message;
             return this;
         }
@@ -88,7 +88,7 @@ public class SpeakingEvent extends GameEvent {
     }
 
     @Override
-    public void buildOutput(OutputBuilder builder) {
+    public void buildOutput(RichOutput builder) {
         if (builder == null) {
             return;
         }

@@ -6,7 +6,7 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeSet;
 
-import com.lhf.OutputBuilder;
+import com.lhf.RichOutput;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.inventory.InventoryOwner;
 import com.lhf.messages.CommandContext;
@@ -45,7 +45,7 @@ public class GuardedChest extends Chest {
             if (nodeGenerator == null) {
                 return;
             }
-            OutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+            RichOutput description = nodeGenerator.produceSubBuilder("InteractionDescription");
             description.appendTaggable(creature);
             description.appendString("finds that they cannot access");
             description.appendTaggable(this);

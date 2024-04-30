@@ -36,7 +36,7 @@ import org.w3c.dom.Node;
 import com.lhf.Examinable.BasicExaminable;
 import com.lhf.Taggable.BasicTaggable;
 
-public interface OutputBuilder {
+public interface RichOutput {
     public String getBuilderName();
 
     public List<OutputBuilderElement> getElements();
@@ -67,49 +67,49 @@ public interface OutputBuilder {
         return sb.toString();
     }
 
-    public default OutputBuilder appendOutputBuilderElement(OutputBuilderElement toAdd) {
+    public default RichOutput appendOutputBuilderElement(OutputBuilderElement toAdd) {
         return this.appendOutputBuilderElement(toAdd, " ", null);
     }
 
-    public OutputBuilder appendOutputBuilderElement(OutputBuilderElement toAdd, String before, String after);
+    public RichOutput appendOutputBuilderElement(OutputBuilderElement toAdd, String before, String after);
 
-    public default OutputBuilder appendOutputBuilder(OutputBuilder toAdd) {
+    public default RichOutput appendOutputBuilder(RichOutput toAdd) {
         return this.appendOutputBuilder(toAdd, " ", null);
     }
 
-    public OutputBuilder appendOutputBuilder(OutputBuilder toAdd, String before, String after);
+    public RichOutput appendOutputBuilder(RichOutput toAdd, String before, String after);
 
-    public default OutputBuilder appendString(String toAdd) {
+    public default RichOutput appendString(String toAdd) {
         return this.appendString(toAdd, " ", null);
     }
 
-    public default OutputBuilder appendChild(String toAdd) {
+    public default RichOutput appendChild(String toAdd) {
         return this.appendString(toAdd, " ", null);
     }
 
-    public OutputBuilder appendString(String toAdd, String before, String after);
+    public RichOutput appendString(String toAdd, String before, String after);
 
-    public default OutputBuilder appendExaminable(Examinable toAdd) {
+    public default RichOutput appendExaminable(Examinable toAdd) {
         return this.appendExaminable(toAdd, " ", null);
     }
 
-    public OutputBuilder appendExaminable(Examinable toAdd, String before, String after);
+    public RichOutput appendExaminable(Examinable toAdd, String before, String after);
 
-    public default OutputBuilder appendTaggable(Taggable toAdd) {
+    public default RichOutput appendTaggable(Taggable toAdd) {
         return this.appendTaggable(toAdd, " ", null);
     }
 
-    public default OutputBuilder appendChild(Taggable toAdd) {
+    public default RichOutput appendChild(Taggable toAdd) {
         return this.appendTaggable(toAdd);
     }
 
-    public OutputBuilder appendTaggable(Taggable toAdd, String before, String after);
+    public RichOutput appendTaggable(Taggable toAdd, String before, String after);
 
-    public default <Tgg extends Taggable> OutputBuilder appendTaggables(Collection<Tgg> taggables) {
+    public default <Tgg extends Taggable> RichOutput appendTaggables(Collection<Tgg> taggables) {
         return this.appendTaggables(taggables, ", ", null, null, null);
     }
 
-    public default <Tgg extends Taggable> OutputBuilder appendTaggables(Collection<Tgg> taggables, String separator,
+    public default <Tgg extends Taggable> RichOutput appendTaggables(Collection<Tgg> taggables, String separator,
             String before, String after, String empty) {
         if (before != null) {
             this.appendString(before);
@@ -133,11 +133,11 @@ public interface OutputBuilder {
         return this;
     }
 
-    public default <Tgg extends Taggable> OutputBuilder appendTaggablesAndLast(List<Tgg> taggables) {
+    public default <Tgg extends Taggable> RichOutput appendTaggablesAndLast(List<Tgg> taggables) {
         return this.appendTaggablesAndLast(taggables, ",", null, null, null);
     }
 
-    public default <Tgg extends Taggable> OutputBuilder appendTaggablesAndLast(List<Tgg> taggables, String separator,
+    public default <Tgg extends Taggable> RichOutput appendTaggablesAndLast(List<Tgg> taggables, String separator,
             String before, String after, String empty) {
         if (before != null) {
             this.appendString(before);
@@ -161,12 +161,12 @@ public interface OutputBuilder {
         return this;
     }
 
-    public default <Tgg extends Taggable> OutputBuilder appendTaggablesAndLast(SortedSet<Tgg> taggables) {
+    public default <Tgg extends Taggable> RichOutput appendTaggablesAndLast(SortedSet<Tgg> taggables) {
         return this.appendTaggablesAndLast(taggables, ",", null, null, null);
     }
 
-    public default <Tgg extends Taggable> OutputBuilder appendTaggablesAndLast(SortedSet<Tgg> taggables,
-            String separator, String before, String after, String empty) {
+    public default <Tgg extends Taggable> RichOutput appendTaggablesAndLast(SortedSet<Tgg> taggables, String separator,
+            String before, String after, String empty) {
         if (before != null) {
             this.appendString(before);
         }
@@ -190,7 +190,7 @@ public interface OutputBuilder {
         return this;
     }
 
-    public abstract OutputBuilder produceSubBuilder(String subName);
+    public abstract RichOutput produceSubBuilder(String subName);
 
     public static interface OutputBuilderElement {
         @Deprecated(forRemoval = false)
@@ -202,7 +202,7 @@ public interface OutputBuilder {
 
         public Examinable getExaminable();
 
-        public OutputBuilder getOutputBuilder();
+        public RichOutput getOutputBuilder();
 
         public String getMetaSignal();
 
@@ -214,7 +214,7 @@ public interface OutputBuilder {
             final String charSequence = this.getCharSequenceAsString();
             final Taggable taggable = this.getTaggable();
             final Examinable examinable = this.getExaminable();
-            final OutputBuilder builder = this.getOutputBuilder();
+            final RichOutput builder = this.getOutputBuilder();
             final String meta = this.getMetaSignal();
 
             if (charSequence != null) {
@@ -287,7 +287,7 @@ public interface OutputBuilder {
             return new OutputSequenceElement(null, null, null, sequence, null);
         }
 
-        public static OutputSequenceElement ofOutputBuilder(OutputBuilder builder) {
+        public static OutputSequenceElement ofOutputBuilder(RichOutput builder) {
             return new OutputSequenceElement(null, null, null, OutputSequence.copy(builder), null);
         }
 
@@ -350,7 +350,7 @@ public interface OutputBuilder {
 
     }
 
-    public static final class OutputSequence implements OutputBuilder, Iterable<OutputSequenceElement>, Serializable {
+    public static final class OutputSequence implements RichOutput, Iterable<OutputSequenceElement>, Serializable {
 
         private final String sequenceName;
         private final List<OutputSequenceElement> elements;
@@ -365,7 +365,7 @@ public interface OutputBuilder {
             this.elements = new ArrayList<>();
         }
 
-        public static final OutputSequence copy(OutputBuilder sequence) {
+        public static final OutputSequence copy(RichOutput sequence) {
             if (sequence == null) {
                 return null;
             }
@@ -401,7 +401,7 @@ public interface OutputBuilder {
         }
 
         @Override
-        public OutputSequence appendOutputBuilder(OutputBuilder toAdd, String before, String after) {
+        public OutputSequence appendOutputBuilder(RichOutput toAdd, String before, String after) {
             if (toAdd != null) {
                 if (before != null) {
                     this.elements.add(OutputSequenceElement.ofCharSequence(before));
@@ -535,7 +535,7 @@ public interface OutputBuilder {
         if (document == null || writer == null) {
             throw new IllegalArgumentException("Cannot write null document or to null writer");
         }
-        OutputBuilder.writeDocument(document, writer, Map.of());
+        RichOutput.writeDocument(document, writer, Map.of());
     }
 
     public static String printDocument(Document document) throws TransformerException {
@@ -543,7 +543,7 @@ public interface OutputBuilder {
             throw new IllegalArgumentException("Cannot make string from null document!");
         }
         StringWriter writer = new StringWriter();
-        OutputBuilder.writeDocument(document, writer);
+        RichOutput.writeDocument(document, writer);
         return writer.toString();
     }
 
@@ -582,7 +582,7 @@ public interface OutputBuilder {
         }
 
         try {
-            OutputBuilder.acceptOutputBuilderElements(document, root, sequence.getElements());
+            RichOutput.acceptOutputBuilderElements(document, root, sequence.getElements());
         } catch (OutputBuilderConversionError e) {
             throw new OutputBuilderConversionError(
                     String.format("Error for OutputBuilder '%s'", sequence.getBuilderName()), e);
@@ -656,7 +656,7 @@ public interface OutputBuilder {
         if (name != null && !name.equals(simpleContent)) {
             final BasicTaggable nameTaggable = BasicTaggable.customTaggable("name", name, Map.of());
             try {
-                OutputBuilder.acceptTaggable(document, myElement, nameTaggable);
+                RichOutput.acceptTaggable(document, myElement, nameTaggable);
             } catch (OutputBuilderConversionError e) {
                 throw new OutputBuilderConversionError(
                         String.format("Error accepting name Taggable '%s' for the Examinable", nameTaggable), e);
@@ -721,21 +721,21 @@ public interface OutputBuilder {
                 }
             } else if (sequenceMember.getTaggable() != null) {
                 try {
-                    OutputBuilder.acceptTaggable(document, node, sequenceMember.getTaggable());
+                    RichOutput.acceptTaggable(document, node, sequenceMember.getTaggable());
                 } catch (OutputBuilderConversionError e) {
                     throw new OutputBuilderConversionError(
                             String.format("Error for element %d while appending Taggable", i), e);
                 }
             } else if (sequenceMember.getExaminable() != null) {
                 try {
-                    OutputBuilder.acceptExaminable(document, node, sequenceMember.getExaminable());
+                    RichOutput.acceptExaminable(document, node, sequenceMember.getExaminable());
                 } catch (OutputBuilderConversionError e) {
                     throw new OutputBuilderConversionError(
                             String.format("Error for element %d while appending Examinable", i), e);
                 }
             } else if (sequenceMember.getOutputBuilder() != null) {
                 try {
-                    OutputBuilder.acceptOutputBuilder(document, node, sequenceMember.getOutputBuilder());
+                    RichOutput.acceptOutputBuilder(document, node, sequenceMember.getOutputBuilder());
                 } catch (OutputBuilderConversionError e) {
                     throw new OutputBuilderConversionError(
                             String.format("Error for element %d while appending OutputBuilder", i), e);
@@ -747,7 +747,7 @@ public interface OutputBuilder {
         }
     }
 
-    private static void acceptOutputBuilder(Document document, Node node, OutputBuilder outputBuilder)
+    private static void acceptOutputBuilder(Document document, Node node, RichOutput outputBuilder)
             throws OutputBuilderConversionError {
         if (document == null || node == null || outputBuilder == null) {
             return;
@@ -766,7 +766,7 @@ public interface OutputBuilder {
         }
         final List<OutputBuilderElement> elementList = outputBuilder.getElements();
         try {
-            OutputBuilder.acceptOutputBuilderElements(document, myNode, elementList);
+            RichOutput.acceptOutputBuilderElements(document, myNode, elementList);
         } catch (OutputBuilderConversionError e) {
             throw new OutputBuilderConversionError(String.format("Error for OutputBuilder '%s'", sequenceName), e);
         }
@@ -778,7 +778,7 @@ public interface OutputBuilder {
 
         @Override
         public BiConsumer<OutputSequence, OutputSequenceElement> accumulator() {
-            return new BiConsumer<OutputBuilder.OutputSequence, OutputBuilder.OutputSequenceElement>() {
+            return new BiConsumer<RichOutput.OutputSequence, RichOutput.OutputSequenceElement>() {
 
                 @Override
                 public void accept(OutputSequence arg0, OutputSequenceElement arg1) {
@@ -798,7 +798,7 @@ public interface OutputBuilder {
 
         @Override
         public BinaryOperator<OutputSequence> combiner() {
-            return new BinaryOperator<OutputBuilder.OutputSequence>() {
+            return new BinaryOperator<RichOutput.OutputSequence>() {
 
                 @Override
                 public OutputSequence apply(OutputSequence arg0, OutputSequence arg1) {

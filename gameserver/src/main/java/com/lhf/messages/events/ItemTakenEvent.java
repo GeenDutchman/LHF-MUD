@@ -1,7 +1,7 @@
 package com.lhf.messages.events;
 
 import com.lhf.Examinable;
-import com.lhf.OutputBuilder;
+import com.lhf.RichOutput;
 import com.lhf.game.item.IItem;
 import com.lhf.messages.GameEventType;
 
@@ -103,7 +103,7 @@ public class ItemTakenEvent extends GameEvent {
     }
 
     @Override
-    public void buildOutput(OutputBuilder builder) {
+    public void buildOutput(RichOutput builder) {
         if (builder == null) {
             return;
         }

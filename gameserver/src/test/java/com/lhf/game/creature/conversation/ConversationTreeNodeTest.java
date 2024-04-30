@@ -3,7 +3,7 @@ package com.lhf.game.creature.conversation;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.truth.Truth;
-import com.lhf.OutputBuilder.OutputBuilderElement;
+import com.lhf.RichOutput.OutputBuilderElement;
 
 public class ConversationTreeNodeTest {
 

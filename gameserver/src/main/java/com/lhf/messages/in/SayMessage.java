@@ -3,8 +3,8 @@ package com.lhf.messages.in;
 import java.util.List;
 import java.util.StringJoiner;
 
-import com.lhf.OutputBuilder;
-import com.lhf.OutputBuilder.OutputSequence;
+import com.lhf.RichOutput;
+import com.lhf.RichOutput.OutputSequence;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -25,7 +25,7 @@ public class SayMessage extends Command {
         }
     }
 
-    private SayMessage(OutputBuilder output, String target, Boolean isValid) {
+    private SayMessage(RichOutput output, String target, Boolean isValid) {
         super(AMessageType.SAY, new StringBuilder("SAY \"").append(output.printString()).append("\"")
                 .append(target != null ? " to " + target : "").toString(), isValid);
         this.sequence = OutputSequence.copy(output);
@@ -35,7 +35,7 @@ public class SayMessage extends Command {
         }
     }
 
-    public static SayMessage fromOutputBuilder(OutputBuilder output, String target) {
+    public static SayMessage fromOutputBuilder(RichOutput output, String target) {
         if (output == null) {
             throw new IllegalArgumentException("Cannot create SayMessage from null OutputBuilder");
         }

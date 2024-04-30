@@ -3,7 +3,7 @@ package com.lhf.game.creature.intelligence.handlers;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import com.lhf.OutputBuilder.OutputSequence;
+import com.lhf.RichOutput.OutputSequence;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNode;

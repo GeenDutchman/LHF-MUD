@@ -1,6 +1,6 @@
 package com.lhf.messages.events;
 
-import com.lhf.OutputBuilder;
+import com.lhf.RichOutput;
 import com.lhf.Taggable;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.Usable;
@@ -119,7 +119,7 @@ public class ItemUsedEvent extends GameEvent {
     }
 
     @Override
-    public void buildOutput(OutputBuilder builder) {
+    public void buildOutput(RichOutput builder) {
         if (builder == null) {
             return;
         }

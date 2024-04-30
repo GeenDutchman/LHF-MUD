@@ -16,8 +16,8 @@ import javax.xml.transform.TransformerException;
 
 import org.w3c.dom.Document;
 
-import com.lhf.OutputBuilder;
-import com.lhf.OutputBuilder.OutputSequence;
+import com.lhf.RichOutput;
+import com.lhf.RichOutput.OutputSequence;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.messages.GameEventProcessor.GameEventProcessorID;
@@ -28,7 +28,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
     public static abstract class Builder<T extends Builder<T>> {
         private GameEventType type;
         private boolean broadcast;
-        private Consumer<OutputBuilder> outputCallback;
+        private Consumer<RichOutput> outputCallback;
         protected T thisObject;
 
         protected Builder(GameEventType type) {
@@ -56,11 +56,11 @@ public abstract class GameEvent implements Comparable<GameEvent> {
             return this.broadcast;
         }
 
-        public Consumer<OutputBuilder> getOutputCallback() {
+        public Consumer<RichOutput> getOutputCallback() {
             return outputCallback;
         }
 
-        public T setOutputCallback(Consumer<OutputBuilder> xmlCallbackFunction) {
+        public T setOutputCallback(Consumer<RichOutput> xmlCallbackFunction) {
             this.outputCallback = xmlCallbackFunction;
             return this.getThis();
         }
@@ -83,7 +83,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
 
         OutputSequence sequence = new OutputSequence(XML_EVENT_ROOT);
         event.buildOutput(sequence);
-        Consumer<OutputBuilder> callback = event.getOutputCallback();
+        Consumer<RichOutput> callback = event.getOutputCallback();
         if (callback != null) {
             callback.accept(sequence);
         }
@@ -96,7 +96,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
             attributes.put(XML_EVENT_TICK, tick.toString());
         }
 
-        return OutputBuilder.documentFromOutputSequence(sequence, attributes);
+        return RichOutput.documentFromOutputSequence(sequence, attributes);
     }
 
     private final GameEventType type;
@@ -104,7 +104,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
     private final Builder<?> builder;
     private final UUID uuid;
     private final SortedSet<GameEventProcessorID> haveRecieved;
-    private final Consumer<OutputBuilder> outputCallback;
+    private final Consumer<RichOutput> outputCallback;
 
     public GameEvent(Builder<?> builder) {
         this.type = builder.getType();
@@ -140,15 +140,15 @@ public abstract class GameEvent implements Comparable<GameEvent> {
         return this.broadcast;
     }
 
-    public Consumer<OutputBuilder> getOutputCallback() {
+    public Consumer<RichOutput> getOutputCallback() {
         return outputCallback;
     }
 
-    protected final OutputBuilder addressCreature(OutputBuilder builder, ICreature creature) {
+    protected final RichOutput addressCreature(RichOutput builder, ICreature creature) {
         return this.addressCreature(builder, creature, true);
     }
 
-    protected final OutputBuilder addressCreature(OutputBuilder builder, ICreature creature, boolean capitalize) {
+    protected final RichOutput addressCreature(RichOutput builder, ICreature creature, boolean capitalize) {
         if (!this.isBroadcast()) {
             builder.appendString(capitalize ? "You" : "you");
         } else if (creature != null) {
@@ -159,11 +159,11 @@ public abstract class GameEvent implements Comparable<GameEvent> {
         return builder;
     }
 
-    protected final OutputBuilder possesiveCreature(OutputBuilder builder, ICreature creature) {
+    protected final RichOutput possesiveCreature(RichOutput builder, ICreature creature) {
         return this.possesiveCreature(builder, creature, true);
     }
 
-    protected final OutputBuilder possesiveCreature(OutputBuilder builder, ICreature creature, boolean capitalize) {
+    protected final RichOutput possesiveCreature(RichOutput builder, ICreature creature, boolean capitalize) {
         if (!this.isBroadcast()) {
             builder.appendString(capitalize ? "Your" : "your");
         } else if (creature != null) {
@@ -184,7 +184,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
 
     // Called to render as a human-readable string
     public String printString() {
-        OutputSequence stringOut = new OutputBuilder.OutputSequence();
+        OutputSequence stringOut = new RichOutput.OutputSequence();
         this.buildOutput(stringOut);
         if (this.outputCallback != null) {
             this.outputCallback.accept(stringOut);
@@ -205,10 +205,10 @@ public abstract class GameEvent implements Comparable<GameEvent> {
 
     public final void writeXML(Writer writer) throws ParserConfigurationException, TransformerException {
         Document myDocument = GameEvent.documentFromGameEvent(this);
-        OutputBuilder.writeDocument(myDocument, writer);
+        RichOutput.writeDocument(myDocument, writer);
     }
 
-    public abstract void buildOutput(OutputBuilder builder);
+    public abstract void buildOutput(RichOutput builder);
 
     @Override
     public int hashCode() {

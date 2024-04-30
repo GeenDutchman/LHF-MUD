@@ -17,7 +17,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.OutputBuilder;
+import com.lhf.RichOutput;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.ICreature.CreatureCommandHandler;
@@ -236,7 +236,7 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
                     if (nodeGenerator == null) {
                         return;
                     }
-                    OutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                    RichOutput description = nodeGenerator.produceSubBuilder("InteractionDescription");
                     description.appendTaggable(creature);
                     description.appendString("got in the bed!");
                 });

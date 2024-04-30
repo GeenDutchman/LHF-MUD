@@ -19,10 +19,10 @@ import javax.xml.transform.TransformerException;
 
 import org.w3c.dom.Document;
 
-import com.lhf.OutputBuilder;
-import com.lhf.OutputBuilder.OutputBuilderElement;
-import com.lhf.OutputBuilder.OutputSequence;
-import com.lhf.OutputBuilder.OutputSequenceElement;
+import com.lhf.RichOutput;
+import com.lhf.RichOutput.OutputBuilderElement;
+import com.lhf.RichOutput.OutputSequence;
+import com.lhf.RichOutput.OutputSequenceElement;
 import com.lhf.Taggable.BasicTaggable;
 
 public class ConversationTreeNodeResult {
@@ -90,8 +90,8 @@ public class ConversationTreeNodeResult {
         return false;
     }
 
-    private static OutputSequence transformOutputBuilder(ConversationTransformer transformer,
-            OutputBuilder bodySequence, SortedSet<ConversationPattern> branchPatterns) {
+    private static OutputSequence transformOutputBuilder(ConversationTransformer transformer, RichOutput bodySequence,
+            SortedSet<ConversationPattern> branchPatterns) {
         if (bodySequence == null) {
             return null;
         }
@@ -106,7 +106,7 @@ public class ConversationTreeNodeResult {
             if (current == null) {
                 continue;
             }
-            OutputBuilder sub = current.getOutputBuilder();
+            RichOutput sub = current.getOutputBuilder();
             if (sub != null) {
                 bodyResult.appendOutputBuilder(
                         ConversationTreeNodeResult.transformOutputBuilder(transformer, sub, branchPatterns), null,
@@ -130,7 +130,7 @@ public class ConversationTreeNodeResult {
         return bodyResult;
     }
 
-    public static ConversationTreeNodeResult create(ConversationTransformer transformer, OutputBuilder bodySequence,
+    public static ConversationTreeNodeResult create(ConversationTransformer transformer, RichOutput bodySequence,
             List<OutputSequence> prompts, SortedSet<ConversationPattern> branchPatterns) {
         if (transformer == null) {
             throw new IllegalArgumentException("Must have a context to create a result!");
@@ -173,13 +173,13 @@ public class ConversationTreeNodeResult {
             throw new IllegalArgumentException("Cannot generate document from null result!");
         }
 
-        return OutputBuilder.documentFromOutputSequence(result.bodySequence, null);
+        return RichOutput.documentFromOutputSequence(result.bodySequence, null);
     }
 
     public final String printXML() throws ParserConfigurationException, TransformerException {
         StringWriter writer = new StringWriter();
         Document myDocument = ConversationTreeNodeResult.documentFromConversationTreeNodeResult(this);
-        OutputBuilder.writeDocument(myDocument, writer,
+        RichOutput.writeDocument(myDocument, writer,
                 Map.of(OutputKeys.INDENT, "no", OutputKeys.OMIT_XML_DECLARATION, "yes"));
         return writer.toString();
     }

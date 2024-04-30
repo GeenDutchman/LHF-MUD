@@ -10,8 +10,8 @@ import java.util.UUID;
 import java.util.function.Function;
 
 import com.lhf.Taggable;
-import com.lhf.OutputBuilder.OutputBuilderElement;
-import com.lhf.OutputBuilder.OutputSequenceElement;
+import com.lhf.RichOutput.OutputBuilderElement;
+import com.lhf.RichOutput.OutputSequenceElement;
 
 public interface ConversationTransformer extends Function<OutputBuilderElement, OutputBuilderElement> {
 

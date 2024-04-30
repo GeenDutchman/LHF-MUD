@@ -1,6 +1,6 @@
 package com.lhf.messages.events;
 
-import com.lhf.OutputBuilder;
+import com.lhf.RichOutput;
 import com.lhf.messages.GameEventType;
 import com.lhf.server.client.user.User;
 
@@ -44,7 +44,7 @@ public class UserLeftEvent extends GameEvent {
     }
 
     @Override
-    public void buildOutput(OutputBuilder builder) {
+    public void buildOutput(RichOutput builder) {
         if (builder == null) {
             return;
         }

@@ -16,8 +16,8 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.lhf.OutputBuilder.OutputSequence;
-import com.lhf.OutputBuilder.PrintingInstructions;
+import com.lhf.RichOutput.OutputSequence;
+import com.lhf.RichOutput.PrintingInstructions;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContext;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
 import com.lhf.server.client.Client.ClientID;

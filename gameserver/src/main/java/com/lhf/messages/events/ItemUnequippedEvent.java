@@ -1,6 +1,6 @@
 package com.lhf.messages.events;
 
-import com.lhf.OutputBuilder;
+import com.lhf.RichOutput;
 import com.lhf.game.TickType;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.AItem;
@@ -89,7 +89,7 @@ public class ItemUnequippedEvent extends GameEvent {
         this.attemptedName = builder.getAttemptedName();
     }
 
-    private void describeItem(OutputBuilder builder) {
+    private void describeItem(RichOutput builder) {
         if (this.item != null) {
             builder.appendTaggable(item);
         } else if (this.attemptedName != null && !this.attemptedName.isBlank()) {
@@ -117,7 +117,7 @@ public class ItemUnequippedEvent extends GameEvent {
     }
 
     @Override
-    public void buildOutput(OutputBuilder builder) {
+    public void buildOutput(RichOutput builder) {
         if (builder == null) {
             return;
         }

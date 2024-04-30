@@ -1,6 +1,6 @@
 package com.lhf.messages.events;
 
-import com.lhf.OutputBuilder;
+import com.lhf.RichOutput;
 import com.lhf.Taggable.BasicTaggable;
 import com.lhf.messages.GameEventType;
 
@@ -60,7 +60,7 @@ public class BattleRoundWastedEvent extends BattleRoundEvent {
     }
 
     @Override
-    public void buildOutput(OutputBuilder builder) {
+    public void buildOutput(RichOutput builder) {
         if (builder == null) {
             return;
         }

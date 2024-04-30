@@ -16,7 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
 import com.google.common.truth.Truth8;
-import com.lhf.OutputBuilder.OutputSequence;
+import com.lhf.RichOutput.OutputSequence;
 import com.lhf.Taggable;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.CreatureEffect;

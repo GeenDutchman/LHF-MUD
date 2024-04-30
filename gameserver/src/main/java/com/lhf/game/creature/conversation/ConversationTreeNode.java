@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import com.lhf.OutputBuilder.OutputSequence;
-import com.lhf.OutputBuilder.OutputSequenceElement;
+import com.lhf.RichOutput.OutputSequence;
+import com.lhf.RichOutput.OutputSequenceElement;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
 
 public class ConversationTreeNode implements Comparable<ConversationTreeNode>, Serializable {

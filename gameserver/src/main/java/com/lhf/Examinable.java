@@ -4,8 +4,8 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
-import com.lhf.OutputBuilder.OutputSequence;
-import com.lhf.OutputBuilder.OutputSequenceElement;
+import com.lhf.RichOutput.OutputSequence;
+import com.lhf.RichOutput.OutputSequenceElement;
 import com.lhf.messages.events.SeeEvent;
 
 public interface Examinable extends Taggable {
@@ -18,7 +18,7 @@ public interface Examinable extends Taggable {
         return this.getName();
     }
 
-    public default void produceExtraDescription(OutputBuilder builder) {
+    public default void produceExtraDescription(RichOutput builder) {
         return;
     }
 
@@ -103,7 +103,7 @@ public interface Examinable extends Taggable {
         }
 
         @Override
-        public void produceExtraDescription(OutputBuilder builder) {
+        public void produceExtraDescription(RichOutput builder) {
             if (builder == null) {
                 return;
             }
