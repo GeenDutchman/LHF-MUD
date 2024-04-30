@@ -36,181 +36,100 @@ import org.w3c.dom.Node;
 import com.lhf.Examinable.BasicExaminable;
 import com.lhf.Taggable.BasicTaggable;
 
-public interface RichOutput {
-    public String getBuilderName();
+public final class RichOutput implements Serializable {
 
-    public List<RichOutputElement> getElements();
+    public final static class RichOutputElement implements Serializable {
+        private final String charSequence;
+        private final BasicTaggable taggable;
+        private final BasicExaminable examinable;
+        private final RichOutput Output;
+        private final String metaSignal;
 
-    public enum PrintingInstructions {
-        TAGS, BUILDER_NAME, META_SIGNAL;
-    }
-
-    public default String printString() {
-        return this.printString(Set.of());
-    }
-
-    public default String printString(Set<PrintingInstructions> instructions) {
-        StringBuilder sb = new StringBuilder();
-        final String builderName = this.getBuilderName();
-        if (instructions != null && instructions.contains(PrintingInstructions.BUILDER_NAME) && builderName != null) {
-            sb.append(builderName).append("- ");
+        private RichOutputElement(CharSequence charSequence, Taggable taggable, Examinable examinable,
+                RichOutput Output, String metaSignal) {
+            this.charSequence = charSequence != null ? charSequence.toString() : null;
+            this.taggable = Taggable.basicTaggable(taggable);
+            this.examinable = Examinable.basicExaminable(examinable);
+            this.Output = Output;
+            this.metaSignal = metaSignal != null ? new String(metaSignal) : null;
         }
 
-        final List<RichOutputElement> elements = this.getElements();
-        if (elements != null) {
-            for (final RichOutputElement outputSequenceElement : elements) {
-                if (outputSequenceElement != null) {
-                    sb.append(outputSequenceElement.printString(instructions));
-                }
-            }
+        public static RichOutputElement ofCharSequence(CharSequence charSequence) {
+            return new RichOutputElement(charSequence, null, null, null, null);
         }
-        return sb.toString();
-    }
 
-    public default RichOutput appendOutputBuilderElement(RichOutputElement toAdd) {
-        return this.appendOutputBuilderElement(toAdd, " ", null);
-    }
-
-    public RichOutput appendOutputBuilderElement(RichOutputElement toAdd, String before, String after);
-
-    public default RichOutput appendOutputBuilder(RichOutput toAdd) {
-        return this.appendOutputBuilder(toAdd, " ", null);
-    }
-
-    public RichOutput appendOutputBuilder(RichOutput toAdd, String before, String after);
-
-    public default RichOutput appendString(String toAdd) {
-        return this.appendString(toAdd, " ", null);
-    }
-
-    public default RichOutput appendChild(String toAdd) {
-        return this.appendString(toAdd, " ", null);
-    }
-
-    public RichOutput appendString(String toAdd, String before, String after);
-
-    public default RichOutput appendExaminable(Examinable toAdd) {
-        return this.appendExaminable(toAdd, " ", null);
-    }
-
-    public RichOutput appendExaminable(Examinable toAdd, String before, String after);
-
-    public default RichOutput appendTaggable(Taggable toAdd) {
-        return this.appendTaggable(toAdd, " ", null);
-    }
-
-    public default RichOutput appendChild(Taggable toAdd) {
-        return this.appendTaggable(toAdd);
-    }
-
-    public RichOutput appendTaggable(Taggable toAdd, String before, String after);
-
-    public default <Tgg extends Taggable> RichOutput appendTaggables(Collection<Tgg> taggables) {
-        return this.appendTaggables(taggables, ", ", null, null, null);
-    }
-
-    public default <Tgg extends Taggable> RichOutput appendTaggables(Collection<Tgg> taggables, String separator,
-            String before, String after, String empty) {
-        if (before != null) {
-            this.appendString(before);
+        public static RichOutputElement ofTaggable(Taggable taggable) {
+            return new RichOutputElement(null, taggable, null, null, null);
         }
-        if (taggables == null || taggables.isEmpty()) {
-            if (empty != null) {
-                this.appendString(empty);
-            }
-        } else if (taggables.size() == 1) {
-            this.appendTaggable(taggables.stream().findAny().get());
-        } else {
-            boolean first = true;
-            for (Taggable taggable : taggables) {
-                this.appendTaggable(taggable, first ? " " : separator, null);
-                first = false;
-            }
-        }
-        if (after != null) {
-            this.appendString(after);
-        }
-        return this;
-    }
 
-    public default <Tgg extends Taggable> RichOutput appendTaggablesAndLast(List<Tgg> taggables) {
-        return this.appendTaggablesAndLast(taggables, ",", null, null, null);
-    }
+        public static RichOutputElement ofExaminable(Examinable examinable) {
+            return new RichOutputElement(null, null, examinable, null, null);
+        }
 
-    public default <Tgg extends Taggable> RichOutput appendTaggablesAndLast(List<Tgg> taggables, String separator,
-            String before, String after, String empty) {
-        if (before != null) {
-            this.appendString(before);
+        public static RichOutputElement ofOutput(RichOutput sequence) {
+            return new RichOutputElement(null, null, null, sequence, null);
         }
-        if (taggables == null || taggables.isEmpty()) {
-            if (empty != null) {
-                this.appendString(empty);
-            }
-        } else if (taggables.size() == 1) {
-            this.appendTaggable(taggables.get(0));
-        } else {
-            final int lastIndex = taggables.size() - 1;
-            for (int i = 0; i < lastIndex; i++) {
-                this.appendTaggable(taggables.get(i), " ", separator);
-            }
-            this.appendString("and", " ", null).appendTaggable(taggables.get(lastIndex), " ", null);
-        }
-        if (after != null) {
-            this.appendString(after);
-        }
-        return this;
-    }
 
-    public default <Tgg extends Taggable> RichOutput appendTaggablesAndLast(SortedSet<Tgg> taggables) {
-        return this.appendTaggablesAndLast(taggables, ",", null, null, null);
-    }
-
-    public default <Tgg extends Taggable> RichOutput appendTaggablesAndLast(SortedSet<Tgg> taggables, String separator,
-            String before, String after, String empty) {
-        if (before != null) {
-            this.appendString(before);
+        public static RichOutputElement ofMetaSignal(String metaSignal) {
+            return new RichOutputElement(null, null, null, null, metaSignal);
         }
-        if (taggables == null || taggables.isEmpty()) {
-            if (empty != null) {
-                this.appendString(empty);
-            }
-        } else if (taggables.size() == 1) {
-            this.appendTaggable(taggables.first());
-        } else {
-            final Tgg last = taggables.last();
-            final SortedSet<Tgg> remainder = taggables.headSet(last);
-            for (final Taggable taggable : remainder) {
-                this.appendTaggable(taggable, " ", separator);
-            }
-            this.appendString("and", " ", null).appendTaggable(last, " ", null);
-        }
-        if (after != null) {
-            this.appendString(after);
-        }
-        return this;
-    }
 
-    public abstract RichOutput produceSubBuilder(String subName);
-
-    public static interface RichOutputElement {
         @Deprecated(forRemoval = false)
-        public CharSequence getCharSequence();
+        public CharSequence getCharSequence() {
+            return charSequence;
+        }
 
-        public String getCharSequenceAsString();
+        public String getCharSequenceAsString() {
+            return charSequence != null ? charSequence.toString() : null;
+        }
 
-        public Taggable getTaggable();
+        public Taggable getTaggable() {
+            return taggable;
+        }
 
-        public Examinable getExaminable();
+        public Examinable getExaminable() {
+            return examinable;
+        }
 
-        public RichOutput getOutputBuilder();
+        public RichOutput getOutputBuilder() {
+            return Output;
+        }
 
-        public String getMetaSignal();
+        public String getMetaSignal() {
+            return metaSignal;
+        }
 
-        public default String printString() {
+        @Override
+        public int hashCode() {
+            return Objects.hash(charSequence, taggable, examinable, Output, metaSignal);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof RichOutputElement))
+                return false;
+            RichOutputElement other = (RichOutputElement) obj;
+            return Objects.equals(charSequence, other.charSequence) && Objects.equals(taggable, other.taggable)
+                    && Objects.equals(examinable, other.examinable) && Objects.equals(Output, other.Output)
+                    && Objects.equals(metaSignal, other.metaSignal);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("OutputElement [charSequence=").append(charSequence).append(", taggable=").append(taggable)
+                    .append(", examinable=").append(examinable).append(", Output=").append(Output)
+                    .append(", metaSignal=").append(metaSignal).append("]");
+            return builder.toString();
+        }
+
+        public String printString() {
             return this.printString(Set.of());
         }
 
-        public default String printString(Set<PrintingInstructions> instructions) {
+        public String printString(Set<PrintingInstructions> instructions) {
             final String charSequence = this.getCharSequenceAsString();
             final Taggable taggable = this.getTaggable();
             final Examinable examinable = this.getExaminable();
@@ -244,269 +163,401 @@ public interface RichOutput {
             } else {
                 return "";
             }
+
         }
     }
 
-    public final static class RichOutputSequenceElement implements RichOutputElement, Serializable {
-        private final String charSequence;
-        private final BasicTaggable taggable;
-        private final BasicExaminable examinable;
-        private final RichOutputSequence outputSequence;
-        private final String metaSignal;
+    private final String sequenceName;
+    private final List<RichOutputElement> elements;
 
-        private RichOutputSequenceElement(CharSequence charSequence, Taggable taggable, Examinable examinable,
-                RichOutputSequence outputSequence, String metaSignal) {
-            this.charSequence = charSequence != null ? charSequence.toString() : null;
-            this.taggable = Taggable.basicTaggable(taggable);
-            this.examinable = Examinable.basicExaminable(examinable);
-            this.outputSequence = outputSequence;
-            this.metaSignal = metaSignal != null ? new String(metaSignal) : null;
-        }
-
-        public static final RichOutputSequenceElement copy(RichOutputElement other) {
-            if (other == null) {
-                return null;
+    private RichOutput(RichOutputBuilder builder) {
+        if (builder != null) {
+            this.sequenceName = builder.getBuilderName();
+            List<com.lhf.RichOutput.RichOutputBuilder.BuilderElement> tempElements = builder.getElements();
+            if (tempElements != null) {
+                this.elements = tempElements.stream().filter(element -> element != null).map(element -> element.build())
+                        .toList();
+            } else {
+                this.elements = List.of();
             }
-            return new RichOutputSequenceElement(other.getCharSequenceAsString(), other.getTaggable(),
-                    other.getExaminable(), RichOutputSequence.copy(other.getOutputBuilder()), other.getMetaSignal());
-        }
-
-        public static RichOutputSequenceElement ofCharSequence(CharSequence charSequence) {
-            return new RichOutputSequenceElement(charSequence, null, null, null, null);
-        }
-
-        public static RichOutputSequenceElement ofTaggable(Taggable taggable) {
-            return new RichOutputSequenceElement(null, taggable, null, null, null);
-        }
-
-        public static RichOutputSequenceElement ofExaminable(Examinable examinable) {
-            return new RichOutputSequenceElement(null, null, examinable, null, null);
-        }
-
-        public static RichOutputSequenceElement ofOutputSequence(RichOutputSequence sequence) {
-            return new RichOutputSequenceElement(null, null, null, sequence, null);
-        }
-
-        public static RichOutputSequenceElement ofOutputBuilder(RichOutput builder) {
-            return new RichOutputSequenceElement(null, null, null, RichOutputSequence.copy(builder), null);
-        }
-
-        public static RichOutputSequenceElement ofMetaSignal(String metaSignal) {
-            return new RichOutputSequenceElement(null, null, null, null, metaSignal);
-        }
-
-        @Deprecated(forRemoval = false)
-        public CharSequence getCharSequence() {
-            return charSequence;
-        }
-
-        public String getCharSequenceAsString() {
-            return charSequence != null ? charSequence.toString() : null;
-        }
-
-        public Taggable getTaggable() {
-            return taggable;
-        }
-
-        public Examinable getExaminable() {
-            return examinable;
-        }
-
-        public RichOutputSequence getOutputBuilder() {
-            return outputSequence;
-        }
-
-        @Override
-        public String getMetaSignal() {
-            return metaSignal;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(charSequence, taggable, examinable, outputSequence, metaSignal);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (!(obj instanceof RichOutputSequenceElement))
-                return false;
-            RichOutputSequenceElement other = (RichOutputSequenceElement) obj;
-            return Objects.equals(charSequence, other.charSequence) && Objects.equals(taggable, other.taggable)
-                    && Objects.equals(examinable, other.examinable)
-                    && Objects.equals(outputSequence, other.outputSequence)
-                    && Objects.equals(metaSignal, other.metaSignal);
-        }
-
-        @Override
-        public String toString() {
-            StringBuilder builder = new StringBuilder();
-            builder.append("OutputSequenceElement [charSequence=").append(charSequence).append(", taggable=")
-                    .append(taggable).append(", examinable=").append(examinable).append(", outputSequence=")
-                    .append(outputSequence).append(", metaSignal=").append(metaSignal).append("]");
-            return builder.toString();
-        }
-
-    }
-
-    public static final class RichOutputSequence
-            implements RichOutput, Iterable<RichOutputSequenceElement>, Serializable {
-
-        private final String sequenceName;
-        private final List<RichOutputSequenceElement> elements;
-
-        public RichOutputSequence() {
+        } else {
             this.sequenceName = null;
             this.elements = new ArrayList<>();
         }
+    }
 
-        public RichOutputSequence(String sequenceName) {
+    public static RichOutputBuilder getBuilder() {
+        return new RichOutputBuilder();
+    }
+
+    public static RichOutputBuilder getBuilder(String name) {
+        return new RichOutputBuilder(name);
+    }
+
+    public final String getBuilderName() {
+        return sequenceName;
+    }
+
+    public final List<RichOutputElement> getElements() {
+        return Collections.unmodifiableList(elements);
+    }
+
+    @Override
+    public int hashCode() {
+        if (sequenceName == null) {
+            return super.hashCode();
+        }
+        return Objects.hash(sequenceName);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!(obj instanceof RichOutput))
+            return false;
+        RichOutput other = (RichOutput) obj;
+        return Objects.equals(sequenceName, other.sequenceName);
+    }
+
+    public enum PrintingInstructions {
+        TAGS, BUILDER_NAME, META_SIGNAL;
+    }
+
+    public String printString() {
+        return this.printString(Set.of());
+    }
+
+    public String printString(Set<PrintingInstructions> instructions) {
+        StringBuilder sb = new StringBuilder();
+        final String builderName = this.getBuilderName();
+        if (instructions != null && instructions.contains(PrintingInstructions.BUILDER_NAME) && builderName != null) {
+            sb.append(builderName).append("- ");
+        }
+
+        final List<RichOutputElement> elements = this.getElements();
+        if (elements != null) {
+            for (final RichOutputElement OutputElement : elements) {
+                if (OutputElement != null) {
+                    sb.append(OutputElement.printString(instructions));
+                }
+            }
+        }
+        return sb.toString();
+    }
+
+    public static class RichOutputBuilder {
+
+        private static class BuilderElement {
+            private RichOutputBuilder builder;
+            private RichOutputElement element;
+
+            public BuilderElement(RichOutputBuilder builder) {
+                this.builder = builder;
+            }
+
+            public BuilderElement(RichOutputElement element) {
+                this.element = element;
+            }
+
+            // public void set(RichOutputBuilder builder) {
+            // this.builder = builder;
+            // if (builder != null) {
+            // this.element = null;
+            // }
+            // }
+
+            public void set(RichOutputElement element) {
+                this.element = element;
+                if (element != null) {
+                    this.builder = null;
+                }
+            }
+
+            public RichOutputElement build() {
+                if (builder != null) {
+                    return RichOutputElement.ofOutput(builder.build());
+                } else if (element != null) {
+                    return element;
+                } else {
+                    return new RichOutputElement(null, null, null, null, null);
+                }
+            }
+
+            @Override
+            public String toString() {
+                StringBuilder builder2 = new StringBuilder();
+                builder2.append("BuilderElement [builder=").append(builder).append(", element=").append(element)
+                        .append("]");
+                return builder2.toString();
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hash(builder, element);
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (this == obj)
+                    return true;
+                if (!(obj instanceof BuilderElement))
+                    return false;
+                BuilderElement other = (BuilderElement) obj;
+                return Objects.equals(builder, other.builder) && Objects.equals(element, other.element);
+            }
+
+            public boolean hasElement(RichOutputElement toFind) {
+                if (toFind == null || this.element == null) {
+                    return false;
+                }
+                return this.element.equals(toFind);
+            }
+
+            // public boolean hasElement(BuilderElement toFind) {
+            // if (toFind == null || toFind.element == null || this.element == null) {
+            // return false;
+            // }
+            // return this.element.equals(toFind.element);
+            // }
+
+        }
+
+        private String sequenceName;
+        private List<BuilderElement> elements;
+
+        public RichOutputBuilder() {
+            this(null);
+        }
+
+        public RichOutputBuilder(String sequenceName) {
             this.sequenceName = sequenceName;
             this.elements = new ArrayList<>();
         }
 
-        public static final RichOutputSequence copy(RichOutput sequence) {
-            if (sequence == null) {
-                return null;
-            }
-            RichOutputSequence next = new RichOutputSequence(sequence.getBuilderName());
-            List<RichOutputElement> oldElements = sequence.getElements();
-            if (oldElements != null) {
-                oldElements.stream().filter(element -> element != null)
-                        .forEach(element -> next.elements.add(RichOutputSequenceElement.copy(element)));
-            }
-            return next;
+        public List<BuilderElement> getElements() {
+            return this.elements;
         }
 
-        public final String getBuilderName() {
+        public String getBuilderName() {
             return sequenceName;
         }
 
-        public final List<RichOutputElement> getElements() {
-            return Collections.unmodifiableList(elements);
+        public RichOutput build() {
+            return new RichOutput(this);
         }
 
-        @Override
-        public RichOutputSequence appendOutputBuilderElement(RichOutputElement toAdd, String before, String after) {
+        public RichOutputBuilder appendOutputBuilderElement(RichOutputElement toAdd) {
+            return this.appendOutputBuilderElement(toAdd, " ", null);
+        }
+
+        public RichOutputBuilder appendOutputBuilderElement(RichOutputElement toAdd, String before, String after) {
             if (toAdd != null) {
                 if (before != null) {
-                    this.elements.add(RichOutputSequenceElement.ofCharSequence(before));
+                    this.elements.add(new BuilderElement(RichOutputElement.ofCharSequence(before)));
                 }
-                this.elements.add(RichOutputSequenceElement.copy(toAdd));
+                this.elements.add(new BuilderElement(toAdd));
                 if (after != null) {
-                    this.elements.add(RichOutputSequenceElement.ofCharSequence(after));
+                    this.elements.add(new BuilderElement(RichOutputElement.ofCharSequence(after)));
                 }
             }
             return this;
         }
 
-        @Override
-        public RichOutputSequence appendOutputBuilder(RichOutput toAdd, String before, String after) {
+        public RichOutputBuilder appendOutputBuilder(RichOutput toAdd) {
+            return this.appendOutputBuilder(toAdd, " ", null);
+        }
+
+        public RichOutputBuilder appendOutputBuilder(RichOutput toAdd, String before, String after) {
             if (toAdd != null) {
                 if (before != null) {
-                    this.elements.add(RichOutputSequenceElement.ofCharSequence(before));
+                    this.elements.add(new BuilderElement(RichOutputElement.ofCharSequence(before)));
                 }
-                this.elements.add(RichOutputSequenceElement.ofOutputBuilder(toAdd));
+                this.elements.add(new BuilderElement(RichOutputElement.ofOutput(toAdd)));
                 if (after != null) {
-                    this.elements.add(RichOutputSequenceElement.ofCharSequence(after));
+                    this.elements.add(new BuilderElement(RichOutputElement.ofCharSequence(after)));
                 }
             }
             return this;
         }
 
-        @Override
-        public RichOutputSequence appendString(String toAdd, String before, String after) {
+        public RichOutputBuilder appendString(String toAdd) {
+            return this.appendString(toAdd, " ", null);
+        }
+
+        public RichOutputBuilder appendChild(String toAdd) {
+            return this.appendString(toAdd, " ", null);
+        }
+
+        public RichOutputBuilder appendString(String toAdd, String before, String after) {
             if (toAdd != null) {
                 if (before != null) {
-                    this.elements.add(RichOutputSequenceElement.ofCharSequence(before));
+                    this.elements.add(new BuilderElement(RichOutputElement.ofCharSequence(before)));
                 }
-                this.elements.add(RichOutputSequenceElement.ofCharSequence(toAdd));
+                this.elements.add(new BuilderElement(RichOutputElement.ofCharSequence(toAdd)));
                 if (after != null) {
-                    this.elements.add(RichOutputSequenceElement.ofCharSequence(after));
+                    this.elements.add(new BuilderElement(RichOutputElement.ofCharSequence(after)));
                 }
             }
             return this;
         }
 
-        @Override
-        public RichOutputSequence appendExaminable(Examinable toAdd, String before, String after) {
+        public RichOutputBuilder appendExaminable(Examinable toAdd) {
+            return this.appendExaminable(toAdd, " ", null);
+        }
+
+        public RichOutputBuilder appendExaminable(Examinable toAdd, String before, String after) {
             if (toAdd != null) {
                 if (before != null) {
-                    this.elements.add(RichOutputSequenceElement.ofCharSequence(before));
+                    this.elements.add(new BuilderElement(RichOutputElement.ofCharSequence(before)));
                 }
-                this.elements.add(RichOutputSequenceElement.ofExaminable(toAdd));
+                this.elements.add(new BuilderElement(RichOutputElement.ofExaminable(toAdd)));
                 toAdd.produceExtraDescription(this);
                 if (after != null) {
-                    this.elements.add(RichOutputSequenceElement.ofCharSequence(after));
+                    this.elements.add(new BuilderElement(RichOutputElement.ofCharSequence(after)));
                 }
             }
             return this;
         }
 
-        @Override
-        public RichOutputSequence appendTaggable(Taggable toAdd, String before, String after) {
+        public RichOutputBuilder appendTaggable(Taggable toAdd) {
+            return this.appendTaggable(toAdd, " ", null);
+        }
+
+        public RichOutputBuilder appendChild(Taggable toAdd) {
+            return this.appendTaggable(toAdd);
+        }
+
+        public RichOutputBuilder appendTaggable(Taggable toAdd, String before, String after) {
             if (toAdd != null) {
                 if (before != null) {
-                    this.elements.add(RichOutputSequenceElement.ofCharSequence(before));
+                    this.elements.add(new BuilderElement(RichOutputElement.ofCharSequence(before)));
                 }
-                this.elements.add(RichOutputSequenceElement.ofTaggable(toAdd));
+                this.elements.add(new BuilderElement(RichOutputElement.ofTaggable(toAdd)));
                 if (after != null) {
-                    this.elements.add(RichOutputSequenceElement.ofCharSequence(after));
+                    this.elements.add(new BuilderElement(RichOutputElement.ofCharSequence(after)));
                 }
             }
             return this;
         }
 
-        @Override
-        public RichOutputSequence produceSubBuilder(String subName) {
-            RichOutputSequence sub = new RichOutputSequence(subName);
-            this.elements.add(RichOutputSequenceElement.ofOutputSequence(sub));
+        public <Tgg extends Taggable> RichOutputBuilder appendTaggables(Collection<Tgg> taggables) {
+            return this.appendTaggables(taggables, ", ", null, null, null);
+        }
+
+        public <Tgg extends Taggable> RichOutputBuilder appendTaggables(Collection<Tgg> taggables, String separator,
+                String before, String after, String empty) {
+            if (before != null) {
+                this.appendString(before);
+            }
+            if (taggables == null || taggables.isEmpty()) {
+                if (empty != null) {
+                    this.appendString(empty);
+                }
+            } else if (taggables.size() == 1) {
+                this.appendTaggable(taggables.stream().findAny().get());
+            } else {
+                boolean first = true;
+                for (Taggable taggable : taggables) {
+                    this.appendTaggable(taggable, first ? " " : separator, null);
+                    first = false;
+                }
+            }
+            if (after != null) {
+                this.appendString(after);
+            }
+            return this;
+        }
+
+        public <Tgg extends Taggable> RichOutputBuilder appendTaggablesAndLast(List<Tgg> taggables) {
+            return this.appendTaggablesAndLast(taggables, ",", null, null, null);
+        }
+
+        public <Tgg extends Taggable> RichOutputBuilder appendTaggablesAndLast(List<Tgg> taggables, String separator,
+                String before, String after, String empty) {
+            if (before != null) {
+                this.appendString(before);
+            }
+            if (taggables == null || taggables.isEmpty()) {
+                if (empty != null) {
+                    this.appendString(empty);
+                }
+            } else if (taggables.size() == 1) {
+                this.appendTaggable(taggables.get(0));
+            } else {
+                final int lastIndex = taggables.size() - 1;
+                for (int i = 0; i < lastIndex; i++) {
+                    this.appendTaggable(taggables.get(i), " ", separator);
+                }
+                this.appendString("and", " ", null).appendTaggable(taggables.get(lastIndex), " ", null);
+            }
+            if (after != null) {
+                this.appendString(after);
+            }
+            return this;
+        }
+
+        public <Tgg extends Taggable> RichOutputBuilder appendTaggablesAndLast(SortedSet<Tgg> taggables) {
+            return this.appendTaggablesAndLast(taggables, ",", null, null, null);
+        }
+
+        public <Tgg extends Taggable> RichOutputBuilder appendTaggablesAndLast(SortedSet<Tgg> taggables,
+                String separator, String before, String after, String empty) {
+            if (before != null) {
+                this.appendString(before);
+            }
+            if (taggables == null || taggables.isEmpty()) {
+                if (empty != null) {
+                    this.appendString(empty);
+                }
+            } else if (taggables.size() == 1) {
+                this.appendTaggable(taggables.first());
+            } else {
+                final Tgg last = taggables.last();
+                final SortedSet<Tgg> remainder = taggables.headSet(last);
+                for (final Taggable taggable : remainder) {
+                    this.appendTaggable(taggable, " ", separator);
+                }
+                this.appendString("and", " ", null).appendTaggable(last, " ", null);
+            }
+            if (after != null) {
+                this.appendString(after);
+            }
+            return this;
+        }
+
+        public RichOutputBuilder produceSubBuilder(String subName) {
+            RichOutputBuilder sub = new RichOutputBuilder(subName);
+            this.elements.add(new BuilderElement(sub));
             return sub;
         }
 
-        public RichOutputSequence replaceElement(RichOutputSequenceElement toFind,
-                RichOutputSequenceElement replacement) {
-            final int index = this.elements.indexOf(toFind);
-            if (index >= 0) {
-                if (replacement != null) {
-                    this.elements.set(index, replacement);
-                } else {
-                    this.elements.remove(index);
+        public RichOutputBuilder replaceElement(RichOutputElement toFind, RichOutputElement replacement) {
+            Iterator<BuilderElement> iterator = this.elements.iterator();
+            while (iterator.hasNext()) {
+                BuilderElement element = iterator.next();
+                if (element == null) {
+                    iterator.remove();
+                    continue;
+                }
+                if (element.hasElement(toFind)) {
+                    if (replacement != null) {
+                        element.set(replacement);
+                    } else {
+                        iterator.remove();
+                    }
+                    return this;
                 }
             }
             return this;
-        }
-
-        @Override
-        public int hashCode() {
-            if (sequenceName == null) {
-                return super.hashCode();
-            }
-            return Objects.hash(sequenceName);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (!(obj instanceof RichOutputSequence))
-                return false;
-            RichOutputSequence other = (RichOutputSequence) obj;
-            return Objects.equals(sequenceName, other.sequenceName);
         }
 
         @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
-            builder.append("OutputSequence [sequenceName=").append(sequenceName).append(", elements=").append(elements)
-                    .append("]");
+            builder.append("RichOutputBuilder [sequenceName=").append(sequenceName).append(", elements=")
+                    .append(elements).append("]");
             return builder.toString();
-        }
-
-        @Override
-        public Iterator<RichOutputSequenceElement> iterator() {
-            return this.elements.iterator();
         }
 
     }
@@ -555,7 +606,7 @@ public interface RichOutput {
         }
     }
 
-    public static Document documentFromOutputSequence(RichOutputSequence sequence, Map<String, String> tagAttributes)
+    public static Document documentFromOutput(RichOutput sequence, Map<String, String> tagAttributes)
             throws ParserConfigurationException, OutputBuilderConversionError {
         if (sequence == null) {
             throw new IllegalArgumentException("Cannot generate document from null sequence");
@@ -569,7 +620,7 @@ public interface RichOutput {
             document.appendChild(root);
         } catch (DOMException e) {
             throw new OutputBuilderConversionError(String.format(
-                    "Error either creating root element (with the OutputSequence name of '%s') or appending it to the document",
+                    "Error either creating root element (with the Output name of '%s') or appending it to the document",
                     sequence.getBuilderName()), e);
         }
 
@@ -775,23 +826,8 @@ public interface RichOutput {
 
     }
 
-    public static final class OutputSequenceElementCollector
-            implements Collector<RichOutputSequenceElement, RichOutputSequence, RichOutputSequence> {
-
-        @Override
-        public BiConsumer<RichOutputSequence, RichOutputSequenceElement> accumulator() {
-            return new BiConsumer<RichOutput.RichOutputSequence, RichOutput.RichOutputSequenceElement>() {
-
-                @Override
-                public void accept(RichOutputSequence arg0, RichOutputSequenceElement arg1) {
-                    if (arg0 == null || arg1 == null) {
-                        return;
-                    }
-                    arg0.appendOutputBuilderElement(arg1);
-                }
-
-            };
-        }
+    public static final class OutputElementCollector
+            implements Collector<RichOutputElement, RichOutputBuilder, RichOutput> {
 
         @Override
         public Set<Characteristics> characteristics() {
@@ -799,33 +835,52 @@ public interface RichOutput {
         }
 
         @Override
-        public BinaryOperator<RichOutputSequence> combiner() {
-            return new BinaryOperator<RichOutput.RichOutputSequence>() {
+        public BiConsumer<RichOutputBuilder, RichOutputElement> accumulator() {
 
-                @Override
-                public RichOutputSequence apply(RichOutputSequence arg0, RichOutputSequence arg1) {
-                    RichOutputSequence sequence = new RichOutputSequence();
-                    sequence.appendOutputBuilder(arg0).appendOutputBuilder(arg1);
-                    return sequence;
+            return (builder, element) -> {
+                if (builder == null || element == null) {
+                    return;
                 }
-
+                builder.appendOutputBuilderElement(element);
             };
         }
 
         @Override
-        public Function<RichOutputSequence, RichOutputSequence> finisher() {
-            return Function.identity();
+        public BinaryOperator<RichOutputBuilder> combiner() {
+            return (builderOne, builderTwo) -> {
+                if (builderOne != null && builderTwo != null) {
+                    return builderOne.appendOutputBuilder(builderTwo.build());
+                } else if (builderOne != null && builderTwo == null) {
+                    return builderOne;
+                } else if (builderOne == null && builderTwo != null) {
+                    return builderTwo;
+                } else {
+                    return new RichOutputBuilder();
+                }
+            };
         }
 
         @Override
-        public Supplier<RichOutputSequence> supplier() {
-            return () -> new RichOutputSequence();
+        public Function<RichOutputBuilder, RichOutput> finisher() {
+            return (builder) -> {
+                if (builder == null) {
+                    return new RichOutput(null);
+                }
+                return new RichOutput(builder);
+            };
+        }
+
+        @Override
+        public Supplier<RichOutputBuilder> supplier() {
+            return () -> {
+                return new RichOutputBuilder();
+            };
         }
 
     }
 
-    public static Collector<RichOutputSequenceElement, RichOutputSequence, RichOutputSequence> collector() {
-        return new OutputSequenceElementCollector();
+    public static Collector<RichOutputElement, RichOutputBuilder, RichOutput> collector() {
+        return new OutputElementCollector();
     }
 
 }
