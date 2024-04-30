@@ -36,6 +36,9 @@ public class ConversationTreeBranch implements Serializable, Comparable<Conversa
     }
 
     public Map<String, ConversationPattern> getBlacklist() {
+        if (this.blacklist == null) {
+            this.blacklist = new TreeMap<>();
+        }
         return this.blacklist;
     }
 

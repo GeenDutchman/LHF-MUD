@@ -42,7 +42,7 @@ public final class RichOutput implements Serializable {
         private final String charSequence;
         private final BasicTaggable taggable;
         private final BasicExaminable examinable;
-        private final RichOutput Output;
+        private final RichOutput output;
         private final String metaSignal;
 
         private RichOutputElement(CharSequence charSequence, Taggable taggable, Examinable examinable,
@@ -50,7 +50,7 @@ public final class RichOutput implements Serializable {
             this.charSequence = charSequence != null ? charSequence.toString() : null;
             this.taggable = Taggable.basicTaggable(taggable);
             this.examinable = Examinable.basicExaminable(examinable);
-            this.Output = Output;
+            this.output = Output;
             this.metaSignal = metaSignal != null ? new String(metaSignal) : null;
         }
 
@@ -92,7 +92,7 @@ public final class RichOutput implements Serializable {
         }
 
         public RichOutput getOutputBuilder() {
-            return Output;
+            return output;
         }
 
         public String getMetaSignal() {
@@ -101,7 +101,7 @@ public final class RichOutput implements Serializable {
 
         @Override
         public int hashCode() {
-            return Objects.hash(charSequence, taggable, examinable, Output, metaSignal);
+            return Objects.hash(charSequence, taggable, examinable, output, metaSignal);
         }
 
         @Override
@@ -112,7 +112,7 @@ public final class RichOutput implements Serializable {
                 return false;
             RichOutputElement other = (RichOutputElement) obj;
             return Objects.equals(charSequence, other.charSequence) && Objects.equals(taggable, other.taggable)
-                    && Objects.equals(examinable, other.examinable) && Objects.equals(Output, other.Output)
+                    && Objects.equals(examinable, other.examinable) && Objects.equals(output, other.output)
                     && Objects.equals(metaSignal, other.metaSignal);
         }
 
@@ -120,7 +120,7 @@ public final class RichOutput implements Serializable {
         public String toString() {
             StringBuilder builder = new StringBuilder();
             builder.append("OutputElement [charSequence=").append(charSequence).append(", taggable=").append(taggable)
-                    .append(", examinable=").append(examinable).append(", Output=").append(Output)
+                    .append(", examinable=").append(examinable).append(", Output=").append(output)
                     .append(", metaSignal=").append(metaSignal).append("]");
             return builder.toString();
         }
@@ -250,14 +250,24 @@ public final class RichOutput implements Serializable {
 
         private static class BuilderElement implements Serializable {
             private RichOutputBuilder builder;
-            private RichOutputElement element;
+
+            // to have the same shape as the RichOutputElement
+            private String charSequence;
+            private BasicTaggable taggable;
+            private BasicExaminable examinable;
+            private RichOutput output;
+            private String metaSignal;
 
             public BuilderElement(RichOutputBuilder builder) {
                 this.builder = builder;
             }
 
             public BuilderElement(RichOutputElement element) {
-                this.element = element;
+                this.charSequence = element.getCharSequenceAsString();
+                this.taggable = Taggable.basicTaggable(element.getTaggable());
+                this.examinable = Examinable.basicExaminable(element.getExaminable());
+                this.output = element.getOutputBuilder();
+                this.metaSignal = element.getMetaSignal();
             }
 
             // public void set(RichOutputBuilder builder) {
@@ -268,27 +278,38 @@ public final class RichOutput implements Serializable {
             // }
 
             public void set(RichOutputElement element) {
-                this.element = element;
                 if (element != null) {
                     this.builder = null;
+                    this.charSequence = element.getCharSequenceAsString();
+                    this.taggable = Taggable.basicTaggable(element.getTaggable());
+                    this.examinable = Examinable.basicExaminable(element.getExaminable());
+                    this.output = element.getOutputBuilder();
+                    this.metaSignal = element.getMetaSignal();
+                } else {
+                    this.charSequence = null;
+                    this.taggable = null;
+                    this.examinable = null;
+                    this.output = null;
+                    this.metaSignal = null;
                 }
             }
 
             public RichOutputElement build() {
                 if (builder != null) {
                     return RichOutputElement.ofOutput(builder.build());
-                } else if (element != null) {
-                    return element;
                 } else {
-                    return new RichOutputElement(null, null, null, null, null);
+                    return new RichOutputElement(this.charSequence, this.taggable, this.examinable, this.output,
+                            this.metaSignal);
                 }
             }
 
             @Override
             public String toString() {
                 StringBuilder builder2 = new StringBuilder();
-                builder2.append("BuilderElement [builder=").append(builder).append(", element=").append(element)
-                        .append("]");
+                builder2.append("BuilderElement [builder=").append(builder).append(", charSequence=")
+                        .append(charSequence).append(", taggable=").append(taggable).append(", examinable=")
+                        .append(examinable).append(", Output=").append(output).append(", metaSignal=")
+                        .append(metaSignal).append("]");
                 return builder2.toString();
             }
 
@@ -299,33 +320,44 @@ public final class RichOutput implements Serializable {
             public String printString(Set<PrintingInstructions> instructions) {
                 if (builder != null) {
                     return builder.printString(instructions);
-                } else if (element != null) {
-                    return element.printString(instructions);
                 } else {
-                    return "";
+                    if (charSequence != null) {
+                        return charSequence;
+                    } else if (taggable != null) {
+                        StringBuilder sb = new StringBuilder().append("**");
+                        if (instructions != null && instructions.contains(PrintingInstructions.TAGS)) {
+                            sb.append(taggable.getTagName()).append("-");
+                        }
+                        return sb.append(taggable.getSimpleContent()).append("**").toString();
+                    } else if (examinable != null) {
+                        StringBuilder sb = new StringBuilder().append("**");
+                        if (instructions != null && instructions.contains(PrintingInstructions.TAGS)) {
+                            sb.append(examinable.getTagName()).append("-");
+                        }
+                        sb.append(examinable.getName()).append("**");
+                        final String description = examinable.getDescription();
+                        if (description != null && !description.isBlank()) {
+                            sb.append(" Description - ").append(description).append(" ");
+                        }
+                        return sb.toString();
+                    } else if (output != null) {
+                        return output.printString(instructions);
+                    } else if (metaSignal != null && instructions != null
+                            && instructions.contains(PrintingInstructions.META_SIGNAL)) {
+                        return new StringBuilder(" ").append(metaSignal).append(" ").toString();
+                    } else {
+                        return "";
+                    }
+
                 }
             }
 
-            @Override
-            public int hashCode() {
-                return Objects.hash(builder, element);
-            }
-
-            @Override
-            public boolean equals(Object obj) {
-                if (this == obj)
-                    return true;
-                if (!(obj instanceof BuilderElement))
-                    return false;
-                BuilderElement other = (BuilderElement) obj;
-                return Objects.equals(builder, other.builder) && Objects.equals(element, other.element);
-            }
-
-            public boolean hasElement(RichOutputElement toFind) {
-                if (toFind == null || this.element == null) {
+            public boolean matchesElement(RichOutputElement toFind) {
+                if (toFind == null || builder != null) {
                     return false;
                 }
-                return this.element.equals(toFind);
+                RichOutputElement made = this.build();
+                return made.equals(toFind);
             }
 
             // public boolean hasElement(BuilderElement toFind) {
@@ -571,7 +603,7 @@ public final class RichOutput implements Serializable {
                     iterator.remove();
                     continue;
                 }
-                if (element.hasElement(toFind)) {
+                if (element.matchesElement(toFind)) {
                     if (replacement != null) {
                         element.set(replacement);
                     } else {

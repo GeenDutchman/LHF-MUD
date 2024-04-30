@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import com.lhf.RichOutput;
 import com.lhf.RichOutput.RichOutputBuilder;
+import com.lhf.RichOutput.RichOutputElement;
 
 public class ConversationTreeNode implements Comparable<ConversationTreeNode>, Serializable {
     public final static String NPC_CONVERSATION_TAG = "NPCConversation";
@@ -33,6 +34,126 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode>, S
                     .build();
         }
         this.prompts = new ArrayList<>();
+    }
+
+    private ConversationTreeNode(Builder builder) {
+        if (builder == null) {
+            this.nodeID = UUID.randomUUID();
+            this.bodySequence = new RichOutputBuilder(NPC_CONVERSATION_TAG).appendString(EMPTY, null, null).build();
+            this.prompts = new ArrayList<>();
+        } else {
+            this.nodeID = builder.getNodeID();
+            this.bodySequence = builder.getBodySequence().build();
+            this.prompts = builder.getPrompts().stream().filter(rob -> rob != null).map(rob -> rob.build()).toList();
+        }
+    }
+
+    protected static class Builder implements Serializable {
+        private final UUID nodeID;
+        private RichOutputBuilder bodySequence;
+        private List<RichOutputBuilder> prompts;
+
+        public Builder() {
+            this.nodeID = UUID.randomUUID();
+            this.bodySequence = new RichOutputBuilder(NPC_CONVERSATION_TAG);
+            this.prompts = new ArrayList<>();
+        }
+
+        public Builder(ConversationTreeNode node) {
+            this.bodySequence = new RichOutputBuilder(NPC_CONVERSATION_TAG);
+            this.prompts = new ArrayList<>();
+            if (node != null) {
+                UUID retrieved = node.getNodeID();
+                if (retrieved == null) {
+                    this.nodeID = UUID.randomUUID();
+                } else {
+                    this.nodeID = node.getNodeID();
+                }
+                RichOutput body = node.getBodySequence();
+                RichOutputBuilder sub = this.bodySequence;
+                if (!NPC_CONVERSATION_TAG.equals(body.getBuilderName())) {
+                    sub = this.bodySequence.produceSubBuilder(body.getBuilderName());
+                }
+                for (RichOutputElement element : body.getElements()) {
+                    sub.appendRichOutputElement(element, null, null);
+                }
+            } else {
+                this.nodeID = UUID.randomUUID();
+            }
+        }
+
+        public synchronized UUID getNodeID() {
+            return nodeID;
+        }
+
+        public synchronized RichOutputBuilder getBodySequence() {
+            if (bodySequence == null) {
+                this.bodySequence = new RichOutputBuilder(NPC_CONVERSATION_TAG);
+            }
+            return bodySequence;
+        }
+
+        public Builder setBodySequence(RichOutputBuilder body) {
+            if (body == null) {
+                this.bodySequence = new RichOutputBuilder(NPC_CONVERSATION_TAG);
+            } else if (NPC_CONVERSATION_TAG.equals(body.getBuilderName())) {
+                this.bodySequence = body;
+            } else {
+                this.bodySequence = new RichOutputBuilder(NPC_CONVERSATION_TAG).appendRichOutputBuilder(body, null,
+                        null);
+            }
+            return this;
+        }
+
+        public synchronized List<RichOutputBuilder> getPrompts() {
+            if (prompts == null) {
+                this.prompts = new ArrayList<>();
+            }
+            return prompts;
+        }
+
+        public Builder setPrompts(List<RichOutputBuilder> prompts) {
+            this.prompts = prompts != null ? prompts : new ArrayList<>();
+            return this;
+        }
+
+        public Builder addPrompt(RichOutputBuilder nextPrompt) {
+            if (this.prompts == null) {
+                this.prompts = new ArrayList<>();
+            }
+            if (nextPrompt != null) {
+                this.prompts.add(nextPrompt);
+            }
+            return this;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(nodeID);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof Builder))
+                return false;
+            Builder other = (Builder) obj;
+            return Objects.equals(nodeID, other.nodeID);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("Builder [nodeID=").append(nodeID).append(", bodyBuilder=").append(bodySequence)
+                    .append(", prompts=").append(prompts).append("]");
+            return builder.toString();
+        }
+
+        public ConversationTreeNode build() {
+            return new ConversationTreeNode(this);
+        }
+
     }
 
     public RichOutput getBodySequence() {
