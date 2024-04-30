@@ -3,7 +3,7 @@ package com.lhf.game.creature.intelligence.handlers;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import com.lhf.RichOutput.RichOutputSequence;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNode;
@@ -25,8 +25,8 @@ public class SpokenPromptChunkTest {
 
         AIComBundle speaker = new AIComBundle();
         SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker.getNPC())
-                .setMessage(new RichOutputSequence().appendString("hello", null, null)).setHearer(listener.getNPC())
-                .Build();
+                .setMessage(new RichOutputBuilder().appendString("hello", null, null).build())
+                .setHearer(listener.getNPC()).Build();
         AIComBundle.eventAccepter.accept(listener.getNPC(), sm);
 
         Mockito.verify(listener.sssb, Mockito.timeout(1000 * 10)).send(sm);
@@ -46,7 +46,7 @@ public class SpokenPromptChunkTest {
 
         String prompt = "NONOBJECT";
         SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker.getNPC())
-                .setMessage(new RichOutputSequence().appendString("PROMPT SEE", null, null).appendString(prompt))
+                .setMessage(new RichOutputBuilder().appendString("PROMPT SEE", null, null).appendString(prompt).build())
                 .setHearer(listener.getNPC()).Build();
         AIComBundle.eventAccepter.accept(listener.getNPC(), sm);
 
@@ -63,7 +63,7 @@ public class SpokenPromptChunkTest {
 
         String prompt = "NONOBJECT";
         SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker.getNPC())
-                .setMessage(new RichOutputSequence().appendString("PROMPT SEE", null, null).appendString(prompt))
+                .setMessage(new RichOutputBuilder().appendString("PROMPT SEE", null, null).appendString(prompt).build())
                 .setHearer(listener.getNPC()).Build();
         AIComBundle.eventAccepter.accept(listener.getNPC(), sm);
 

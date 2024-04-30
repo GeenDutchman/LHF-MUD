@@ -1,6 +1,6 @@
 package com.lhf.game.item.concrete;
 
-import com.lhf.RichOutput;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.Lockable;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.InteractObject;
@@ -45,7 +45,7 @@ public class Lever extends InteractObject {
                 if (nodeGenerator == null) {
                     return;
                 }
-                RichOutput description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                RichOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
                 description.appendString("The");
                 description.appendTaggable(this);
                 description.appendString("moves, but it seems too loose, like it is not connected to anything.");
@@ -61,7 +61,7 @@ public class Lever extends InteractObject {
                 if (nodeGenerator == null) {
                     return;
                 }
-                RichOutput description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                RichOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
                 description.appendString("A **thunk** is heard, and you are pretty sure something changed because of");
                 description.appendTaggable(creature);
             });

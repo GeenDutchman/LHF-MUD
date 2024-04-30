@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 
-import com.lhf.RichOutput;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.TickType;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.Equipable;
@@ -79,7 +79,7 @@ public class InventoryRequestedEvent extends GameEvent {
     }
 
     @Override
-    public void buildOutput(RichOutput builder) {
+    public void buildOutput(RichOutputBuilder builder) {
         if (builder == null) {
             return;
         }
@@ -92,12 +92,12 @@ public class InventoryRequestedEvent extends GameEvent {
         }
 
         if (this.items != null && !this.items.isEmpty()) {
-            RichOutput inventory = builder.produceSubBuilder("Inventory");
+            RichOutputBuilder inventory = builder.produceSubBuilder("Inventory");
             inventory.appendTaggables(this.items);
         }
 
         if (this.equipment != null && !this.equipment.isEmpty()) {
-            RichOutput equipped = builder.produceSubBuilder("Equipped");
+            RichOutputBuilder equipped = builder.produceSubBuilder("Equipped");
             for (EquipmentSlots slot : EquipmentSlots.values()) {
                 Equipable item = this.equipment.get(slot);
                 equipped.appendTaggable(slot, "\r\n", ":");

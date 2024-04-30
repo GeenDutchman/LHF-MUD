@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.lhf.RichOutput;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.Taggable;
 import com.lhf.messages.GameEventType;
 
@@ -63,7 +63,7 @@ public class PlayersListedEvent extends GameEvent {
     }
 
     @Override
-    public void buildOutput(RichOutput builder) {
+    public void buildOutput(RichOutputBuilder builder) {
         if (builder == null) {
             return;
         }

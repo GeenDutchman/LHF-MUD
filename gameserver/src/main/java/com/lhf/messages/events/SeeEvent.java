@@ -8,7 +8,7 @@ import java.util.StringJoiner;
 import java.util.TreeMap;
 
 import com.lhf.Examinable;
-import com.lhf.RichOutput;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.TickType;
@@ -165,7 +165,7 @@ public class SeeEvent extends GameEvent {
     }
 
     @Override
-    public void buildOutput(RichOutput builder) {
+    public void buildOutput(RichOutputBuilder builder) {
         if (builder == null) {
             return;
         }
@@ -187,7 +187,7 @@ public class SeeEvent extends GameEvent {
             if (taggedList == null || taggedList.isEmpty()) {
                 continue;
             }
-            RichOutput subBuilder = null;
+            RichOutputBuilder subBuilder = null;
             SeeCategory categorized = SeeCategory.getSeeCategory(category);
             if (categorized == null) {
                 categorized = SeeCategory.OTHER;

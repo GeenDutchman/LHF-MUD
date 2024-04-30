@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.StringJoiner;
 
 import com.lhf.RichOutput;
-import com.lhf.RichOutput.RichOutputSequence;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -13,22 +13,23 @@ import com.lhf.messages.grammar.PrepositionalPhrases;
 import com.lhf.messages.grammar.Prepositions;
 
 public class SayMessage extends Command {
-    private final RichOutputSequence sequence;
+    private final RichOutput sequence;
 
     public SayMessage(AMessageType command, String whole, Boolean isValid, PhraseList phrases,
             PrepositionalPhrases prepositional) {
         super(command, whole, isValid, phrases, prepositional);
-        this.sequence = new RichOutputSequence();
+        RichOutputBuilder builder = new RichOutputBuilder();
         final List<String> retrieved = this.getDirects();
         if (retrieved != null && retrieved.size() > 0) {
-            this.sequence.appendString(retrieved.get(0), null, null);
+            builder.appendString(retrieved.get(0), null, null);
         }
+        this.sequence = builder.build();
     }
 
     private SayMessage(RichOutput output, String target, Boolean isValid) {
         super(AMessageType.SAY, new StringBuilder("SAY \"").append(output.printString()).append("\"")
                 .append(target != null ? " to " + target : "").toString(), isValid);
-        this.sequence = RichOutputSequence.copy(output);
+        this.sequence = output;
         this.addDirect(output.printString());
         if (target != null) {
             this.addIndirect(Prepositions.TO, target);
@@ -52,8 +53,8 @@ public class SayMessage extends Command {
         return this.sequence.printString();
     }
 
-    public RichOutputSequence getSequence() {
-        return RichOutputSequence.copy(sequence);
+    public RichOutput getSequence() {
+        return sequence;
     }
 
     public String getTarget() {

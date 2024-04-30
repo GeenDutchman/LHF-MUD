@@ -11,7 +11,6 @@ import java.util.function.Function;
 
 import com.lhf.Taggable;
 import com.lhf.RichOutput.RichOutputElement;
-import com.lhf.RichOutput.RichOutputSequenceElement;
 
 public interface ConversationTransformer extends Function<RichOutputElement, RichOutputElement> {
 
@@ -46,11 +45,11 @@ public interface ConversationTransformer extends Function<RichOutputElement, Ric
     }
 
     public static ConversationTransformer ofString(String body) {
-        return ConversationTransformer.ofBuilderElement(RichOutputSequenceElement.ofCharSequence(body));
+        return ConversationTransformer.ofBuilderElement(RichOutputElement.ofCharSequence(body));
     }
 
     public static ConversationTransformer ofTaggable(Taggable taggable) {
-        return ConversationTransformer.ofBuilderElement(RichOutputSequenceElement.ofTaggable(taggable));
+        return ConversationTransformer.ofBuilderElement(RichOutputElement.ofTaggable(taggable));
     }
 
     public static ConversationTransformer ofMapping(Map<String, RichOutputElement> mapping) {

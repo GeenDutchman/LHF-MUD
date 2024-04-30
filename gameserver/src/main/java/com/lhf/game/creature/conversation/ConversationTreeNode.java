@@ -6,48 +6,40 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import com.lhf.RichOutput.RichOutputSequence;
-import com.lhf.RichOutput.RichOutputSequenceElement;
-import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
+import com.lhf.RichOutput;
+import com.lhf.RichOutput.RichOutputBuilder;
 
 public class ConversationTreeNode implements Comparable<ConversationTreeNode>, Serializable {
     public final static String NPC_CONVERSATION_TAG = "NPCConversation";
     public static final String EMPTY = "...";
     private final UUID nodeID;
-    private final RichOutputSequence bodySequence;
-    private List<RichOutputSequence> prompts;
+    private final RichOutput bodySequence;
+    private List<RichOutput> prompts;
 
     public ConversationTreeNode(String someBody) {
         this.nodeID = UUID.randomUUID();
-        this.bodySequence = new RichOutputSequence(NPC_CONVERSATION_TAG);
-        this.bodySequence.appendString(someBody, null, null);
+        this.bodySequence = new RichOutputBuilder(NPC_CONVERSATION_TAG).appendString(someBody, null, null).build();
         this.prompts = new ArrayList<>();
     }
 
-    public ConversationTreeNode addBody(String moreBody) {
-        this.bodySequence.appendString(moreBody);
-        return this;
-    }
-
-    public ConversationTreeNode addMetaSignal(ConversationContextKey meta) {
-        if (meta != null) {
-            return this.addMetaSignal(meta.name());
+    public ConversationTreeNode(RichOutput output) {
+        this.nodeID = UUID.randomUUID();
+        if (output == null) {
+            this.bodySequence = new RichOutputBuilder(NPC_CONVERSATION_TAG).appendString(EMPTY, null, null).build();
+        } else if (NPC_CONVERSATION_TAG.equals(output.getBuilderName())) {
+            this.bodySequence = output;
+        } else {
+            this.bodySequence = new RichOutputBuilder(NPC_CONVERSATION_TAG).appendOutputBuilder(output, null, null)
+                    .build();
         }
-        return this;
+        this.prompts = new ArrayList<>();
     }
 
-    public ConversationTreeNode addMetaSignal(String meta) {
-        if (meta != null) {
-            this.bodySequence.appendOutputBuilderElement(RichOutputSequenceElement.ofMetaSignal(meta));
-        }
-        return this;
-    }
-
-    public RichOutputSequence getBodySequence() {
+    public RichOutput getBodySequence() {
         if (bodySequence == null || bodySequence.getElements().size() == 0) {
-            return new RichOutputSequence().appendString(EMPTY, null, null);
+            return new RichOutputBuilder(NPC_CONVERSATION_TAG).appendString(EMPTY, null, null).build();
         }
-        return RichOutputSequence.copy(bodySequence);
+        return bodySequence;
     }
 
     public String getBodyAsString() {
@@ -55,10 +47,10 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode>, S
     }
 
     public boolean addPrompt(String promptBody) {
-        return this.addPrompt(new RichOutputSequence().appendString(promptBody, null, null));
+        return this.addPrompt(new RichOutputBuilder().appendString(promptBody, null, null).build());
     }
 
-    public boolean addPrompt(RichOutputSequence prompt) {
+    public boolean addPrompt(RichOutput prompt) {
         return this.prompts.add(prompt);
     }
 
@@ -66,7 +58,7 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode>, S
         return this.nodeID;
     }
 
-    public List<RichOutputSequence> getPrompts() {
+    public List<RichOutput> getPrompts() {
         return this.prompts;
     }
 

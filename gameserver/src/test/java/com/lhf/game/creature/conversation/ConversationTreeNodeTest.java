@@ -3,6 +3,7 @@ package com.lhf.game.creature.conversation;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.truth.Truth;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.RichOutput.RichOutputElement;
 
 public class ConversationTreeNodeTest {
@@ -17,21 +18,18 @@ public class ConversationTreeNodeTest {
 
     @Test
     void testPopulatedBody() {
-        ConversationTreeNode node = new ConversationTreeNode(basicEmpty);
         String body = "I have something for you";
-        node.addBody(body);
+        ConversationTreeNode node = new ConversationTreeNode(body);
         Truth.assertThat(node.getBodyAsString()).contains(body);
     }
 
     @Test
     void testDoublePopulatedBody() {
-        ConversationTreeNode node = new ConversationTreeNode(basicEmpty);
-
         String body1 = "I have something for you";
-        node.addBody(body1);
-
         String body2 = "and it should be useful";
-        node.addBody(body2);
+        RichOutputBuilder builder = new RichOutputBuilder().appendString(basicEmpty).appendString(body1)
+                .appendString(body2);
+        ConversationTreeNode node = new ConversationTreeNode(builder.build());
 
         Truth.assertThat(node.getBodyAsString()).contains(body1);
         Truth.assertThat(node.getBodyAsString()).contains(body2);

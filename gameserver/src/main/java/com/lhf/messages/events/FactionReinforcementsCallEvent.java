@@ -1,6 +1,6 @@
 package com.lhf.messages.events;
 
-import com.lhf.RichOutput;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.GameEventType;
@@ -59,7 +59,7 @@ public class FactionReinforcementsCallEvent extends GameEvent {
     }
 
     @Override
-    public void buildOutput(RichOutput builder) {
+    public void buildOutput(RichOutputBuilder builder) {
         if (builder == null) {
             return;
         }

@@ -1,6 +1,6 @@
 package com.lhf.messages.events;
 
-import com.lhf.RichOutput;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.Taggable;
 import com.lhf.game.creature.ICreature;
 import com.lhf.messages.GameEventType;
@@ -107,11 +107,11 @@ public class ItemInteractionEvent extends GameEvent {
     }
 
     @Override
-    public void buildOutput(RichOutput builder) {
+    public void buildOutput(RichOutputBuilder builder) {
         if (builder == null) {
             return;
         }
-        RichOutput interaction = builder.produceSubBuilder("InteractionDescription");
+        RichOutputBuilder interaction = builder.produceSubBuilder("InteractionDescription");
         if (this.subType == null) {
             if (this.description == null || this.description.isBlank()) {
                 interaction.appendString("Something happened because of the");

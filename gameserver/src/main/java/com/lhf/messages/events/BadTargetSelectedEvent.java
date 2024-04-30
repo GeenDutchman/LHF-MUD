@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.StringJoiner;
 
-import com.lhf.RichOutput;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.Taggable;
 import com.lhf.Taggable.BasicTaggable;
 import com.lhf.messages.GameEventType;
@@ -91,7 +91,7 @@ public class BadTargetSelectedEvent extends GameEvent {
     }
 
     @Override
-    public void buildOutput(RichOutput builder) {
+    public void buildOutput(RichOutputBuilder builder) {
         if (builder == null) {
             return;
         }

@@ -2,7 +2,7 @@ package com.lhf.messages.events;
 
 import java.util.List;
 
-import com.lhf.RichOutput;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.TickType;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.AItem;
@@ -91,7 +91,7 @@ public class ItemEquippedEvent extends GameEvent {
         this.attemptedSlot = builder.getAttemptedSlot();
     }
 
-    private void printItemName(RichOutput builder, String defaultItemName) {
+    private void printItemName(RichOutputBuilder builder, String defaultItemName) {
         if (this.item != null) {
             builder.appendTaggable(this.item);
         } else if (this.attemptedItemName != null && !this.attemptedItemName.isBlank()) {
@@ -104,7 +104,7 @@ public class ItemEquippedEvent extends GameEvent {
     }
 
     @Override
-    public void buildOutput(RichOutput builder) {
+    public void buildOutput(RichOutputBuilder builder) {
         if (builder == null) {
             return;
         }

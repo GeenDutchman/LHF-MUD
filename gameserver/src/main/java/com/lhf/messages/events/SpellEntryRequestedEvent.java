@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.NavigableSet;
 import java.util.TreeSet;
 
-import com.lhf.RichOutput;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.magic.SpellEntry;
 import com.lhf.messages.GameEventType;
 
@@ -86,7 +86,7 @@ public class SpellEntryRequestedEvent extends GameEvent {
     }
 
     @Override
-    public void buildOutput(RichOutput builder) {
+    public void buildOutput(RichOutputBuilder builder) {
         if (builder == null) {
             return;
         }
@@ -96,7 +96,7 @@ public class SpellEntryRequestedEvent extends GameEvent {
         final NavigableSet<SpellEntry> retrievedEntries = this.getEntries();
         if (retrievedEntries != null && !retrievedEntries.isEmpty()) {
             for (SpellEntry entry : retrievedEntries) {
-                RichOutput subBuilder = builder.produceSubBuilder(entry.getName());
+                RichOutputBuilder subBuilder = builder.produceSubBuilder(entry.getName());
                 subBuilder.appendExaminable(entry);
                 subBuilder.appendString("Invocation:").appendString(entry.getInvocation(), null, "\r\n");
             }

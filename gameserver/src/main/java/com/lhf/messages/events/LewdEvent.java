@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import com.lhf.RichOutput;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.ICreatureBuildInfo;
 import com.lhf.game.enums.EquipmentSlots;
@@ -103,7 +103,7 @@ public class LewdEvent extends GameEvent {
         this.templates = builder.getTemplates();
     }
 
-    private void buildStatus(RichOutput builder) {
+    private void buildStatus(RichOutputBuilder builder) {
         if (builder == null) {
             return;
         }
@@ -117,7 +117,7 @@ public class LewdEvent extends GameEvent {
         }
     }
 
-    private void buildAboutParty(RichOutput builder, Predicate<Map.Entry<ICreature, LewdAnswer>> filter) {
+    private void buildAboutParty(RichOutputBuilder builder, Predicate<Map.Entry<ICreature, LewdAnswer>> filter) {
         if (builder == null) {
             return;
         }
@@ -151,7 +151,7 @@ public class LewdEvent extends GameEvent {
     }
 
     @Override
-    public void buildOutput(RichOutput builder) {
+    public void buildOutput(RichOutputBuilder builder) {
         if (builder == null) {
             return;
         }

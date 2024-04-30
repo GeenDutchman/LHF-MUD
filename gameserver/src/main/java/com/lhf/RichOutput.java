@@ -246,9 +246,9 @@ public final class RichOutput implements Serializable {
         return sb.toString();
     }
 
-    public static class RichOutputBuilder {
+    public static class RichOutputBuilder implements Serializable {
 
-        private static class BuilderElement {
+        private static class BuilderElement implements Serializable {
             private RichOutputBuilder builder;
             private RichOutputElement element;
 
@@ -290,6 +290,20 @@ public final class RichOutput implements Serializable {
                 builder2.append("BuilderElement [builder=").append(builder).append(", element=").append(element)
                         .append("]");
                 return builder2.toString();
+            }
+
+            // public String printString() {
+            // return this.printString(Set.of());
+            // }
+
+            public String printString(Set<PrintingInstructions> instructions) {
+                if (builder != null) {
+                    return builder.printString(instructions);
+                } else if (element != null) {
+                    return element.printString(instructions);
+                } else {
+                    return "";
+                }
             }
 
             @Override
@@ -558,6 +572,29 @@ public final class RichOutput implements Serializable {
             builder.append("RichOutputBuilder [sequenceName=").append(sequenceName).append(", elements=")
                     .append(elements).append("]");
             return builder.toString();
+        }
+
+        public String printString() {
+            return this.printString(Set.of());
+        }
+
+        public String printString(Set<PrintingInstructions> instructions) {
+            StringBuilder sb = new StringBuilder();
+            final String builderName = this.getBuilderName();
+            if (instructions != null && instructions.contains(PrintingInstructions.BUILDER_NAME)
+                    && builderName != null) {
+                sb.append(builderName).append("- ");
+            }
+
+            final List<BuilderElement> elements = this.getElements();
+            if (elements != null) {
+                for (final BuilderElement OutputElement : elements) {
+                    if (OutputElement != null) {
+                        sb.append(OutputElement.printString(instructions));
+                    }
+                }
+            }
+            return sb.toString();
         }
 
     }

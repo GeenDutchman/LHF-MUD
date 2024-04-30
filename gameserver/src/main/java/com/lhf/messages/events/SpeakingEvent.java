@@ -1,12 +1,12 @@
 package com.lhf.messages.events;
 
 import com.lhf.RichOutput;
-import com.lhf.RichOutput.RichOutputSequence;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.messages.GameEventType;
 import com.lhf.server.client.CommandInvoker;
 
 public class SpeakingEvent extends GameEvent {
-    private final RichOutputSequence message;
+    private final RichOutput message;
     private final CommandInvoker sayer;
     private final CommandInvoker hearer;
     private final boolean shouting;
@@ -27,7 +27,7 @@ public class SpeakingEvent extends GameEvent {
 
         @Deprecated(forRemoval = false)
         public Builder setMessage(String message) {
-            this.message = message != null ? new RichOutputSequence().appendString(message, null, null) : null;
+            this.message = message != null ? new RichOutputBuilder().appendString(message, null, null).build() : null;
             return this;
         }
 
@@ -82,13 +82,13 @@ public class SpeakingEvent extends GameEvent {
     public SpeakingEvent(Builder builder) {
         super(builder);
         this.sayer = builder.getSayer();
-        this.message = RichOutputSequence.copy(builder.getMessage());
+        this.message = builder.getMessage();
         this.shouting = builder.isShouting();
         this.hearer = builder.getHearer();
     }
 
     @Override
-    public void buildOutput(RichOutput builder) {
+    public void buildOutput(RichOutputBuilder builder) {
         if (builder == null) {
             return;
         }
@@ -106,8 +106,8 @@ public class SpeakingEvent extends GameEvent {
         builder.appendOutputBuilder(message, ":", null);
     }
 
-    public RichOutputSequence getMessage() {
-        return RichOutputSequence.copy(message);
+    public RichOutput getMessage() {
+        return message;
     }
 
     public String getMessageAsString() {

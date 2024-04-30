@@ -226,54 +226,54 @@ public class ConversationBuilder {
                 response = this.input.nextInt();
                 this.input.nextLine();
                 switch (response) {
-                    case 0:
-                        System.out.println("You selected to exit");
-                        break;
-                    case 1:
-                        System.out.println("Printing mermaid...");
-                        if (this.tree != null) {
-                            System.out.println(this.tree.toMermaid(false));
-                        } else {
-                            System.out.println("Tree not made");
-                        }
-                        break;
-                    case 2:
-                        System.out.println("Building tree...");
-                        if (this.buildTree() == null) {
-                            System.err.println("Error building tree!");
-                        }
-                        break;
-                    case 3:
-                        System.out.println("Building New node...");
-                        if (this.buildNode(null) == null) {
-                            System.err.println("Error building new node!");
-                        }
-                        break;
-                    case 4:
-                        System.out.println("Modify existing node...");
-                        if (this.buildNode(this.selectValidNode()) == null) {
-                            System.err.println("Error modifying existing node!");
-                        }
-                        break;
-                    case 5:
-                        System.out.println("Add greeting");
-                        this.buildGreetings();
-                        break;
-                    case 6:
-                        System.out.println("Writing the tree");
-                        if (this.writeTree() == null) {
-                            System.err.println("Error writing tree");
-                        }
-                        break;
-                    case 7:
-                        System.out.println("Load from a named file");
-                        if (this.loadTree() == null) {
-                            System.err.println("Error loading tree");
-                        }
-                        break;
-                    default:
-                        System.out.println("Bad command, retrying...");
-                        break;
+                case 0:
+                    System.out.println("You selected to exit");
+                    break;
+                case 1:
+                    System.out.println("Printing mermaid...");
+                    if (this.tree != null) {
+                        System.out.println(this.tree.toMermaid(false));
+                    } else {
+                        System.out.println("Tree not made");
+                    }
+                    break;
+                case 2:
+                    System.out.println("Building tree...");
+                    if (this.buildTree() == null) {
+                        System.err.println("Error building tree!");
+                    }
+                    break;
+                case 3:
+                    System.out.println("Building New node...");
+                    if (this.buildNode(null) == null) {
+                        System.err.println("Error building new node!");
+                    }
+                    break;
+                case 4:
+                    System.out.println("Modify existing node...");
+                    if (this.buildNode(this.selectValidNode()) == null) {
+                        System.err.println("Error modifying existing node!");
+                    }
+                    break;
+                case 5:
+                    System.out.println("Add greeting");
+                    this.buildGreetings();
+                    break;
+                case 6:
+                    System.out.println("Writing the tree");
+                    if (this.writeTree() == null) {
+                        System.err.println("Error writing tree");
+                    }
+                    break;
+                case 7:
+                    System.out.println("Load from a named file");
+                    if (this.loadTree() == null) {
+                        System.err.println("Error loading tree");
+                    }
+                    break;
+                default:
+                    System.out.println("Bad command, retrying...");
+                    break;
                 }
             } catch (Exception e) {
                 System.err.println("Something bad happened!");

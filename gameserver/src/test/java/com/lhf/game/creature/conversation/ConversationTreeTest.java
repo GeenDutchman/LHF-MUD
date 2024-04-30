@@ -16,6 +16,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
 import com.google.gson.Gson;
+import com.lhf.RichOutput.RichOutputBuilder;
+import com.lhf.RichOutput.RichOutputElement;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
@@ -223,8 +225,10 @@ public class ConversationTreeTest {
         Mockito.when(this.talker.getTagName()).thenReturn("npc");
         Mockito.when(this.talker.getSimpleContent()).thenCallRealMethod();
 
-        ConversationTreeNode start = new ConversationTreeNode("I greet you back")
-                .addMetaSignal(ConversationContextKey.TALKER_TAGGED_NAME);
+        RichOutputBuilder builder = new RichOutputBuilder(ConversationTreeNode.NPC_CONVERSATION_TAG)
+                .appendChild("I greet you back").appendOutputBuilderElement(
+                        RichOutputElement.ofMetaSignal(ConversationContextKey.TALKER_TAGGED_NAME.name()));
+        ConversationTreeNode start = new ConversationTreeNode(builder.build());
         ConversationTree tree = new ConversationTree(start);
 
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
@@ -247,9 +251,12 @@ public class ConversationTreeTest {
 
         Truth.assertThat(unwelcome.getName()).isNotEqualTo(talker.getName());
 
-        ConversationTreeNode start = new ConversationTreeNode(
-                "I greet you back " + ConversationContextKey.TALKER_TAGGED_NAME);
-        start.addBody("I will test the welcome and the unwelcome both");
+        RichOutputBuilder builder = new RichOutputBuilder(ConversationTreeNode.NPC_CONVERSATION_TAG)
+                .appendChild("I greet you back")
+                .appendOutputBuilderElement(
+                        RichOutputElement.ofMetaSignal(ConversationContextKey.TALKER_TAGGED_NAME.name()))
+                .appendChild("I will test the welcome and the unwelcome both");
+        ConversationTreeNode start = new ConversationTreeNode(builder.build());
         ConversationTree tree = new ConversationTree(start);
         ConversationTreeNode oneWay = new ConversationTreeNode("I am friendly");
         ConversationTreeNode otherWay = new ConversationTreeNode("I am not friendly");
@@ -313,9 +320,12 @@ public class ConversationTreeTest {
 
         Truth.assertThat(unwelcome.getName()).isNotEqualTo(talker.getName());
 
-        ConversationTreeNode start = new ConversationTreeNode(
-                "I greet you back " + ConversationContextKey.TALKER_TAGGED_NAME);
-        start.addBody("I will test the welcome and the unwelcome both");
+        RichOutputBuilder builder = new RichOutputBuilder(ConversationTreeNode.NPC_CONVERSATION_TAG)
+                .appendChild("I greet you back")
+                .appendOutputBuilderElement(
+                        RichOutputElement.ofMetaSignal(ConversationContextKey.TALKER_TAGGED_NAME.name()))
+                .appendChild("I will test the welcome and the unwelcome both");
+        ConversationTreeNode start = new ConversationTreeNode(builder.build());
         ConversationTree tree = new ConversationTree(start);
         ConversationTreeNode oneWay = new ConversationTreeNode("I am friendly");
         ConversationTreeNode otherWay = new ConversationTreeNode("I am not friendly");
@@ -355,9 +365,12 @@ public class ConversationTreeTest {
 
     @Test
     void testSerialization() {
-        ConversationTreeNode start = new ConversationTreeNode(
-                "I greet you back " + ConversationContextKey.TALKER_TAGGED_NAME);
-        start.addBody("I will test the welcome and the unwelcome both");
+        RichOutputBuilder builder = new RichOutputBuilder(ConversationTreeNode.NPC_CONVERSATION_TAG)
+                .appendChild("I greet you back")
+                .appendOutputBuilderElement(
+                        RichOutputElement.ofMetaSignal(ConversationContextKey.TALKER_TAGGED_NAME.name()))
+                .appendChild("I will test the welcome and the unwelcome both");
+        ConversationTreeNode start = new ConversationTreeNode(builder.build());
         ConversationTree tree = new ConversationTree(start);
         ConversationTreeNode oneWay = new ConversationTreeNode("I am friendly");
         ConversationTreeNode otherWay = new ConversationTreeNode("I am not friendly");
@@ -393,9 +406,12 @@ public class ConversationTreeTest {
 
     @Test
     void testMermaid() {
-        ConversationTreeNode start = new ConversationTreeNode(
-                "I greet you back " + ConversationContextKey.TALKER_TAGGED_NAME);
-        start.addBody("I will test the welcome and the unwelcome both");
+        RichOutputBuilder builder = new RichOutputBuilder(ConversationTreeNode.NPC_CONVERSATION_TAG)
+                .appendChild("I greet you back")
+                .appendOutputBuilderElement(
+                        RichOutputElement.ofMetaSignal(ConversationContextKey.TALKER_TAGGED_NAME.name()))
+                .appendChild("I will test the welcome and the unwelcome both");
+        ConversationTreeNode start = new ConversationTreeNode(builder.build());
         ConversationTree tree = new ConversationTree(start);
         ConversationTreeNode oneWay = new ConversationTreeNode("I am friendly");
         oneWay.addPrompt("PROMPT DROP money");

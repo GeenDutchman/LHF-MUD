@@ -5,7 +5,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 
-import com.lhf.RichOutput;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffect;
@@ -88,7 +88,7 @@ public class CarnivorousArmor extends EquipableHiddenEffect {
                         if (nodeGenerator == null) {
                             return;
                         }
-                        RichOutput description = nodeGenerator.produceSubBuilder("ItemUsedDescription");
+                        RichOutputBuilder description = nodeGenerator.produceSubBuilder("ItemUsedDescription");
                         description.appendString("The");
                         description.appendTaggable(CarnivorousArmor.this);
                         description.appendString("snuggles around you as you poke at it, but otherwise does nothing.");
@@ -106,7 +106,7 @@ public class CarnivorousArmor extends EquipableHiddenEffect {
                         if (nodeGenerator == null) {
                             return;
                         }
-                        RichOutput description = nodeGenerator.produceSubBuilder("ItemUsedDescription");
+                        RichOutputBuilder description = nodeGenerator.produceSubBuilder("ItemUsedDescription");
                         description.appendString(
                                 "A thousand teeth sink into your body, and you feel life force ripped out of you.");
                         description.appendString("Once it is sated, you feel the");
