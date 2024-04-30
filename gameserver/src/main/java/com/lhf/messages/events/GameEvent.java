@@ -17,7 +17,7 @@ import javax.xml.transform.TransformerException;
 import org.w3c.dom.Document;
 
 import com.lhf.RichOutput;
-import com.lhf.RichOutput.OutputSequence;
+import com.lhf.RichOutput.RichOutputSequence;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.messages.GameEventProcessor.GameEventProcessorID;
@@ -81,7 +81,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
             throw new IllegalArgumentException("Cannot generate document from null event!");
         }
 
-        OutputSequence sequence = new OutputSequence(XML_EVENT_ROOT);
+        RichOutputSequence sequence = new RichOutputSequence(XML_EVENT_ROOT);
         event.buildOutput(sequence);
         Consumer<RichOutput> callback = event.getOutputCallback();
         if (callback != null) {
@@ -184,7 +184,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
 
     // Called to render as a human-readable string
     public String printString() {
-        OutputSequence stringOut = new RichOutput.OutputSequence();
+        RichOutputSequence stringOut = new RichOutput.RichOutputSequence();
         this.buildOutput(stringOut);
         if (this.outputCallback != null) {
             this.outputCallback.accept(stringOut);

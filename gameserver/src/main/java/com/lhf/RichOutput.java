@@ -39,7 +39,7 @@ import com.lhf.Taggable.BasicTaggable;
 public interface RichOutput {
     public String getBuilderName();
 
-    public List<OutputBuilderElement> getElements();
+    public List<RichOutputElement> getElements();
 
     public enum PrintingInstructions {
         TAGS, BUILDER_NAME, META_SIGNAL;
@@ -56,9 +56,9 @@ public interface RichOutput {
             sb.append(builderName).append("- ");
         }
 
-        final List<OutputBuilderElement> elements = this.getElements();
+        final List<RichOutputElement> elements = this.getElements();
         if (elements != null) {
-            for (final OutputBuilderElement outputSequenceElement : elements) {
+            for (final RichOutputElement outputSequenceElement : elements) {
                 if (outputSequenceElement != null) {
                     sb.append(outputSequenceElement.printString(instructions));
                 }
@@ -67,11 +67,11 @@ public interface RichOutput {
         return sb.toString();
     }
 
-    public default RichOutput appendOutputBuilderElement(OutputBuilderElement toAdd) {
+    public default RichOutput appendOutputBuilderElement(RichOutputElement toAdd) {
         return this.appendOutputBuilderElement(toAdd, " ", null);
     }
 
-    public RichOutput appendOutputBuilderElement(OutputBuilderElement toAdd, String before, String after);
+    public RichOutput appendOutputBuilderElement(RichOutputElement toAdd, String before, String after);
 
     public default RichOutput appendOutputBuilder(RichOutput toAdd) {
         return this.appendOutputBuilder(toAdd, " ", null);
@@ -192,7 +192,7 @@ public interface RichOutput {
 
     public abstract RichOutput produceSubBuilder(String subName);
 
-    public static interface OutputBuilderElement {
+    public static interface RichOutputElement {
         @Deprecated(forRemoval = false)
         public CharSequence getCharSequence();
 
@@ -247,15 +247,15 @@ public interface RichOutput {
         }
     }
 
-    public final static class OutputSequenceElement implements OutputBuilderElement, Serializable {
+    public final static class RichOutputSequenceElement implements RichOutputElement, Serializable {
         private final String charSequence;
         private final BasicTaggable taggable;
         private final BasicExaminable examinable;
-        private final OutputSequence outputSequence;
+        private final RichOutputSequence outputSequence;
         private final String metaSignal;
 
-        private OutputSequenceElement(CharSequence charSequence, Taggable taggable, Examinable examinable,
-                OutputSequence outputSequence, String metaSignal) {
+        private RichOutputSequenceElement(CharSequence charSequence, Taggable taggable, Examinable examinable,
+                RichOutputSequence outputSequence, String metaSignal) {
             this.charSequence = charSequence != null ? charSequence.toString() : null;
             this.taggable = Taggable.basicTaggable(taggable);
             this.examinable = Examinable.basicExaminable(examinable);
@@ -263,36 +263,36 @@ public interface RichOutput {
             this.metaSignal = metaSignal != null ? new String(metaSignal) : null;
         }
 
-        public static final OutputSequenceElement copy(OutputBuilderElement other) {
+        public static final RichOutputSequenceElement copy(RichOutputElement other) {
             if (other == null) {
                 return null;
             }
-            return new OutputSequenceElement(other.getCharSequenceAsString(), other.getTaggable(),
-                    other.getExaminable(), OutputSequence.copy(other.getOutputBuilder()), other.getMetaSignal());
+            return new RichOutputSequenceElement(other.getCharSequenceAsString(), other.getTaggable(),
+                    other.getExaminable(), RichOutputSequence.copy(other.getOutputBuilder()), other.getMetaSignal());
         }
 
-        public static OutputSequenceElement ofCharSequence(CharSequence charSequence) {
-            return new OutputSequenceElement(charSequence, null, null, null, null);
+        public static RichOutputSequenceElement ofCharSequence(CharSequence charSequence) {
+            return new RichOutputSequenceElement(charSequence, null, null, null, null);
         }
 
-        public static OutputSequenceElement ofTaggable(Taggable taggable) {
-            return new OutputSequenceElement(null, taggable, null, null, null);
+        public static RichOutputSequenceElement ofTaggable(Taggable taggable) {
+            return new RichOutputSequenceElement(null, taggable, null, null, null);
         }
 
-        public static OutputSequenceElement ofExaminable(Examinable examinable) {
-            return new OutputSequenceElement(null, null, examinable, null, null);
+        public static RichOutputSequenceElement ofExaminable(Examinable examinable) {
+            return new RichOutputSequenceElement(null, null, examinable, null, null);
         }
 
-        public static OutputSequenceElement ofOutputSequence(OutputSequence sequence) {
-            return new OutputSequenceElement(null, null, null, sequence, null);
+        public static RichOutputSequenceElement ofOutputSequence(RichOutputSequence sequence) {
+            return new RichOutputSequenceElement(null, null, null, sequence, null);
         }
 
-        public static OutputSequenceElement ofOutputBuilder(RichOutput builder) {
-            return new OutputSequenceElement(null, null, null, OutputSequence.copy(builder), null);
+        public static RichOutputSequenceElement ofOutputBuilder(RichOutput builder) {
+            return new RichOutputSequenceElement(null, null, null, RichOutputSequence.copy(builder), null);
         }
 
-        public static OutputSequenceElement ofMetaSignal(String metaSignal) {
-            return new OutputSequenceElement(null, null, null, null, metaSignal);
+        public static RichOutputSequenceElement ofMetaSignal(String metaSignal) {
+            return new RichOutputSequenceElement(null, null, null, null, metaSignal);
         }
 
         @Deprecated(forRemoval = false)
@@ -312,7 +312,7 @@ public interface RichOutput {
             return examinable;
         }
 
-        public OutputSequence getOutputBuilder() {
+        public RichOutputSequence getOutputBuilder() {
             return outputSequence;
         }
 
@@ -330,9 +330,9 @@ public interface RichOutput {
         public boolean equals(Object obj) {
             if (this == obj)
                 return true;
-            if (!(obj instanceof OutputSequenceElement))
+            if (!(obj instanceof RichOutputSequenceElement))
                 return false;
-            OutputSequenceElement other = (OutputSequenceElement) obj;
+            RichOutputSequenceElement other = (RichOutputSequenceElement) obj;
             return Objects.equals(charSequence, other.charSequence) && Objects.equals(taggable, other.taggable)
                     && Objects.equals(examinable, other.examinable)
                     && Objects.equals(outputSequence, other.outputSequence)
@@ -350,30 +350,31 @@ public interface RichOutput {
 
     }
 
-    public static final class OutputSequence implements RichOutput, Iterable<OutputSequenceElement>, Serializable {
+    public static final class RichOutputSequence
+            implements RichOutput, Iterable<RichOutputSequenceElement>, Serializable {
 
         private final String sequenceName;
-        private final List<OutputSequenceElement> elements;
+        private final List<RichOutputSequenceElement> elements;
 
-        public OutputSequence() {
+        public RichOutputSequence() {
             this.sequenceName = null;
             this.elements = new ArrayList<>();
         }
 
-        public OutputSequence(String sequenceName) {
+        public RichOutputSequence(String sequenceName) {
             this.sequenceName = sequenceName;
             this.elements = new ArrayList<>();
         }
 
-        public static final OutputSequence copy(RichOutput sequence) {
+        public static final RichOutputSequence copy(RichOutput sequence) {
             if (sequence == null) {
                 return null;
             }
-            OutputSequence next = new OutputSequence(sequence.getBuilderName());
-            List<OutputBuilderElement> oldElements = sequence.getElements();
+            RichOutputSequence next = new RichOutputSequence(sequence.getBuilderName());
+            List<RichOutputElement> oldElements = sequence.getElements();
             if (oldElements != null) {
                 oldElements.stream().filter(element -> element != null)
-                        .forEach(element -> next.elements.add(OutputSequenceElement.copy(element)));
+                        .forEach(element -> next.elements.add(RichOutputSequenceElement.copy(element)));
             }
             return next;
         }
@@ -382,89 +383,90 @@ public interface RichOutput {
             return sequenceName;
         }
 
-        public final List<OutputBuilderElement> getElements() {
+        public final List<RichOutputElement> getElements() {
             return Collections.unmodifiableList(elements);
         }
 
         @Override
-        public OutputSequence appendOutputBuilderElement(OutputBuilderElement toAdd, String before, String after) {
+        public RichOutputSequence appendOutputBuilderElement(RichOutputElement toAdd, String before, String after) {
             if (toAdd != null) {
                 if (before != null) {
-                    this.elements.add(OutputSequenceElement.ofCharSequence(before));
+                    this.elements.add(RichOutputSequenceElement.ofCharSequence(before));
                 }
-                this.elements.add(OutputSequenceElement.copy(toAdd));
+                this.elements.add(RichOutputSequenceElement.copy(toAdd));
                 if (after != null) {
-                    this.elements.add(OutputSequenceElement.ofCharSequence(after));
+                    this.elements.add(RichOutputSequenceElement.ofCharSequence(after));
                 }
             }
             return this;
         }
 
         @Override
-        public OutputSequence appendOutputBuilder(RichOutput toAdd, String before, String after) {
+        public RichOutputSequence appendOutputBuilder(RichOutput toAdd, String before, String after) {
             if (toAdd != null) {
                 if (before != null) {
-                    this.elements.add(OutputSequenceElement.ofCharSequence(before));
+                    this.elements.add(RichOutputSequenceElement.ofCharSequence(before));
                 }
-                this.elements.add(OutputSequenceElement.ofOutputBuilder(toAdd));
+                this.elements.add(RichOutputSequenceElement.ofOutputBuilder(toAdd));
                 if (after != null) {
-                    this.elements.add(OutputSequenceElement.ofCharSequence(after));
+                    this.elements.add(RichOutputSequenceElement.ofCharSequence(after));
                 }
             }
             return this;
         }
 
         @Override
-        public OutputSequence appendString(String toAdd, String before, String after) {
+        public RichOutputSequence appendString(String toAdd, String before, String after) {
             if (toAdd != null) {
                 if (before != null) {
-                    this.elements.add(OutputSequenceElement.ofCharSequence(before));
+                    this.elements.add(RichOutputSequenceElement.ofCharSequence(before));
                 }
-                this.elements.add(OutputSequenceElement.ofCharSequence(toAdd));
+                this.elements.add(RichOutputSequenceElement.ofCharSequence(toAdd));
                 if (after != null) {
-                    this.elements.add(OutputSequenceElement.ofCharSequence(after));
+                    this.elements.add(RichOutputSequenceElement.ofCharSequence(after));
                 }
             }
             return this;
         }
 
         @Override
-        public OutputSequence appendExaminable(Examinable toAdd, String before, String after) {
+        public RichOutputSequence appendExaminable(Examinable toAdd, String before, String after) {
             if (toAdd != null) {
                 if (before != null) {
-                    this.elements.add(OutputSequenceElement.ofCharSequence(before));
+                    this.elements.add(RichOutputSequenceElement.ofCharSequence(before));
                 }
-                this.elements.add(OutputSequenceElement.ofExaminable(toAdd));
+                this.elements.add(RichOutputSequenceElement.ofExaminable(toAdd));
                 toAdd.produceExtraDescription(this);
                 if (after != null) {
-                    this.elements.add(OutputSequenceElement.ofCharSequence(after));
+                    this.elements.add(RichOutputSequenceElement.ofCharSequence(after));
                 }
             }
             return this;
         }
 
         @Override
-        public OutputSequence appendTaggable(Taggable toAdd, String before, String after) {
+        public RichOutputSequence appendTaggable(Taggable toAdd, String before, String after) {
             if (toAdd != null) {
                 if (before != null) {
-                    this.elements.add(OutputSequenceElement.ofCharSequence(before));
+                    this.elements.add(RichOutputSequenceElement.ofCharSequence(before));
                 }
-                this.elements.add(OutputSequenceElement.ofTaggable(toAdd));
+                this.elements.add(RichOutputSequenceElement.ofTaggable(toAdd));
                 if (after != null) {
-                    this.elements.add(OutputSequenceElement.ofCharSequence(after));
+                    this.elements.add(RichOutputSequenceElement.ofCharSequence(after));
                 }
             }
             return this;
         }
 
         @Override
-        public OutputSequence produceSubBuilder(String subName) {
-            OutputSequence sub = new OutputSequence(subName);
-            this.elements.add(OutputSequenceElement.ofOutputSequence(sub));
+        public RichOutputSequence produceSubBuilder(String subName) {
+            RichOutputSequence sub = new RichOutputSequence(subName);
+            this.elements.add(RichOutputSequenceElement.ofOutputSequence(sub));
             return sub;
         }
 
-        public OutputSequence replaceElement(OutputSequenceElement toFind, OutputSequenceElement replacement) {
+        public RichOutputSequence replaceElement(RichOutputSequenceElement toFind,
+                RichOutputSequenceElement replacement) {
             final int index = this.elements.indexOf(toFind);
             if (index >= 0) {
                 if (replacement != null) {
@@ -488,9 +490,9 @@ public interface RichOutput {
         public boolean equals(Object obj) {
             if (this == obj)
                 return true;
-            if (!(obj instanceof OutputSequence))
+            if (!(obj instanceof RichOutputSequence))
                 return false;
-            OutputSequence other = (OutputSequence) obj;
+            RichOutputSequence other = (RichOutputSequence) obj;
             return Objects.equals(sequenceName, other.sequenceName);
         }
 
@@ -503,7 +505,7 @@ public interface RichOutput {
         }
 
         @Override
-        public Iterator<OutputSequenceElement> iterator() {
+        public Iterator<RichOutputSequenceElement> iterator() {
             return this.elements.iterator();
         }
 
@@ -553,7 +555,7 @@ public interface RichOutput {
         }
     }
 
-    public static Document documentFromOutputSequence(OutputSequence sequence, Map<String, String> tagAttributes)
+    public static Document documentFromOutputSequence(RichOutputSequence sequence, Map<String, String> tagAttributes)
             throws ParserConfigurationException, OutputBuilderConversionError {
         if (sequence == null) {
             throw new IllegalArgumentException("Cannot generate document from null sequence");
@@ -702,12 +704,12 @@ public interface RichOutput {
     }
 
     private static void acceptOutputBuilderElements(final Document document, final Node node,
-            final List<OutputBuilderElement> elementList) throws OutputBuilderConversionError {
+            final List<RichOutputElement> elementList) throws OutputBuilderConversionError {
         if (document == null || node == null || elementList == null) {
             return;
         }
         for (int i = 0; i < elementList.size(); i++) {
-            final OutputBuilderElement sequenceMember = elementList.get(i);
+            final RichOutputElement sequenceMember = elementList.get(i);
             if (sequenceMember == null) {
                 continue;
             } else if (sequenceMember.getCharSequence() != null) {
@@ -764,7 +766,7 @@ public interface RichOutput {
                         sequenceName), e);
             }
         }
-        final List<OutputBuilderElement> elementList = outputBuilder.getElements();
+        final List<RichOutputElement> elementList = outputBuilder.getElements();
         try {
             RichOutput.acceptOutputBuilderElements(document, myNode, elementList);
         } catch (OutputBuilderConversionError e) {
@@ -774,14 +776,14 @@ public interface RichOutput {
     }
 
     public static final class OutputSequenceElementCollector
-            implements Collector<OutputSequenceElement, OutputSequence, OutputSequence> {
+            implements Collector<RichOutputSequenceElement, RichOutputSequence, RichOutputSequence> {
 
         @Override
-        public BiConsumer<OutputSequence, OutputSequenceElement> accumulator() {
-            return new BiConsumer<RichOutput.OutputSequence, RichOutput.OutputSequenceElement>() {
+        public BiConsumer<RichOutputSequence, RichOutputSequenceElement> accumulator() {
+            return new BiConsumer<RichOutput.RichOutputSequence, RichOutput.RichOutputSequenceElement>() {
 
                 @Override
-                public void accept(OutputSequence arg0, OutputSequenceElement arg1) {
+                public void accept(RichOutputSequence arg0, RichOutputSequenceElement arg1) {
                     if (arg0 == null || arg1 == null) {
                         return;
                     }
@@ -797,12 +799,12 @@ public interface RichOutput {
         }
 
         @Override
-        public BinaryOperator<OutputSequence> combiner() {
-            return new BinaryOperator<RichOutput.OutputSequence>() {
+        public BinaryOperator<RichOutputSequence> combiner() {
+            return new BinaryOperator<RichOutput.RichOutputSequence>() {
 
                 @Override
-                public OutputSequence apply(OutputSequence arg0, OutputSequence arg1) {
-                    OutputSequence sequence = new OutputSequence();
+                public RichOutputSequence apply(RichOutputSequence arg0, RichOutputSequence arg1) {
+                    RichOutputSequence sequence = new RichOutputSequence();
                     sequence.appendOutputBuilder(arg0).appendOutputBuilder(arg1);
                     return sequence;
                 }
@@ -811,18 +813,18 @@ public interface RichOutput {
         }
 
         @Override
-        public Function<OutputSequence, OutputSequence> finisher() {
+        public Function<RichOutputSequence, RichOutputSequence> finisher() {
             return Function.identity();
         }
 
         @Override
-        public Supplier<OutputSequence> supplier() {
-            return () -> new OutputSequence();
+        public Supplier<RichOutputSequence> supplier() {
+            return () -> new RichOutputSequence();
         }
 
     }
 
-    public static Collector<OutputSequenceElement, OutputSequence, OutputSequence> collector() {
+    public static Collector<RichOutputSequenceElement, RichOutputSequence, RichOutputSequence> collector() {
         return new OutputSequenceElementCollector();
     }
 

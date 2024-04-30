@@ -16,7 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
 import com.google.common.truth.Truth8;
-import com.lhf.RichOutput.OutputSequence;
+import com.lhf.RichOutput.RichOutputSequence;
 import com.lhf.Taggable;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.CreatureEffect;
@@ -65,7 +65,7 @@ public class BasicAITest {
         listener.getNPC().setConvoTree(tree);
 
         SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker)
-                .setMessage(new OutputSequence().appendString("hello", null, null)).setHearer(listener.getNPC())
+                .setMessage(new RichOutputSequence().appendString("hello", null, null)).setHearer(listener.getNPC())
                 .Build();
 
         sendMsgAndWait(sm, listener);

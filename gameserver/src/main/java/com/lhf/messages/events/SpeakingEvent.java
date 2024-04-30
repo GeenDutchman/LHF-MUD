@@ -1,12 +1,12 @@
 package com.lhf.messages.events;
 
 import com.lhf.RichOutput;
-import com.lhf.RichOutput.OutputSequence;
+import com.lhf.RichOutput.RichOutputSequence;
 import com.lhf.messages.GameEventType;
 import com.lhf.server.client.CommandInvoker;
 
 public class SpeakingEvent extends GameEvent {
-    private final OutputSequence message;
+    private final RichOutputSequence message;
     private final CommandInvoker sayer;
     private final CommandInvoker hearer;
     private final boolean shouting;
@@ -27,7 +27,7 @@ public class SpeakingEvent extends GameEvent {
 
         @Deprecated(forRemoval = false)
         public Builder setMessage(String message) {
-            this.message = message != null ? new OutputSequence().appendString(message, null, null) : null;
+            this.message = message != null ? new RichOutputSequence().appendString(message, null, null) : null;
             return this;
         }
 
@@ -82,7 +82,7 @@ public class SpeakingEvent extends GameEvent {
     public SpeakingEvent(Builder builder) {
         super(builder);
         this.sayer = builder.getSayer();
-        this.message = OutputSequence.copy(builder.getMessage());
+        this.message = RichOutputSequence.copy(builder.getMessage());
         this.shouting = builder.isShouting();
         this.hearer = builder.getHearer();
     }
@@ -106,8 +106,8 @@ public class SpeakingEvent extends GameEvent {
         builder.appendOutputBuilder(message, ":", null);
     }
 
-    public OutputSequence getMessage() {
-        return OutputSequence.copy(message);
+    public RichOutputSequence getMessage() {
+        return RichOutputSequence.copy(message);
     }
 
     public String getMessageAsString() {

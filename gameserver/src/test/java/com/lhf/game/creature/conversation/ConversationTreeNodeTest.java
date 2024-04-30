@@ -3,7 +3,7 @@ package com.lhf.game.creature.conversation;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.truth.Truth;
-import com.lhf.RichOutput.OutputBuilderElement;
+import com.lhf.RichOutput.RichOutputElement;
 
 public class ConversationTreeNodeTest {
 
@@ -45,7 +45,7 @@ public class ConversationTreeNodeTest {
         ConversationTransformer transformer = new ConversationTransformer() {
 
             @Override
-            public OutputBuilderElement apply(OutputBuilderElement arg0) {
+            public RichOutputElement apply(RichOutputElement arg0) {
                 return arg0;
             }
 

@@ -10,20 +10,20 @@ import java.util.UUID;
 import java.util.function.Function;
 
 import com.lhf.Taggable;
-import com.lhf.RichOutput.OutputBuilderElement;
-import com.lhf.RichOutput.OutputSequenceElement;
+import com.lhf.RichOutput.RichOutputElement;
+import com.lhf.RichOutput.RichOutputSequenceElement;
 
-public interface ConversationTransformer extends Function<OutputBuilderElement, OutputBuilderElement> {
+public interface ConversationTransformer extends Function<RichOutputElement, RichOutputElement> {
 
     public String describePlainOutput();
 
     public String getOutputBody();
 
-    public static ConversationTransformer ofBuilderElement(OutputBuilderElement toOut) {
+    public static ConversationTransformer ofBuilderElement(RichOutputElement toOut) {
         return new ConversationTransformer() {
 
             @Override
-            public OutputBuilderElement apply(OutputBuilderElement arg0) {
+            public RichOutputElement apply(RichOutputElement arg0) {
                 return toOut;
             }
 
@@ -46,18 +46,18 @@ public interface ConversationTransformer extends Function<OutputBuilderElement, 
     }
 
     public static ConversationTransformer ofString(String body) {
-        return ConversationTransformer.ofBuilderElement(OutputSequenceElement.ofCharSequence(body));
+        return ConversationTransformer.ofBuilderElement(RichOutputSequenceElement.ofCharSequence(body));
     }
 
     public static ConversationTransformer ofTaggable(Taggable taggable) {
-        return ConversationTransformer.ofBuilderElement(OutputSequenceElement.ofTaggable(taggable));
+        return ConversationTransformer.ofBuilderElement(RichOutputSequenceElement.ofTaggable(taggable));
     }
 
-    public static ConversationTransformer ofMapping(Map<String, OutputBuilderElement> mapping) {
+    public static ConversationTransformer ofMapping(Map<String, RichOutputElement> mapping) {
         return new ConversationTransformer() {
 
             @Override
-            public OutputBuilderElement apply(OutputBuilderElement arg0) {
+            public RichOutputElement apply(RichOutputElement arg0) {
                 if (arg0 == null || mapping == null) {
                     return arg0;
                 }
@@ -90,7 +90,7 @@ public interface ConversationTransformer extends Function<OutputBuilderElement, 
         return new ConversationTransformer() {
 
             @Override
-            public OutputBuilderElement apply(OutputBuilderElement arg0) {
+            public RichOutputElement apply(RichOutputElement arg0) {
                 if (arg0 == null || mapping == null) {
                     return arg0;
                 }
@@ -257,7 +257,7 @@ public interface ConversationTransformer extends Function<OutputBuilderElement, 
         }
 
         @Override
-        public OutputBuilderElement apply(OutputBuilderElement input) {
+        public RichOutputElement apply(RichOutputElement input) {
             if (input == null) {
                 return input;
             }
@@ -265,7 +265,7 @@ public interface ConversationTransformer extends Function<OutputBuilderElement, 
             if (meta == null) {
                 return input;
             }
-            Function<OutputBuilderElement, OutputBuilderElement> function = this.contextBag.getOrDefault(meta, null);
+            Function<RichOutputElement, RichOutputElement> function = this.contextBag.getOrDefault(meta, null);
             if (function != null) {
                 return function.apply(input);
             }

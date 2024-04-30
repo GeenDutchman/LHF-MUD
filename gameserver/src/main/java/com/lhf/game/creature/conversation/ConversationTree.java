@@ -16,7 +16,7 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.lhf.RichOutput.OutputSequence;
+import com.lhf.RichOutput.RichOutputSequence;
 import com.lhf.RichOutput.PrintingInstructions;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContext;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
@@ -274,7 +274,7 @@ public class ConversationTree implements Serializable {
                     .append("\r\n");
             if (node.getPrompts().size() > 0) {
                 sb.append("    note right of ").append(node.getNodeID().toString().replace("-", "")).append("\r\n");
-                for (OutputSequence prompt : node.getPrompts()) {
+                for (RichOutputSequence prompt : node.getPrompts()) {
                     sb.append("        ").append(prompt.printString(EnumSet.allOf(PrintingInstructions.class)))
                             .append("\r\n");
                 }

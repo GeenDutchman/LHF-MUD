@@ -4,8 +4,8 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
-import com.lhf.RichOutput.OutputSequence;
-import com.lhf.RichOutput.OutputSequenceElement;
+import com.lhf.RichOutput.RichOutputSequence;
+import com.lhf.RichOutput.RichOutputSequenceElement;
 import com.lhf.messages.events.SeeEvent;
 
 public interface Examinable extends Taggable {
@@ -50,10 +50,10 @@ public interface Examinable extends Taggable {
         public final String name;
         public final String contents;
         public final Map<String, String> tagAttributes;
-        public final OutputSequence extraDescription;
+        public final RichOutputSequence extraDescription;
 
         private BasicExaminable(String tagName, String description, String name, String contents,
-                Map<String, String> tagAttributes, OutputSequence extraDescription) {
+                Map<String, String> tagAttributes, RichOutputSequence extraDescription) {
             this.tagName = tagName;
             this.description = description;
             this.name = name;
@@ -62,8 +62,8 @@ public interface Examinable extends Taggable {
             this.extraDescription = extraDescription;
         }
 
-        private static OutputSequence retrieveExtras(final Examinable from) {
-            OutputSequence extras = new OutputSequence();
+        private static RichOutputSequence retrieveExtras(final Examinable from) {
+            RichOutputSequence extras = new RichOutputSequence();
             from.produceExtraDescription(extras);
             return extras;
         }
@@ -98,7 +98,7 @@ public interface Examinable extends Taggable {
             return tagAttributes;
         }
 
-        public OutputSequence getExtraDescription() {
+        public RichOutputSequence getExtraDescription() {
             return extraDescription;
         }
 
@@ -107,9 +107,9 @@ public interface Examinable extends Taggable {
             if (builder == null) {
                 return;
             }
-            for (final OutputSequenceElement thing : this.extraDescription) {
+            for (final RichOutputSequenceElement thing : this.extraDescription) {
                 if (thing != null) {
-                    builder.appendOutputBuilderElement(OutputSequenceElement.copy(thing), null, null);
+                    builder.appendOutputBuilderElement(RichOutputSequenceElement.copy(thing), null, null);
                 }
             }
         }
