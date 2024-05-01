@@ -134,7 +134,7 @@ public class ConversationTreeTest {
         String thirdBody = "Fine!";
         ConversationTree tree = new ConversationTree.Builder(basicEmpty)
                 .addNode(null, new ConversationPattern("Are you sure?", "\\bsure\\b.*?", Pattern.CASE_INSENSITIVE),
-                        secondBody)
+                        secondNode)
                 .addNode(secondNode.getNodeID(),
                         new ConversationPattern("Fine!", "^fine\\b!$", Pattern.CASE_INSENSITIVE), thirdBody)
                 .build();
