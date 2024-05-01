@@ -67,10 +67,14 @@ public class ConversationTree implements Serializable {
         private boolean tagkeywords;
 
         public Builder() {
+            this(new ConversationTreeNode.Builder());
+        }
+
+        public Builder(ConversationTreeNode.Builder nodeBuilder) {
             this.treeName = UUID.randomUUID().toString();
             this.nodes = new LinkedHashMap<>();
             this.branches = new LinkedHashMap<>();
-            this.start = new ConversationTreeNode.Builder();
+            this.start = nodeBuilder != null ? nodeBuilder : new ConversationTreeNode.Builder();
             this.nodes.put(start.getNodeID(), start);
             this.addDefaultGreetings();
             this.addDefaultRepeatWords();
@@ -80,17 +84,7 @@ public class ConversationTree implements Serializable {
         }
 
         public Builder(String starting) {
-            this.treeName = UUID.randomUUID().toString();
-            this.nodes = new LinkedHashMap<>();
-            this.branches = new LinkedHashMap<>();
-            this.start = new ConversationTreeNode.Builder();
-            this.nodes.put(start.getNodeID(), start);
-            this.setStartBody(starting);
-            this.addDefaultGreetings();
-            this.addDefaultRepeatWords();
-            this.endOfConvo = CONVO_END;
-            this.notRecognized = UNRECOGNIZED;
-            this.tagkeywords = true;
+            this(ConversationTreeNode.Builder.ofString(starting));
         }
 
         public ConversationTree build() {
@@ -148,6 +142,14 @@ public class ConversationTree implements Serializable {
         public Builder setStartBody(String body) {
             this.start.setBodySequence(
                     new RichOutputBuilder(ConversationTreeNode.NPC_CONVERSATION_TAG).appendString(body, null, null));
+            return this;
+        }
+
+        public Builder setStart(ConversationTreeNode.Builder nextStart) {
+            if (nextStart != null) {
+                this.start.setBodySequence(nextStart.getBodySequence());
+                nextStart.getPrompts().stream().forEach(prompt -> this.start.addPrompt(prompt));
+            }
             return this;
         }
 

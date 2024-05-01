@@ -98,6 +98,13 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode>, S
             return this;
         }
 
+        public Builder addBody(String body) {
+            if (body != null) {
+                this.bodySequence.appendChild(body);
+            }
+            return this;
+        }
+
         public synchronized List<RichOutputBuilder> getPrompts() {
             if (prompts == null) {
                 this.prompts = new ArrayList<>();
