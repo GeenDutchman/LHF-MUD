@@ -37,9 +37,8 @@ public class ConversationTreeNodeTest {
 
     @Test
     void testGetResult() {
-        ConversationTreeNode node = ConversationTreeNode.Builder.ofString(basicEmpty).build();
-        node.addPrompt("PROMPT say cheese to anna");
-
+        ConversationTreeNode node = ConversationTreeNode.Builder.ofString(basicEmpty)
+                .addPrompt("PROMPT say cheese to anna").build();
         ConversationTransformer transformer = new ConversationTransformer() {
 
             @Override

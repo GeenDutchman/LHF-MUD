@@ -130,11 +130,13 @@ public class ConversationTreeTest {
         Mockito.when(this.talker.getSimpleContent()).thenCallRealMethod();
 
         String secondBody = "Yes I am!";
+        Builder secondNode = ConversationTreeNode.Builder.ofString(secondBody);
         String thirdBody = "Fine!";
         ConversationTree tree = new ConversationTree.Builder(basicEmpty)
                 .addNode(null, new ConversationPattern("Are you sure?", "\\bsure\\b.*?", Pattern.CASE_INSENSITIVE),
                         secondBody)
-                .addNode(null, new ConversationPattern("Fine!", "^fine\\b!$", Pattern.CASE_INSENSITIVE), thirdBody)
+                .addNode(secondNode.getNodeID(),
+                        new ConversationPattern("Fine!", "^fine\\b!$", Pattern.CASE_INSENSITIVE), thirdBody)
                 .build();
 
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");

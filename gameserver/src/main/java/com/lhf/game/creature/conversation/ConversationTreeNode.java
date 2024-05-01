@@ -174,14 +174,6 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode>, S
         return this.getBodySequence().printString();
     }
 
-    public boolean addPrompt(String promptBody) {
-        return this.addPrompt(new RichOutputBuilder().appendString(promptBody, null, null).build());
-    }
-
-    public boolean addPrompt(RichOutput prompt) {
-        return this.prompts.add(prompt);
-    }
-
     public UUID getNodeID() {
         return this.nodeID;
     }

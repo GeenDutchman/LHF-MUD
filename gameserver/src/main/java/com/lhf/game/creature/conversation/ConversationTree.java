@@ -33,7 +33,7 @@ public class ConversationTree implements Serializable {
     // TODO: wait for `SequencedCollection` from Java21
     private final Map<UUID, ConversationTreeNode> nodes;
     private final Map<UUID, List<ConversationTreeBranch>> branches;
-    private final transient Map<ClientID, ConversationContext> bookmarks;
+    private transient Map<ClientID, ConversationContext> bookmarks = new TreeMap<>();
     private final SortedSet<ConversationTreeBranch> greetings;
     private final SortedSet<ConversationPattern> repeatWords;
     private final String endOfConvo;
@@ -442,6 +442,9 @@ public class ConversationTree implements Serializable {
     }
 
     protected ConversationTree initBookmarks() {
+        if (this.bookmarks == null) {
+            this.bookmarks = new TreeMap<>();
+        }
         this.bookmarks.clear();
         return this;
     }

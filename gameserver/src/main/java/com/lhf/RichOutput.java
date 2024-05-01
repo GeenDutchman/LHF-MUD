@@ -246,6 +246,14 @@ public final class RichOutput implements Serializable {
         return sb.toString();
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("RichOutput [sequenceName=").append(sequenceName).append(", elements=").append(elements)
+                .append("]");
+        return builder.toString();
+    }
+
     public static class RichOutputBuilder implements Serializable {
 
         private static class BuilderElement implements Serializable {
@@ -267,7 +275,7 @@ public final class RichOutput implements Serializable {
                 this.charSequence = element.getCharSequenceAsString();
                 this.taggable = Taggable.basicTaggable(element.getTaggable());
                 this.examinable = Examinable.basicExaminable(element.getExaminable());
-                this.output = new RichOutputBuilder(element.getOutputBuilder());
+                this.output = RichOutputBuilder.ofRichOutput(element.getOutputBuilder());
                 this.metaSignal = element.getMetaSignal();
             }
 
@@ -283,7 +291,7 @@ public final class RichOutput implements Serializable {
                     this.charSequence = element.getCharSequenceAsString();
                     this.taggable = Taggable.basicTaggable(element.getTaggable());
                     this.examinable = Examinable.basicExaminable(element.getExaminable());
-                    this.output = new RichOutputBuilder(element.getOutputBuilder());
+                    this.output = RichOutputBuilder.ofRichOutput(element.getOutputBuilder());
                     this.metaSignal = element.getMetaSignal();
                 } else {
                     this.charSequence = null;
@@ -381,15 +389,15 @@ public final class RichOutput implements Serializable {
             this.elements = new ArrayList<>();
         }
 
-        private RichOutputBuilder(RichOutput output) {
-            this();
-            if (output != null) {
-                this.sequenceName = output.getBuilderName();
-                this.elements = new ArrayList<>();
-                for (RichOutputElement element : output.getElements()) {
-                    this.elements.add(new BuilderElement(element));
-                }
+        private static RichOutputBuilder ofRichOutput(RichOutput output) {
+            if (output == null) {
+                return null;
             }
+            RichOutputBuilder builder = new RichOutputBuilder(output.getBuilderName());
+            for (RichOutputElement element : output.getElements()) {
+                builder.elements.add(new BuilderElement(element));
+            }
+            return builder;
         }
 
         public List<BuilderElement> getElements() {

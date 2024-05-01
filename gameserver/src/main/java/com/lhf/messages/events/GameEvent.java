@@ -191,7 +191,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
         if (this.outputCallback != null) {
             this.outputCallback.accept(stringOut);
         }
-        return stringOut.printString();
+        return stringOut.build().printString();
     }
 
     @Override
