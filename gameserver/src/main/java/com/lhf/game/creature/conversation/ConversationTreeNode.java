@@ -17,25 +17,6 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode>, S
     private final RichOutput bodySequence;
     private List<RichOutput> prompts;
 
-    public ConversationTreeNode(String someBody) {
-        this.nodeID = UUID.randomUUID();
-        this.bodySequence = new RichOutputBuilder(NPC_CONVERSATION_TAG).appendString(someBody, null, null).build();
-        this.prompts = new ArrayList<>();
-    }
-
-    public ConversationTreeNode(RichOutput output) {
-        this.nodeID = UUID.randomUUID();
-        if (output == null) {
-            this.bodySequence = new RichOutputBuilder(NPC_CONVERSATION_TAG).appendString(EMPTY, null, null).build();
-        } else if (NPC_CONVERSATION_TAG.equals(output.getBuilderName())) {
-            this.bodySequence = output;
-        } else {
-            this.bodySequence = new RichOutputBuilder(NPC_CONVERSATION_TAG).appendRichOutput(output, null, null)
-                    .build();
-        }
-        this.prompts = new ArrayList<>();
-    }
-
     private ConversationTreeNode(Builder builder) {
         if (builder == null) {
             this.nodeID = UUID.randomUUID();
@@ -48,7 +29,7 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode>, S
         }
     }
 
-    protected static class Builder implements Serializable {
+    public static class Builder implements Serializable {
         private final UUID nodeID;
         private RichOutputBuilder bodySequence;
         private List<RichOutputBuilder> prompts;
@@ -80,6 +61,18 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode>, S
             } else {
                 this.nodeID = UUID.randomUUID();
             }
+        }
+
+        public static Builder ofString(String body) {
+            Builder builder = new Builder();
+            builder.bodySequence.appendString(body, null, null);
+            return builder;
+        }
+
+        public static Builder ofRichOutputBuilder(RichOutputBuilder output) {
+            Builder builder = new Builder();
+            builder.setBodySequence(output);
+            return builder;
         }
 
         public synchronized UUID getNodeID() {
@@ -125,6 +118,13 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode>, S
                 this.prompts.add(nextPrompt);
             }
             return this;
+        }
+
+        public Builder addPrompt(String nextPrompt) {
+            if (nextPrompt == null) {
+                return this;
+            }
+            return this.addPrompt(new RichOutputBuilder().appendString(nextPrompt, null, null));
         }
 
         @Override

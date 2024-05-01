@@ -12,14 +12,14 @@ public class ConversationTreeNodeTest {
 
     @Test
     void testEmptyNode() {
-        ConversationTreeNode node = new ConversationTreeNode(basicEmpty);
+        ConversationTreeNode node = ConversationTreeNode.Builder.ofString(basicEmpty).build();
         Truth.assertThat(node.getBodyAsString()).contains("nothing");
     }
 
     @Test
     void testPopulatedBody() {
         String body = "I have something for you";
-        ConversationTreeNode node = new ConversationTreeNode(body);
+        ConversationTreeNode node = ConversationTreeNode.Builder.ofString(body).build();
         Truth.assertThat(node.getBodyAsString()).contains(body);
     }
 
@@ -29,7 +29,7 @@ public class ConversationTreeNodeTest {
         String body2 = "and it should be useful";
         RichOutputBuilder builder = new RichOutputBuilder().appendString(basicEmpty).appendString(body1)
                 .appendString(body2);
-        ConversationTreeNode node = new ConversationTreeNode(builder.build());
+        ConversationTreeNode node = ConversationTreeNode.Builder.ofRichOutputBuilder(builder).build();
 
         Truth.assertThat(node.getBodyAsString()).contains(body1);
         Truth.assertThat(node.getBodyAsString()).contains(body2);
@@ -37,7 +37,7 @@ public class ConversationTreeNodeTest {
 
     @Test
     void testGetResult() {
-        ConversationTreeNode node = new ConversationTreeNode(basicEmpty);
+        ConversationTreeNode node = ConversationTreeNode.Builder.ofString(basicEmpty).build();
         node.addPrompt("PROMPT say cheese to anna");
 
         ConversationTransformer transformer = new ConversationTransformer() {

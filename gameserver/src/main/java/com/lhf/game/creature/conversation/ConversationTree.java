@@ -79,6 +79,20 @@ public class ConversationTree implements Serializable {
             this.tagkeywords = true;
         }
 
+        public Builder(String starting) {
+            this.treeName = UUID.randomUUID().toString();
+            this.nodes = new LinkedHashMap<>();
+            this.branches = new LinkedHashMap<>();
+            this.start = new ConversationTreeNode.Builder();
+            this.nodes.put(start.getNodeID(), start);
+            this.setStartBody(starting);
+            this.addDefaultGreetings();
+            this.addDefaultRepeatWords();
+            this.endOfConvo = CONVO_END;
+            this.notRecognized = UNRECOGNIZED;
+            this.tagkeywords = true;
+        }
+
         public ConversationTree build() {
             return new ConversationTree(this);
         }
@@ -131,6 +145,12 @@ public class ConversationTree implements Serializable {
             return this;
         }
 
+        public Builder setStartBody(String body) {
+            this.start.setBodySequence(
+                    new RichOutputBuilder(ConversationTreeNode.NPC_CONVERSATION_TAG).appendString(body, null, null));
+            return this;
+        }
+
         public Builder editStartNode(Consumer<ConversationTreeNode.Builder> nodeModifier) {
             if (nodeModifier != null) {
                 nodeModifier.accept(this.start);
@@ -159,7 +179,7 @@ public class ConversationTree implements Serializable {
         }
 
         public Builder addNode(UUID fromNodeBuilder, ConversationPattern pathToNode,
-                ConversationTreeNode.Builder nextNode) {
+                ConversationTreeNode.Builder nextNode, Consumer<ConversationTreeBranch> branchEditor) {
             if (nextNode == null) {
                 return this;
             }
@@ -170,9 +190,30 @@ public class ConversationTree implements Serializable {
                 this.branches.put(fromNodeBuilder, new ArrayList<>());
             }
             ConversationTreeBranch branch = new ConversationTreeBranch(pathToNode, nextNode.getNodeID());
+            if (branchEditor != null) {
+                branchEditor.accept(branch);
+            }
             this.branches.get(fromNodeBuilder).add(branch);
             this.nodes.put(nextNode.getNodeID(), nextNode);
             return this;
+        }
+
+        public Builder addNode(UUID fromNodeBuilder, ConversationPattern pathToNode,
+                ConversationTreeNode.Builder nextNode) {
+            return this.addNode(fromNodeBuilder, pathToNode, nextNode, null);
+        }
+
+        public Builder addNode(UUID fromNodeBuilder, ConversationPattern pathToNode, String nextNode,
+                Consumer<ConversationTreeBranch> branchEditor) {
+            if (nextNode == null) {
+                return this;
+            }
+            return this.addNode(fromNodeBuilder, pathToNode, ConversationTreeNode.Builder.ofString(nextNode),
+                    branchEditor);
+        }
+
+        public Builder addNode(UUID fromNodeBuilder, ConversationPattern pathToNode, String nextNode) {
+            return this.addNode(fromNodeBuilder, pathToNode, nextNode, null);
         }
 
         /**
@@ -204,8 +245,11 @@ public class ConversationTree implements Serializable {
         }
 
         public synchronized ConversationTreeBranch getBranch(UUID fromHere, UUID toThere) {
-            if (fromHere == null || toThere == null) {
+            if (toThere == null) {
                 return null;
+            }
+            if (fromHere == null) {
+                fromHere = this.start.getNodeID();
             }
             List<ConversationTreeBranch> branchList = this.branches.get(fromHere);
             if (branchList == null) {

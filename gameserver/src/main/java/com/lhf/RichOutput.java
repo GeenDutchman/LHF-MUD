@@ -249,24 +249,25 @@ public final class RichOutput implements Serializable {
     public static class RichOutputBuilder implements Serializable {
 
         private static class BuilderElement implements Serializable {
-            private RichOutputBuilder builder;
 
             // to have the same shape as the RichOutputElement
             private String charSequence;
             private BasicTaggable taggable;
             private BasicExaminable examinable;
-            private RichOutput output;
+            private RichOutputBuilder output;
             private String metaSignal;
 
             public BuilderElement(RichOutputBuilder builder) {
-                this.builder = builder;
+                if (builder != null) {
+                    this.output = builder;
+                }
             }
 
             public BuilderElement(RichOutputElement element) {
                 this.charSequence = element.getCharSequenceAsString();
                 this.taggable = Taggable.basicTaggable(element.getTaggable());
                 this.examinable = Examinable.basicExaminable(element.getExaminable());
-                this.output = element.getOutputBuilder();
+                this.output = new RichOutputBuilder(element.getOutputBuilder());
                 this.metaSignal = element.getMetaSignal();
             }
 
@@ -279,11 +280,10 @@ public final class RichOutput implements Serializable {
 
             public void set(RichOutputElement element) {
                 if (element != null) {
-                    this.builder = null;
                     this.charSequence = element.getCharSequenceAsString();
                     this.taggable = Taggable.basicTaggable(element.getTaggable());
                     this.examinable = Examinable.basicExaminable(element.getExaminable());
-                    this.output = element.getOutputBuilder();
+                    this.output = new RichOutputBuilder(element.getOutputBuilder());
                     this.metaSignal = element.getMetaSignal();
                 } else {
                     this.charSequence = null;
@@ -295,22 +295,21 @@ public final class RichOutput implements Serializable {
             }
 
             public RichOutputElement build() {
-                if (builder != null) {
-                    return RichOutputElement.ofOutput(builder.build());
+                if (output != null) {
+                    return RichOutputElement.ofOutput(output.build());
                 } else {
-                    return new RichOutputElement(this.charSequence, this.taggable, this.examinable, this.output,
+                    return new RichOutputElement(this.charSequence, this.taggable, this.examinable, null,
                             this.metaSignal);
                 }
             }
 
             @Override
             public String toString() {
-                StringBuilder builder2 = new StringBuilder();
-                builder2.append("BuilderElement [builder=").append(builder).append(", charSequence=")
-                        .append(charSequence).append(", taggable=").append(taggable).append(", examinable=")
-                        .append(examinable).append(", Output=").append(output).append(", metaSignal=")
-                        .append(metaSignal).append("]");
-                return builder2.toString();
+                StringBuilder builder = new StringBuilder();
+                builder.append("BuilderElement [charSequence=").append(charSequence).append(", taggable=")
+                        .append(taggable).append(", examinable=").append(examinable).append(", output=").append(output)
+                        .append(", metaSignal=").append(metaSignal).append("]");
+                return builder.toString();
             }
 
             // public String printString() {
@@ -318,8 +317,8 @@ public final class RichOutput implements Serializable {
             // }
 
             public String printString(Set<PrintingInstructions> instructions) {
-                if (builder != null) {
-                    return builder.printString(instructions);
+                if (output != null) {
+                    return output.printString(instructions);
                 } else {
                     if (charSequence != null) {
                         return charSequence;
@@ -353,7 +352,7 @@ public final class RichOutput implements Serializable {
             }
 
             public boolean matchesElement(RichOutputElement toFind) {
-                if (toFind == null || builder != null) {
+                if (toFind == null) {
                     return false;
                 }
                 RichOutputElement made = this.build();
@@ -373,12 +372,24 @@ public final class RichOutput implements Serializable {
         private List<BuilderElement> elements;
 
         public RichOutputBuilder() {
-            this(null);
+            this.sequenceName = null;
+            this.elements = new ArrayList<>();
         }
 
         public RichOutputBuilder(String sequenceName) {
             this.sequenceName = sequenceName;
             this.elements = new ArrayList<>();
+        }
+
+        private RichOutputBuilder(RichOutput output) {
+            this();
+            if (output != null) {
+                this.sequenceName = output.getBuilderName();
+                this.elements = new ArrayList<>();
+                for (RichOutputElement element : output.getElements()) {
+                    this.elements.add(new BuilderElement(element));
+                }
+            }
         }
 
         public List<BuilderElement> getElements() {

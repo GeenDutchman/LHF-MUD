@@ -317,7 +317,7 @@ public interface INonPlayerCharacter extends ICreature {
         private final CreatureBuildInfo creatureBuilder;
         protected final CreatureBuilderID id = new CreatureBuilderID();
         private String conversationFileName = null;
-        private ConversationTree conversationTree = null;
+        private ConversationTree.Builder conversationTree = null;
         private List<AIHandler> aiHandlers;
         private EnumSet<SummonData> summonState;
         private String leaderName;
@@ -339,7 +339,7 @@ public interface INonPlayerCharacter extends ICreature {
             this();
             this.copyFromICreatureBuildInfo(basicInfo);
             this.setConversationFileName(conversationFileName);
-            this.setConversationTree(tree != null ? tree.makeCopy() : null);
+            this.setConversationTree(tree != null ? tree : null);
             this.aiHandlers = handlers != null ? new ArrayList<>(handlers) : new ArrayList<>();
             this.setSummonStates(summonState);
             this.noDefaultAIHandlers = false;
@@ -363,7 +363,7 @@ public interface INonPlayerCharacter extends ICreature {
                 this.setConversationFileName(buildInfo.getConversationFileName());
                 ConversationTree otherTree = buildInfo.getConversationTree();
                 if (otherTree != null) {
-                    this.setConversationTree(otherTree.makeCopy());
+                    this.setConversationTree(otherTree);
                 }
                 this.setSummonStates(buildInfo.getSummonState());
                 List<AIHandler> otherHandlers = buildInfo.getAIHandlers();
@@ -401,6 +401,14 @@ public interface INonPlayerCharacter extends ICreature {
         }
 
         public INPCBuildInfo setConversationTree(ConversationTree tree) {
+            this.conversationTree = ConversationTree.Builder.fromTree(tree);
+            if (tree != null) {
+                this.conversationFileName = tree.getTreeName();
+            }
+            return this;
+        }
+
+        public INPCBuildInfo setConversationTree(ConversationTree.Builder tree) {
             this.conversationTree = tree;
             if (tree != null) {
                 this.conversationFileName = tree.getTreeName();
@@ -415,13 +423,13 @@ public interface INonPlayerCharacter extends ICreature {
                 if (conversationManager == null) {
                     throw new IllegalArgumentException("Cannot create conversation Tree without converation manager");
                 }
-                this.setConversationTree(conversationManager.convoTreeFromFile(filename));
+                this.setConversationTree(conversationManager.convoTreeBuilderFromFile(filename));
             }
-            return this.conversationTree;
+            return this.conversationTree.build();
         }
 
         public ConversationTree getConversationTree() {
-            return conversationTree;
+            return conversationTree != null ? conversationTree.build() : null;
         }
 
         public INPCBuildInfo useDefaultConversation() {

@@ -6,7 +6,6 @@ import org.mockito.Mockito;
 import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationTree;
-import com.lhf.game.creature.conversation.ConversationTreeNode;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.messages.events.SpeakingEvent;
 
@@ -17,10 +16,9 @@ public class SpokenPromptChunkTest {
         AIComBundle listener = new AIComBundle(NonPlayerCharacter.getNPCBuilder().addAIHandler(chunk));
 
         String body = "I have been addressed";
-        ConversationTreeNode node = new ConversationTreeNode(body);
         String sayMessage = "wakarimasen";
-        node.addPrompt("SAY " + sayMessage);
-        ConversationTree tree = new ConversationTree(node);
+        ConversationTree tree = new ConversationTree.Builder().setStartBody(body)
+                .editStartNode(start -> start.addPrompt("SAY " + sayMessage)).build();
         listener.getNPC().setConvoTree(tree);
 
         AIComBundle speaker = new AIComBundle();
