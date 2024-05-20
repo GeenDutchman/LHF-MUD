@@ -266,7 +266,7 @@ public class Dungeon implements Land {
     }
 
     public boolean addCreature(ICreature creature, UUID roomUUID) {
-        AtlasMappingItem<Area, UUID> areaInfo = this.atlas.getAtlasMappingItem(roomUUID);
+        AtlasMappingItem<Area, Directions, UUID, Doorway> areaInfo = this.atlas.getAtlasMappingItem(roomUUID);
         if (areaInfo != null && areaInfo.getAtlasMember() != null) {
             areaInfo.getAtlasMember().announce(CreatureSpawnedEvent.getBuilder().setCreature(creature).Build());
             creature.setSuccessor(this);
