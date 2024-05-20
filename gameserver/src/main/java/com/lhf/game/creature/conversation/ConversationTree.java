@@ -2,6 +2,7 @@ package com.lhf.game.creature.conversation;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
@@ -9,11 +10,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
+import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,6 +25,9 @@ import java.util.regex.Pattern;
 import com.lhf.RichOutput;
 import com.lhf.RichOutput.PrintingInstructions;
 import com.lhf.RichOutput.RichOutputBuilder;
+import com.lhf.game.Atlas;
+import com.lhf.game.Atlas.AtlasMappingItem;
+import com.lhf.game.Atlas.TargetedTester;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContext;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
 import com.lhf.server.client.Client.ClientID;
@@ -28,12 +35,34 @@ import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.interfaces.NotNull;
 
 public class ConversationTree implements Serializable {
+    private static class ConversationAtlas
+            extends Atlas<ConversationTreeNode, UUID, ConversationPattern, ConversationPredicate> {
+
+        @Override
+        public UUID getIDForMemberType(ConversationTreeNode member) {
+            return member != null ? member.getNodeID() : null;
+        }
+
+        @Override
+        public String getNameForMemberType(ConversationTreeNode member) {
+            return member != null ? member.getBodyAsString() : null;
+        }
+
+        @Override
+        public final ConversationPattern translateLinkToOpposite(ConversationPattern link) {
+            throw new UnsupportedOperationException(
+                    "Default two-way link is unsupported for conversations, specify a concrete reversal in `connectTwoWay`");
+        }
+
+    }
+
     private final String treeName;
     private final ConversationTreeNode start;
-    private final Map<UUID, ConversationTreeNode> nodes;
-    private final Map<UUID, List<ConversationTreeBranch>> branches;
+    private final ConversationAtlas conversationAtlas;
+    // private final Map<UUID, ConversationTreeNode> nodes;
+    // private final Map<UUID, List<ConversationTreeBranch>> branches;
     private transient Map<ClientID, ConversationContext> bookmarks = new TreeMap<>();
-    private final SortedSet<ConversationTreeBranch> greetings;
+    private final SortedMap<ConversationPattern, ConversationPredicate> greetings;
     private final SortedSet<ConversationPattern> repeatWords;
     private final String endOfConvo;
     private final String notRecognized;
@@ -53,13 +82,35 @@ public class ConversationTree implements Serializable {
     }
 
     public static class Builder implements Serializable {
+        private class BuilderAtlas
+                extends Atlas<ConversationTreeNode.Builder, UUID, ConversationPattern, ConversationPredicate> {
+
+            @Override
+            public UUID getIDForMemberType(com.lhf.game.creature.conversation.ConversationTreeNode.Builder member) {
+                return member != null ? member.getNodeID() : null;
+            }
+
+            @Override
+            public String getNameForMemberType(com.lhf.game.creature.conversation.ConversationTreeNode.Builder member) {
+                return member != null ? member.getBodyAsString() : null;
+            }
+
+            @Override
+            public final ConversationPattern translateLinkToOpposite(ConversationPattern link) {
+                throw new UnsupportedOperationException(
+                        "Default two-way link is unsupported for conversations, specify a concrete reversal in `connectTwoWay`");
+            }
+
+        }
+
         private final static String CONVO_END = "Goodbye";
         private final static String UNRECOGNIZED = "What did you say? ...";
         private final ConversationTreeNode.Builder start;
         private String treeName;
-        private LinkedHashMap<UUID, ConversationTreeNode.Builder> nodes;
-        private LinkedHashMap<UUID, List<ConversationTreeBranch>> branches;
-        private SortedSet<ConversationTreeBranch> greetings;
+        private BuilderAtlas conversationAtlas;
+        // private LinkedHashMap<UUID, ConversationTreeNode.Builder> nodes;
+        // private LinkedHashMap<UUID, List<ConversationTreeBranch>> branches;
+        private SortedMap<ConversationPattern, ConversationPredicate> greetings;
         private SortedSet<ConversationPattern> repeatWords;
         private String endOfConvo;
         private String notRecognized;
@@ -71,10 +122,9 @@ public class ConversationTree implements Serializable {
 
         public Builder(ConversationTreeNode.Builder nodeBuilder) {
             this.treeName = UUID.randomUUID().toString();
-            this.nodes = new LinkedHashMap<>();
-            this.branches = new LinkedHashMap<>();
+            this.conversationAtlas = new BuilderAtlas();
             this.start = nodeBuilder != null ? nodeBuilder : new ConversationTreeNode.Builder();
-            this.nodes.put(start.getNodeID(), start);
+            this.conversationAtlas.addMember(this.start);
             this.addDefaultGreetings();
             this.addDefaultRepeatWords();
             this.endOfConvo = CONVO_END;
@@ -99,33 +149,9 @@ public class ConversationTree implements Serializable {
                     .editStartNode(node -> node.getBodySequence().appendRichOutput(tree.start.getBodySequence()))
                     .setEndOfConvo(tree.getEndOfConvo()).setNotRecognized(tree.getNotRecognized())
                     .setGreetings(tree.greetings).setRepeatWords(tree.repeatWords).setTagkeywords(tree.tagkeywords);
-            for (ConversationTreeNode node : tree.nodes.values()) {
-                if (node == null) {
-                    continue;
-                }
-                builder.nodes.put(node.getNodeID(), new ConversationTreeNode.Builder(node));
-            }
-            for (Entry<UUID, List<ConversationTreeBranch>> branch : tree.branches.entrySet()) {
-                if (branch == null) {
-                    continue;
-                }
-                List<ConversationTreeBranch> value = branch.getValue();
-                UUID key = branch.getKey();
-                if (key == null || value == null) {
-                    continue;
-                }
-                List<ConversationTreeBranch> copies = new ArrayList<>();
-                for (ConversationTreeBranch valueBranch : value) {
-                    if (valueBranch != null) {
-                        ConversationTreeBranch newBranch = new ConversationTreeBranch(valueBranch.getRegex(),
-                                valueBranch.getNodeID());
-                        copies.add(newBranch);
-                        valueBranch.getBlacklist().entrySet().stream()
-                                .forEach(entry -> newBranch.addRule(entry.getKey(), entry.getValue()));
-                    }
-                }
-                builder.branches.put(key, copies);
-            }
+            tree.conversationAtlas.translate(builder.conversationAtlas, node -> new ConversationTreeNode.Builder(node),
+                    Function.identity(), ConversationPredicate::copyFrom);
+
             return builder;
         }
 
@@ -163,7 +189,7 @@ public class ConversationTree implements Serializable {
             if (builderID == null) {
                 return null;
             }
-            return this.nodes.get(builderID);
+            return this.conversationAtlas.getAtlasMember(builderID);
         }
 
         public Builder editNode(Supplier<UUID> idSupplier, Consumer<ConversationTreeNode.Builder> nodeModifier) {
@@ -180,22 +206,21 @@ public class ConversationTree implements Serializable {
         }
 
         public Builder addNode(UUID fromNodeBuilder, ConversationPattern pathToNode,
-                ConversationTreeNode.Builder nextNode, Consumer<ConversationTreeBranch> branchEditor) {
+                ConversationTreeNode.Builder nextNode, Consumer<ConversationPredicate> branchEditor) {
             if (nextNode == null) {
                 return this;
             }
             if (fromNodeBuilder == null) {
                 fromNodeBuilder = this.start.getNodeID();
             }
-            if (!this.branches.containsKey(fromNodeBuilder)) {
-                this.branches.put(fromNodeBuilder, new ArrayList<>());
-            }
-            ConversationTreeBranch branch = new ConversationTreeBranch(pathToNode, nextNode.getNodeID());
+            ConversationTreeNode.Builder from = this.conversationAtlas.getAtlasMember(fromNodeBuilder);
+
+            ConversationPredicate predicate = new ConversationPredicate();
             if (branchEditor != null) {
-                branchEditor.accept(branch);
+                branchEditor.accept(predicate);
             }
-            this.branches.get(fromNodeBuilder).add(branch);
-            this.nodes.put(nextNode.getNodeID(), nextNode);
+            this.conversationAtlas.connectOneWay(from, pathToNode, nextNode, predicate);
+
             return this;
         }
 
@@ -205,7 +230,7 @@ public class ConversationTree implements Serializable {
         }
 
         public Builder addNode(UUID fromNodeBuilder, ConversationPattern pathToNode, String nextNode,
-                Consumer<ConversationTreeBranch> branchEditor) {
+                Consumer<ConversationPredicate> branchEditor) {
             if (nextNode == null) {
                 return this;
             }
@@ -228,44 +253,67 @@ public class ConversationTree implements Serializable {
             if (target == null) {
                 return this;
             }
+            this.conversationAtlas.removeMemberAndChildren(idToRemove);
             if (this.start.getNodeID().equals(idToRemove)) {
                 this.start.setBodySequence(null).setPrompts(null);
-            } else {
-                this.nodes.remove(idToRemove);
+                this.conversationAtlas.addMember(this.start);
             }
-            List<ConversationTreeBranch> targetBranches = this.branches.remove(idToRemove);
-            if (targetBranches == null) {
-                return this;
-            }
-            for (ConversationTreeBranch branch : targetBranches) {
-                if (branch != null) {
-                    this.removeNode(branch.getNodeID()); // recursive call
-                }
-            }
+
             return this;
         }
 
-        public synchronized ConversationTreeBranch getBranch(UUID fromHere, UUID toThere) {
+        public synchronized ConversationPattern getBranchPattern(UUID fromHere, UUID toThere) {
             if (toThere == null) {
                 return null;
             }
             if (fromHere == null) {
                 fromHere = this.start.getNodeID();
             }
-            List<ConversationTreeBranch> branchList = this.branches.get(fromHere);
-            if (branchList == null) {
+            final AtlasMappingItem<com.lhf.game.creature.conversation.ConversationTreeNode.Builder, ConversationPattern, UUID, ConversationPredicate> item = this.conversationAtlas
+                    .getAtlasMappingItem(fromHere);
+            if (item == null) {
                 return null;
             }
-            for (ConversationTreeBranch branch : branchList) {
-                if (branch != null && toThere.equals(branch.getNodeID())) {
-                    return branch;
+            final Collection<TargetedTester<ConversationPattern, UUID, ConversationPredicate>> testers = item
+                    .getTargetedTesters();
+            if (testers == null) {
+                return null;
+            }
+            for (TargetedTester<ConversationPattern, UUID, ConversationPredicate> targetedTester : testers) {
+                if (targetedTester != null && toThere.equals(targetedTester.getTargetId())) {
+                    return targetedTester.getLink();
                 }
             }
             return null;
         }
 
-        public Builder editBranch(UUID fromHere, UUID toThere, Consumer<ConversationTreeBranch> branchEditor) {
-            ConversationTreeBranch branch = this.getBranch(fromHere, toThere);
+        public synchronized ConversationPredicate getBranchPredicate(UUID fromHere, UUID toThere) {
+            if (toThere == null) {
+                return null;
+            }
+            if (fromHere == null) {
+                fromHere = this.start.getNodeID();
+            }
+            final AtlasMappingItem<com.lhf.game.creature.conversation.ConversationTreeNode.Builder, ConversationPattern, UUID, ConversationPredicate> item = this.conversationAtlas
+                    .getAtlasMappingItem(fromHere);
+            if (item == null) {
+                return null;
+            }
+            final Collection<TargetedTester<ConversationPattern, UUID, ConversationPredicate>> testers = item
+                    .getTargetedTesters();
+            if (testers == null) {
+                return null;
+            }
+            for (TargetedTester<ConversationPattern, UUID, ConversationPredicate> targetedTester : testers) {
+                if (targetedTester != null && toThere.equals(targetedTester.getTargetId())) {
+                    return targetedTester.getPredicate();
+                }
+            }
+            return null;
+        }
+
+        public Builder editBranch(UUID fromHere, UUID toThere, Consumer<ConversationPredicate> branchEditor) {
+            ConversationPredicate branch = this.getBranchPredicate(fromHere, toThere);
             if (branch != null && branchEditor != null) {
                 branchEditor.accept(branch);
             }
@@ -283,7 +331,7 @@ public class ConversationTree implements Serializable {
 
         protected Builder addDefaultGreetings() {
             if (this.greetings == null) {
-                this.greetings = new TreeSet<>();
+                this.greetings = new TreeMap<>();
             }
             this.addGreeting(new ConversationPattern("hello", "^\\s*hello\\b", Pattern.CASE_INSENSITIVE));
             this.addGreeting(new ConversationPattern("hi", "^\\s*hi\\b", Pattern.CASE_INSENSITIVE));
@@ -292,9 +340,9 @@ public class ConversationTree implements Serializable {
 
         public Builder addGreeting(ConversationPattern regex) {
             if (this.greetings == null) {
-                this.greetings = new TreeSet<>();
+                this.greetings = new TreeMap<>();
             }
-            this.greetings.add(new ConversationTreeBranch(regex, this.start.getNodeID()));
+            this.greetings.put(regex, new ConversationPredicate());
             return this;
         }
 
@@ -310,28 +358,23 @@ public class ConversationTree implements Serializable {
             return this;
         }
 
-        public LinkedHashMap<UUID, ConversationTreeNode.Builder> getNodes() {
-            return nodes;
+        public Set<AtlasMappingItem<ConversationTreeNode.Builder, ConversationPattern, UUID, ConversationPredicate>> getNodes() {
+            return this.conversationAtlas.getAtlasMappingItems();
         }
 
-        public LinkedHashMap<UUID, ConversationTreeNode> buildNodes() {
-            LinkedHashMap<UUID, ConversationTreeNode> built = new LinkedHashMap<>();
-            for (ConversationTreeNode.Builder node : this.nodes.values()) {
-                built.put(node.getNodeID(), node.build());
-            }
-            return built;
+        public ConversationAtlas buildNodes() {
+            ConversationAtlas translated = new ConversationAtlas();
+            this.conversationAtlas.translate(translated, builder -> builder.build(), pattern -> pattern,
+                    predicate -> ConversationPredicate.copyFrom(predicate));
+            return translated;
         }
 
-        public LinkedHashMap<UUID, List<ConversationTreeBranch>> getBranches() {
-            return branches;
-        }
-
-        public SortedSet<ConversationTreeBranch> getGreetings() {
+        public SortedMap<ConversationPattern, ConversationPredicate> getGreetings() {
             return greetings;
         }
 
-        public Builder setGreetings(SortedSet<ConversationTreeBranch> greetings) {
-            this.greetings = greetings != null ? new TreeSet<>(greetings) : new TreeSet<>();
+        public Builder setGreetings(SortedMap<ConversationPattern, ConversationPredicate> greetings) {
+            this.greetings = greetings != null ? new TreeMap<>(greetings) : new TreeMap<>();
             return this;
         }
 
