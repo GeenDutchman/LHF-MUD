@@ -235,6 +235,22 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         }
     }
 
+    public final synchronized void removeMemberAndChildren(AtlasMemberType rootToRemove) {
+        if (rootToRemove == null) {
+            return;
+        }
+        final AtlasMemberID rootMemberID = this.getIDForMemberType(rootToRemove);
+        this.removeMemberAndChildren(rootMemberID);
+    }
+
+    public final synchronized void removeMemberAndChildren(AtlasMemberID rootMemberIDToRemove) {
+        Atlas<AtlasMemberType, AtlasMemberID, AtlasLinkType, AtlasTraversalTestType>.DepthFirstIterator iter = new DepthFirstIterator(
+                rootMemberIDToRemove);
+        while (iter.hasNext()) {
+            iter.remove();
+        }
+    }
+
     public final Set<AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> getAtlasMappingItems() {
         synchronized (this.mapping) {
             LinkedHashSet<AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> mappingSet = new LinkedHashSet<>();
@@ -343,11 +359,26 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             Iterator<AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> {
         protected Deque<AtlasMemberID> stack;
         protected LinkedHashSet<AtlasMemberID> visited;
+        protected AtlasMemberID cursor;
 
         public DepthFirstIterator(AtlasMemberID startID) {
             this.stack = new ArrayDeque<>();
             this.visited = new LinkedHashSet<>();
-            this.stack.push(startID);
+            if (startID != null) {
+                this.stack.push(startID);
+            }
+            this.cursor = null;
+        }
+
+        @Override
+        public void remove() {
+            if (this.cursor == null) {
+                throw new IllegalStateException("Not in state to remove the current item");
+            }
+            synchronized (Atlas.this.mapping) {
+                Atlas.this.mapping.remove(this.cursor);
+                this.cursor = null;
+            }
         }
 
         @Override
@@ -366,22 +397,25 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                 final AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> mappingItem = getAtlasMappingItem(
                         current);
                 if (mappingItem == null) {
-                    throw new NoSuchElementException(String.format("The id '%s' does not have an entry", current));
+                    continue;
                 }
                 if (!this.visited.contains(current)) {
+                    final Collection<TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> targetedTesters = mappingItem
+                            .getTargetedTesters();
+                    for (final TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> tester : targetedTesters) {
+                        final AtlasMemberID targetID = tester.getTargetId();
+                        if (targetID != null && !this.visited.contains(targetID)) {
+                            this.stack.push(targetID);
+                        }
+                    }
                     this.visited.add(current);
                     this.stack.push(current);
+                    this.cursor = current;
                     return mappingItem;
-                }
-                final Collection<TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> targetedTesters = mappingItem
-                        .getTargetedTesters();
-                for (final TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> tester : targetedTesters) {
-                    if (!this.visited.contains(tester.getTargetId())) {
-                        this.stack.push(tester.getTargetId());
-                    }
                 }
             }
 
+            this.cursor = null;
             throw new NoSuchElementException("End of Line");
         }
 
@@ -389,7 +423,8 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
 
     public class CompleteDepthFirstIterator extends DepthFirstIterator {
         private Iterator<AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> innerIterator = Atlas.this
-                .getAtlasMappingItems().iterator();
+                .getAtlasMappingItems().iterator(); // inner iterator is off of a snapshot, so no
+                                                    // concurrentmofificationexception here!
 
         public CompleteDepthFirstIterator() {
             super(Atlas.this.getIDForMemberType(Atlas.this.getFirstMember()));
@@ -411,7 +446,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                     final AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> member = this.innerIterator
                             .next();
                     final AtlasMemberID checkId = Atlas.this.getIDForMemberType(member.getAtlasMember());
-                    if (this.visited.contains(checkId)) {
+                    if (checkId == null || this.visited.contains(checkId)) {
                         continue;
                     }
                     this.stack.push(checkId);
