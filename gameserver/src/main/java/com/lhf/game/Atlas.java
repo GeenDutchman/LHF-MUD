@@ -16,7 +16,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -126,7 +125,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
 
     protected final UUID uuid = UUID.randomUUID();
     // TODO: wait for `SequencedCollection` from Java21
-    private final Map<AtlasMemberID, AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> mapping;
+    private final LinkedHashMap<AtlasMemberID, AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> mapping;
 
     public abstract AtlasMemberID getIDForMemberType(AtlasMemberType member);
 
@@ -342,15 +341,58 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
 
     public class DepthFirstIterator implements
             Iterator<AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> {
+        protected Deque<AtlasMemberID> stack;
+        protected LinkedHashSet<AtlasMemberID> visited;
 
-        private Deque<AtlasMemberID> stack;
-        private LinkedHashSet<AtlasMemberID> visited;
-        private Iterator<AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> innerIterator;
-
-        public DepthFirstIterator() {
+        public DepthFirstIterator(AtlasMemberID startID) {
             this.stack = new ArrayDeque<>();
             this.visited = new LinkedHashSet<>();
-            this.innerIterator = Atlas.this.getAtlasMappingItems().iterator();
+            this.stack.push(startID);
+        }
+
+        @Override
+        public boolean hasNext() {
+            return !this.stack.isEmpty();
+        }
+
+        @Override
+        public AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> next() {
+            if (!this.hasNext()) {
+                throw new NoSuchElementException();
+            }
+
+            while (!this.stack.isEmpty()) {
+                final AtlasMemberID current = this.stack.pop();
+                final AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> mappingItem = getAtlasMappingItem(
+                        current);
+                if (mappingItem == null) {
+                    throw new NoSuchElementException(String.format("The id '%s' does not have an entry", current));
+                }
+                if (!this.visited.contains(current)) {
+                    this.visited.add(current);
+                    this.stack.push(current);
+                    return mappingItem;
+                }
+                final Collection<TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> targetedTesters = mappingItem
+                        .getTargetedTesters();
+                for (final TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> tester : targetedTesters) {
+                    if (!this.visited.contains(tester.getTargetId())) {
+                        this.stack.push(tester.getTargetId());
+                    }
+                }
+            }
+
+            throw new NoSuchElementException("End of Line");
+        }
+
+    }
+
+    public class CompleteDepthFirstIterator extends DepthFirstIterator {
+        private Iterator<AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> innerIterator = Atlas.this
+                .getAtlasMappingItems().iterator();
+
+        public CompleteDepthFirstIterator() {
+            super(Atlas.this.getIDForMemberType(Atlas.this.getFirstMember()));
         }
 
         @Override
@@ -377,31 +419,13 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                 }
             }
 
-            while (!this.stack.isEmpty()) { // get all the connected nodes
-                final AtlasMemberID current = this.stack.pop();
-                final AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> mappingItem = getAtlasMappingItem(
-                        current);
-                if (!this.visited.contains(current)) {
-                    this.visited.add(current);
-                    this.stack.push(current);
-                    return mappingItem;
-                }
-                final Collection<TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> targetedTesters = mappingItem
-                        .getTargetedTesters();
-                for (final TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> tester : targetedTesters) {
-                    if (!this.visited.contains(tester.getTargetId())) {
-                        this.stack.push(tester.getTargetId());
-                    }
-                }
-            }
-
-            throw new NoSuchElementException("End of Line");
+            return super.next();
         }
 
     }
 
-    public DepthFirstIterator depthFirstIterator() {
-        return new DepthFirstIterator();
+    public CompleteDepthFirstIterator depthFirstIterator() {
+        return new CompleteDepthFirstIterator();
     }
 
     public final <TranslateMemberType, TranslateID extends Comparable<TranslateID>, TranslateLinkType extends Comparable<TranslateLinkType>, TranslateTraversalTestType> Map<AtlasMemberID, TranslateID> translate(
