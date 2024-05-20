@@ -15,10 +15,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import com.google.common.base.Function;
 
 public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<AtlasMemberID>, AtlasLinkType extends Comparable<AtlasLinkType>, AtlasTraversalTestType> {
     protected static final class TargetedTester<TargetLinkType extends Comparable<TargetLinkType>, TargetIDType extends Comparable<TargetIDType>, TargetTraversalTestType>
@@ -364,15 +363,12 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         return new DepthFirstIterator();
     }
 
-    public final <TranslateMemberType, TranslateID extends Comparable<TranslateID>, TranslateLinkType extends Comparable<TranslateLinkType>, TranslateTraversalTestType, TranslateType extends Atlas<TranslateMemberType, TranslateID, TranslateLinkType, TranslateTraversalTestType>> Map<AtlasMemberID, TranslateID> translate(
-            Supplier<TranslateType> starter, Function<AtlasMemberType, TranslateMemberType> memberTransformer,
+    public final <TranslateMemberType, TranslateID extends Comparable<TranslateID>, TranslateLinkType extends Comparable<TranslateLinkType>, TranslateTraversalTestType> Map<AtlasMemberID, TranslateID> translate(
+            Atlas<TranslateMemberType, TranslateID, TranslateLinkType, TranslateTraversalTestType> translation,
+            Function<AtlasMemberType, TranslateMemberType> memberTransformer,
             Function<AtlasLinkType, TranslateLinkType> linkTransformer,
             Function<AtlasTraversalTestType, TranslateTraversalTestType> traversalTestTransformer) {
 
-        if (starter == null) {
-            throw new IllegalArgumentException("Must provide an Atlas supplier for translation!");
-        }
-        final TranslateType translation = starter.get();
         if (translation == null) {
             throw new NullPointerException("Cannot translate to a null atlas!");
         }
@@ -417,6 +413,19 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         }
 
         return visited;
+    }
+
+    public final <TranslateMemberType, TranslateID extends Comparable<TranslateID>, TranslateLinkType extends Comparable<TranslateLinkType>, TranslateTraversalTestType> Map<AtlasMemberID, TranslateID> translateToSuppliedAtlas(
+            Supplier<Atlas<TranslateMemberType, TranslateID, TranslateLinkType, TranslateTraversalTestType>> starter,
+            Function<AtlasMemberType, TranslateMemberType> memberTransformer,
+            Function<AtlasLinkType, TranslateLinkType> linkTransformer,
+            Function<AtlasTraversalTestType, TranslateTraversalTestType> traversalTestTransformer) {
+        if (starter == null) {
+            throw new IllegalArgumentException("Must provide an Atlas supplier for translation!");
+        }
+        final Atlas<TranslateMemberType, TranslateID, TranslateLinkType, TranslateTraversalTestType> translation = starter
+                .get();
+        return this.translate(translation, memberTransformer, linkTransformer, traversalTestTransformer);
     }
 
     public final String toMermaidFlowchart(boolean fence) {

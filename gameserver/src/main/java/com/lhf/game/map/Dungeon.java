@@ -134,7 +134,7 @@ public class Dungeon implements Land {
         }
 
         public String toMermaid(boolean fence) {
-            return "DungeonBuilder\r\n" + this.atlas.toMermaid(fence);
+            return "DungeonBuilder\r\n" + this.atlas.toMermaidFlowchart(fence);
         }
 
         @Override
@@ -449,7 +449,7 @@ public class Dungeon implements Land {
     }
 
     public String toMermaid(boolean fence) {
-        return this.getName() + "\r\n" + this.atlas.toMermaid(fence);
+        return this.getName() + "\r\n" + this.atlas.toMermaidFlowchart(fence);
     }
 
     @Override

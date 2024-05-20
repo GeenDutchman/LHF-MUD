@@ -12,9 +12,10 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
-import com.google.common.base.Function;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
@@ -47,7 +48,7 @@ import com.lhf.server.interfaces.NotNull;
 
 public interface Land extends CreatureContainer, CommandChainHandler, AffectableEntity<DungeonEffect> {
 
-    public final class AreaAtlas extends Atlas<Area, UUID> {
+    public final class AreaAtlas extends Atlas<Area, UUID, Directions, Doorway> {
 
         protected AreaAtlas() {
             super();
@@ -61,6 +62,14 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
         @Override
         public String getNameForMemberType(Area member) {
             return member.getName();
+        }
+
+        @Override
+        public Directions translateLinkToOpposite(Directions link) {
+            if (link == null) {
+                return null;
+            }
+            return link.opposite();
         }
 
     }
@@ -128,7 +137,8 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
 
         public abstract String getName();
 
-        public final class AreaBuilderAtlas extends Atlas<AreaBuilder, AreaBuilderID> implements Serializable {
+        public final class AreaBuilderAtlas extends Atlas<AreaBuilder, AreaBuilderID, Directions, Doorway>
+                implements Serializable {
 
             protected AreaBuilderAtlas() {
                 super();
@@ -144,6 +154,14 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
                 return member.getName();
             }
 
+            @Override
+            public Directions translateLinkToOpposite(Directions link) {
+                if (link == null) {
+                    return null;
+                }
+                return link.opposite();
+            }
+
         }
 
         public abstract AreaBuilder getStartingAreaBuilder();
@@ -153,15 +171,22 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
         public default Map<AreaBuilderID, UUID> translateAtlas(Land builtLand, AIRunner aiRunner,
                 ConversationManager conversationManager, boolean fallbackNoConversation) {
 
+            final Supplier<Atlas<Area, UUID, Directions, Doorway>> starter = () -> builtLand.getAtlas();
+
             final Function<AreaBuilder, Area> transformer = (builder) -> {
                 return builder.build(builtLand, builtLand, aiRunner, conversationManager, fallbackNoConversation);
             };
+
+            final Function<Directions, Directions> linkTransforer = (dir) -> dir;
+
+            final Function<Doorway, Doorway> traversalTransformer = (doorway) -> doorway;
 
             final AreaBuilderAtlas builderAtlas = this.getAtlas();
             if (builderAtlas == null) {
                 return null;
             }
-            return builderAtlas.translate(() -> builtLand.getAtlas(), transformer);
+            return builderAtlas.<Area, UUID, Directions, Doorway>translateToSuppliedAtlas(starter, transformer,
+                    linkTransforer, traversalTransformer);
         }
 
         public default Land quickBuild(CommandChainHandler successor, AIRunner aiRunner) {
@@ -198,8 +223,8 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
     public default Set<Directions> getAreaExits(Area area) {
         try {
             AreaAtlas atlas = this.getAtlas();
-            AtlasMappingItem<Area, UUID> ami = atlas.getAtlasMappingItem(area);
-            return ami.getAvailableDirections();
+            AtlasMappingItem<Area, Directions, UUID, Doorway> ami = atlas.getAtlasMappingItem(area);
+            return ami.getAvailableLinks();
         } catch (NullPointerException e) {
             this.log(Level.WARNING, String.format("Atlas error for getting exits: %s", e));
             return Set.of();
@@ -299,14 +324,15 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
                 return ctx.handled();
             }
             Area presentRoom = ctx.getArea();
-            final AtlasMappingItem<Area, UUID> mappingItem = land.getAtlas().getAtlasMappingItem(presentRoom.getUuid());
+            final AtlasMappingItem<Area, Directions, UUID, Doorway> mappingItem = land.getAtlas()
+                    .getAtlasMappingItem(presentRoom.getUuid());
             if (mappingItem != null) {
-                Map<Directions, TargetedTester<UUID>> exits = mappingItem.getDirections();
+                Map<Directions, TargetedTester<Directions, UUID, Doorway>> exits = mappingItem.getLinks();
                 if (exits == null || exits.size() == 0 || !exits.containsKey(toGo) || exits.get(toGo) == null) {
                     ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo).Build());
                     return ctx.handled();
                 }
-                TargetedTester<UUID> doorway = exits.get(toGo);
+                TargetedTester<Directions, UUID, Doorway> doorway = exits.get(toGo);
                 final Area nextRoom = land.getAtlas().getAtlasMember(doorway.getTargetId());
                 if (nextRoom == null) {
                     ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo)
