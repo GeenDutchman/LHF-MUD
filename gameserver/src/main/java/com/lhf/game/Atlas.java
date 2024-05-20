@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -194,11 +195,44 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
 
     public abstract AtlasLinkType translateLinkToOpposite(AtlasLinkType link);
 
+    /**
+     * Meant to be overridden. This is what is called when no predicate reverser is
+     * given to connectTwoWay.
+     * 
+     * By default returns the input (identity function).
+     * 
+     * @param predicate
+     * @return
+     */
+    public AtlasTraversalTestType reverseTraversalTest(AtlasTraversalTestType predicate) {
+        return predicate;
+    }
+
+    public final synchronized void connectTwoWay(final AtlasMemberType first, final AtlasLinkType firstToSecond,
+            final AtlasMemberType second, final AtlasTraversalTestType predicate,
+            Function<AtlasLinkType, AtlasLinkType> linkReverser,
+            Function<AtlasTraversalTestType, AtlasTraversalTestType> predicateReverser) {
+        if (firstToSecond == null) {
+            throw new IllegalArgumentException("The provided link to the second must not be null!");
+        }
+        final AtlasLinkType secondToFirst = linkReverser != null ? linkReverser.apply(firstToSecond)
+                : this.translateLinkToOpposite(firstToSecond);
+        if (secondToFirst == null) {
+            throw new IllegalArgumentException(String.format("The reversal of '%s' must not be null!", firstToSecond));
+        }
+        synchronized (this.mapping) {
+            this.connectOneWay(first, firstToSecond, second, predicate);
+            this.connectOneWay(second, secondToFirst, first,
+                    predicateReverser != null ? predicateReverser.apply(predicate)
+                            : this.reverseTraversalTest(predicate));
+        }
+    }
+
     public final synchronized void connect(AtlasMemberType first, AtlasLinkType toSecond, AtlasMemberType second,
             AtlasTraversalTestType predicate) {
         synchronized (this.mapping) {
-            this.connectOneWay(first, toSecond, second, predicate);
-            this.connectOneWay(second, this.translateLinkToOpposite(toSecond), first, predicate);
+            this.connectTwoWay(first, toSecond, second, predicate, this::translateLinkToOpposite,
+                    this::reverseTraversalTest);
         }
     }
 
