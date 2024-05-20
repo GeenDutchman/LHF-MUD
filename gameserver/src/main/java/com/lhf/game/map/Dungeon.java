@@ -15,6 +15,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.lhf.game.Atlas.AtlasMappingItem;
 import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
@@ -23,7 +24,6 @@ import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.map.Area.AreaBuilder;
 import com.lhf.game.map.Area.AreaBuilder.AreaBuilderID;
-import com.lhf.game.map.Atlas.AtlasMappingItem;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.GameEventProcessor;

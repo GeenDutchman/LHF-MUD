@@ -30,7 +30,6 @@ import com.lhf.server.interfaces.NotNull;
 public class ConversationTree implements Serializable {
     private final String treeName;
     private final ConversationTreeNode start;
-    // TODO: wait for `SequencedCollection` from Java21
     private final Map<UUID, ConversationTreeNode> nodes;
     private final Map<UUID, List<ConversationTreeBranch>> branches;
     private transient Map<ClientID, ConversationContext> bookmarks = new TreeMap<>();

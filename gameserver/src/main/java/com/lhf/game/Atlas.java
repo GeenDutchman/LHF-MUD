@@ -1,4 +1,4 @@
-package com.lhf.game.map;
+package com.lhf.game;
 
 import java.io.Serializable;
 import java.util.ArrayDeque;
@@ -122,6 +122,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
 
     }
 
+    // TODO: wait for `SequencedCollection` from Java21
     private final Map<AtlasMemberID, AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> mapping;
 
     public abstract AtlasMemberID getIDForMemberType(AtlasMemberType member);
