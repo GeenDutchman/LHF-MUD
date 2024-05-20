@@ -15,12 +15,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<AtlasMemberID>, AtlasLinkType extends Comparable<AtlasLinkType>, AtlasTraversalTestType> {
-    protected static final class TargetedTester<TargetLinkType extends Comparable<TargetLinkType>, TargetIDType extends Comparable<TargetIDType>, TargetTraversalTestType>
+    public static final class TargetedTester<TargetLinkType extends Comparable<TargetLinkType>, TargetIDType extends Comparable<TargetIDType>, TargetTraversalTestType>
             implements Serializable {
         private final TargetLinkType link;
         private final TargetIDType targetId;
@@ -70,7 +71,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
 
     }
 
-    protected final static class AtlasMappingItem<MappingMember, MappingLinkType extends Comparable<MappingLinkType>, MappingTargetID extends Comparable<MappingTargetID>, MappingTraversalTestType>
+    public final static class AtlasMappingItem<MappingMember, MappingLinkType extends Comparable<MappingLinkType>, MappingTargetID extends Comparable<MappingTargetID>, MappingTraversalTestType>
             implements Serializable {
         private final MappingMember atlasMember;
         private final TreeMap<MappingLinkType, TargetedTester<MappingLinkType, MappingTargetID, MappingTraversalTestType>> links;
@@ -122,6 +123,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
 
     }
 
+    protected final UUID uuid = UUID.randomUUID();
     // TODO: wait for `SequencedCollection` from Java21
     private final Map<AtlasMemberID, AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> mapping;
 
@@ -278,9 +280,13 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         }
     }
 
+    public final UUID getUuid() {
+        return uuid;
+    }
+
     @Override
     public int hashCode() {
-        return Objects.hash(mapping);
+        return Objects.hash(uuid);
     }
 
     @Override
@@ -290,13 +296,13 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         if (!(obj instanceof Atlas))
             return false;
         Atlas<?, ?, ?, ?> other = (Atlas<?, ?, ?, ?>) obj;
-        return Objects.equals(mapping, other.mapping);
+        return Objects.equals(uuid, other.uuid);
     }
 
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("Atlas [mapping=").append(mapping).append("]");
+        builder.append("Atlas [uuid=").append(uuid).append(", mapping=").append(mapping).append("]");
         return builder.toString();
     }
 
