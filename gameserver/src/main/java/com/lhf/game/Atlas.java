@@ -329,6 +329,28 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         }
     }
 
+    public final Map<AtlasMemberID, AtlasMemberType> getAtlasMap() {
+        synchronized (this.mapping) {
+            LinkedHashMap<AtlasMemberID, AtlasMemberType> mappingMap = new LinkedHashMap<>();
+            for (final AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> mappingItem : this.mapping
+                    .values()) {
+                if (mappingItem == null) {
+                    continue;
+                }
+                final AtlasMemberType member = mappingItem.getAtlasMember();
+                if (member == null) {
+                    continue;
+                }
+                final AtlasMemberID id = this.getIDForMemberType(member);
+                if (id == null) {
+                    continue;
+                }
+                mappingMap.put(id, member);
+            }
+            return Collections.unmodifiableMap(mappingMap);
+        }
+    }
+
     public final Set<AtlasMemberType> getAtlasMembers() {
         synchronized (this.mapping) {
             LinkedHashSet<AtlasMemberType> mappingSet = new LinkedHashSet<>();
@@ -824,7 +846,11 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             forTesters.accept(null, null);
         }
 
-        sb.append(linkBuilder.toString());
+        sb.append(linkBuilder.toString()).append("\r\n");
+
+        if (fence) {
+            sb.append("```\r\n");
+        }
 
         return sb.toString();
     }
