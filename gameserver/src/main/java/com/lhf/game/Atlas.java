@@ -728,8 +728,11 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                 final AtlasMemberID targetMemberID = tester.getTargetId();
                 final AtlasMappingItem<TranslateMemberType, TranslateLinkType, TranslateID, TranslateTraversalTestType> translatedTarget = translation
                         .getAtlasMappingItem(visited.get(targetMemberID));
-                translation.connectOneWay(translatedMember.getAtlasMember(), linkTransformer.apply(tester.getLink()),
-                        translatedTarget.getAtlasMember(), traversalTestTransformer.apply(tester.getPredicate()));
+                final AtlasLinkType link = tester.getLink();
+                final TranslateMemberType accrossTranslation = translatedTarget.getAtlasMember();
+                final AtlasTraversalTestType predicate = tester.getPredicate();
+                translation.connectOneWay(translatedMember.getAtlasMember(), linkTransformer.apply(link),
+                        accrossTranslation, traversalTestTransformer.apply(predicate));
             }
         }
 
@@ -788,17 +791,18 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         }
         sb.append("stateDiagram-v2\r\n");
 
+        final String spacing = "    ";
         if (includeStart) {
             final AtlasMemberType first = this.getFirstMember();
             if (first != null) {
-                linkBuilder.append("    [*] --> ")
+                linkBuilder.append(spacing).append("    [*] --> ")
                         .append((idDisplay != null ? idDisplay.apply(this.getIDForMemberType(first))
                                 : this.getIDForMemberType(first)).toString().replace("-", ""))
                         .append("\r\n");
             }
         }
 
-        final BiConsumer<String, Set<TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>>> forTesters = (
+        final BiConsumer<String, Collection<TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>>> forTesters = (
                 id, set) -> {
             if (set == null || id == null) {
                 return;
@@ -808,7 +812,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                 if (targeted == null) {
                     continue;
                 }
-                linkBuilder.append("    ").append(id).append(" ---> ")
+                linkBuilder.append(spacing).append(id).append(" --> ")
                         .append((idDisplay != null ? idDisplay.apply(targeted.targetId) : targeted.targetId).toString()
                                 .replace("-", ""))
                         .append(" : ");
@@ -831,19 +835,19 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             }
             final String id = (idDisplay != null ? idDisplay.apply(this.getIDForMemberType(member))
                     : this.getIDForMemberType(member)).toString().replace("-", "");
-            sb.append("    ").append(id).append(":").append(this.getNameForMemberType(member)).append("\r\n");
+            sb.append(spacing).append(id).append(":").append(this.getNameForMemberType(member)).append("\r\n");
             if (memberNoteGenerator != null) {
                 final String note = memberNoteGenerator.apply(member);
-                if (note != null) {
+                if (note != null && !note.isBlank()) {
                     sb.append("   note right of ").append(id).append("\r\n");
                     for (String part : note.split("\\r?\\n")) {
-                        sb.append("        ").append(part).append("\r\n");
+                        sb.append(spacing + spacing).append(part).append("\r\n");
                     }
                     sb.append("   end note\r\n");
                 }
             }
 
-            forTesters.accept(null, null);
+            forTesters.accept(id, mappingItem.links.values());
         }
 
         sb.append(linkBuilder.toString()).append("\r\n");
