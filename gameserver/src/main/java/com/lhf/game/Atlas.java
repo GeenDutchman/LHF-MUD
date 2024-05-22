@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -412,6 +413,46 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         return targeted.predicate;
     }
 
+    public final AtlasLinkType getLinkTypeBetween(AtlasMemberID here, AtlasMemberID there) {
+        if (here == null || there == null) {
+            return null;
+        }
+        final AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> member = this
+                .getAtlasMappingItem(here);
+        if (member == null || member.links == null) {
+            return null;
+        }
+        for (TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> link : member.links.values()) {
+            if (link == null) {
+                continue;
+            }
+            if (there.equals(link.targetId)) {
+                return link.getLink();
+            }
+        }
+        return null;
+    }
+
+    public final AtlasTraversalTestType getTraversalBetween(AtlasMemberID here, AtlasMemberID there) {
+        if (here == null || there == null) {
+            return null;
+        }
+        final AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> member = this
+                .getAtlasMappingItem(here);
+        if (member == null || member.links == null) {
+            return null;
+        }
+        for (TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> link : member.links.values()) {
+            if (link == null) {
+                continue;
+            }
+            if (there.equals(link.targetId)) {
+                return link.getPredicate();
+            }
+        }
+        return null;
+    }
+
     public final AtlasMemberID attemptTraversal(AtlasMemberID from, AtlasLinkType through,
             Predicate<AtlasTraversalTestType> traversalPredicate) {
         if (traversalPredicate == null) {
@@ -686,6 +727,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         return this.translate(translation, memberTransformer, linkTransformer, traversalTestTransformer);
     }
 
+    @Deprecated
     public final String toMermaidFlowchart(boolean fence) {
         StringBuilder sb = new StringBuilder();
         StringBuilder edges = new StringBuilder();
@@ -710,6 +752,80 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         if (fence) {
             sb.append("```").append("\r\n");
         }
+        return sb.toString();
+    }
+
+    public final String toStateDiagramMermaid(boolean fence, boolean includeStart,
+            Function<AtlasMemberID, String> idDisplay, Function<AtlasLinkType, String> linkDisplay,
+            Function<AtlasTraversalTestType, String> traversalDisplay,
+            Function<AtlasMemberType, String> memberNoteGenerator) {
+        StringBuilder sb = new StringBuilder();
+        StringBuilder linkBuilder = new StringBuilder();
+        if (fence) {
+            sb.append("```mermaid\r\n");
+        }
+        sb.append("stateDiagram-v2\r\n");
+
+        if (includeStart) {
+            final AtlasMemberType first = this.getFirstMember();
+            if (first != null) {
+                linkBuilder.append("    [*] --> ")
+                        .append((idDisplay != null ? idDisplay.apply(this.getIDForMemberType(first))
+                                : this.getIDForMemberType(first)).toString().replace("-", ""))
+                        .append("\r\n");
+            }
+        }
+
+        final BiConsumer<String, Set<TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>>> forTesters = (
+                id, set) -> {
+            if (set == null || id == null) {
+                return;
+            }
+
+            for (final TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> targeted : set) {
+                if (targeted == null) {
+                    continue;
+                }
+                linkBuilder.append("    ").append(id).append(" ---> ")
+                        .append((idDisplay != null ? idDisplay.apply(targeted.targetId) : targeted.targetId).toString()
+                                .replace("-", ""))
+                        .append(" : ");
+                if (targeted.link != null) {
+                    linkBuilder.append(linkDisplay != null ? linkDisplay.apply(targeted.link) : targeted.link)
+                            .append(" ");
+                }
+                if (targeted.predicate != null && traversalDisplay != null) {
+                    linkBuilder.append(traversalDisplay.apply(targeted.predicate));
+                }
+                linkBuilder.append("\r\n");
+            }
+        };
+
+        for (final AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> mappingItem : this.mapping
+                .values()) {
+            final AtlasMemberType member = mappingItem.getAtlasMember();
+            if (member == null) {
+                continue;
+            }
+            final String id = (idDisplay != null ? idDisplay.apply(this.getIDForMemberType(member))
+                    : this.getIDForMemberType(member)).toString().replace("-", "");
+            sb.append("    ").append(id).append(":").append(this.getNameForMemberType(member)).append("\r\n");
+            if (memberNoteGenerator != null) {
+                final String note = memberNoteGenerator.apply(member);
+                if (note != null) {
+                    sb.append("   note right of ").append(id).append("\r\n");
+                    for (String part : note.split("\\r?\\n")) {
+                        sb.append("        ").append(part).append("\r\n");
+                    }
+                    sb.append("   end note\r\n");
+                }
+            }
+
+            forTesters.accept(null, null);
+        }
+
+        sb.append(linkBuilder.toString());
+
         return sb.toString();
     }
 
