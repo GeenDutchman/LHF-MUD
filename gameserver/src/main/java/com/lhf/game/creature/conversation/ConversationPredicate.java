@@ -26,6 +26,10 @@ public class ConversationPredicate implements Serializable {
         return this.blacklist;
     }
 
+    public int size() {
+        return this.blacklist.size();
+    }
+
     public ConversationPattern addRule(ConversationContextKey key, ConversationPattern pattern) {
         return this.addRule(key.name(), pattern);
     }

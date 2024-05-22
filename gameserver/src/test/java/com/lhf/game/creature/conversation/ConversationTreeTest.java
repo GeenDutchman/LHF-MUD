@@ -400,7 +400,7 @@ public class ConversationTreeTest {
                         oneWaySecond)
                 .build();
 
-        String mermaid = tree.toMermaid(false);
+        String mermaid = tree.toMermaidStateDiagram(false);
         System.out.println(mermaid);
         Truth.assertThat(mermaid).ignoringCase().contains("greet");
         Truth.assertThat(mermaid).ignoringCase().contains("test");

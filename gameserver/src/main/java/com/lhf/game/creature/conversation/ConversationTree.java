@@ -1,12 +1,8 @@
 package com.lhf.game.creature.conversation;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -26,8 +22,6 @@ import com.lhf.RichOutput;
 import com.lhf.RichOutput.PrintingInstructions;
 import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.Atlas;
-import com.lhf.game.Atlas.AtlasMappingItem;
-import com.lhf.game.Atlas.TargetedTester;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContext;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
 import com.lhf.server.client.Client.ClientID;
@@ -59,8 +53,6 @@ public class ConversationTree implements Serializable {
     private final String treeName;
     private final ConversationTreeNode start;
     private final ConversationAtlas conversationAtlas;
-    // private final Map<UUID, ConversationTreeNode> nodes;
-    // private final Map<UUID, List<ConversationTreeBranch>> branches;
     private transient Map<ClientID, ConversationContext> bookmarks = new TreeMap<>();
     private final SortedMap<ConversationPattern, ConversationPredicate> greetings;
     private final SortedSet<ConversationPattern> repeatWords;
@@ -71,10 +63,9 @@ public class ConversationTree implements Serializable {
     private ConversationTree(@NotNull Builder builder) {
         this.treeName = builder.getTreeName();
         this.start = builder.getStart().build();
-        this.nodes = Collections.unmodifiableMap(builder.buildNodes());
-        this.branches = Collections.unmodifiableMap(new LinkedHashMap<>(builder.getBranches()));
         this.bookmarks = new TreeMap<>();
-        this.greetings = Collections.unmodifiableSortedSet(new TreeSet<>(builder.getGreetings()));
+        this.conversationAtlas = builder.buildNodes();
+        this.greetings = Collections.unmodifiableSortedMap(new TreeMap<>(builder.getGreetings()));
         this.repeatWords = Collections.unmodifiableSortedSet(new TreeSet<>(builder.getRepeatWords()));
         this.endOfConvo = builder.getEndOfConvo();
         this.notRecognized = builder.getNotRecognized();
@@ -108,8 +99,6 @@ public class ConversationTree implements Serializable {
         private final ConversationTreeNode.Builder start;
         private String treeName;
         private BuilderAtlas conversationAtlas;
-        // private LinkedHashMap<UUID, ConversationTreeNode.Builder> nodes;
-        // private LinkedHashMap<UUID, List<ConversationTreeBranch>> branches;
         private SortedMap<ConversationPattern, ConversationPredicate> greetings;
         private SortedSet<ConversationPattern> repeatWords;
         private String endOfConvo;
@@ -269,22 +258,7 @@ public class ConversationTree implements Serializable {
             if (fromHere == null) {
                 fromHere = this.start.getNodeID();
             }
-            final AtlasMappingItem<com.lhf.game.creature.conversation.ConversationTreeNode.Builder, ConversationPattern, UUID, ConversationPredicate> item = this.conversationAtlas
-                    .getAtlasMappingItem(fromHere);
-            if (item == null) {
-                return null;
-            }
-            final Collection<TargetedTester<ConversationPattern, UUID, ConversationPredicate>> testers = item
-                    .getTargetedTesters();
-            if (testers == null) {
-                return null;
-            }
-            for (TargetedTester<ConversationPattern, UUID, ConversationPredicate> targetedTester : testers) {
-                if (targetedTester != null && toThere.equals(targetedTester.getTargetId())) {
-                    return targetedTester.getLink();
-                }
-            }
-            return null;
+            return this.conversationAtlas.getLinkTypeBetween(fromHere, toThere);
         }
 
         public synchronized ConversationPredicate getBranchPredicate(UUID fromHere, UUID toThere) {
@@ -294,22 +268,7 @@ public class ConversationTree implements Serializable {
             if (fromHere == null) {
                 fromHere = this.start.getNodeID();
             }
-            final AtlasMappingItem<com.lhf.game.creature.conversation.ConversationTreeNode.Builder, ConversationPattern, UUID, ConversationPredicate> item = this.conversationAtlas
-                    .getAtlasMappingItem(fromHere);
-            if (item == null) {
-                return null;
-            }
-            final Collection<TargetedTester<ConversationPattern, UUID, ConversationPredicate>> testers = item
-                    .getTargetedTesters();
-            if (testers == null) {
-                return null;
-            }
-            for (TargetedTester<ConversationPattern, UUID, ConversationPredicate> targetedTester : testers) {
-                if (targetedTester != null && toThere.equals(targetedTester.getTargetId())) {
-                    return targetedTester.getPredicate();
-                }
-            }
-            return null;
+            return this.conversationAtlas.getTraversalBetween(fromHere, toThere);
         }
 
         public Builder editBranch(UUID fromHere, UUID toThere, Consumer<ConversationPredicate> branchEditor) {
@@ -358,8 +317,8 @@ public class ConversationTree implements Serializable {
             return this;
         }
 
-        public Set<AtlasMappingItem<ConversationTreeNode.Builder, ConversationPattern, UUID, ConversationPredicate>> getNodes() {
-            return this.conversationAtlas.getAtlasMappingItems();
+        public Set<ConversationTreeNode.Builder> getNodes() {
+            return this.conversationAtlas.getAtlasMembers();
         }
 
         public ConversationAtlas buildNodes() {
@@ -414,67 +373,55 @@ public class ConversationTree implements Serializable {
             return this;
         }
 
-        public String toMermaid(boolean fence) {
+        public String toMermaidStateDiagram(boolean fence) {
+            String mermaid = this.conversationAtlas.toStateDiagramMermaid(fence, true, uuid -> uuid.toString(),
+                    pattern -> pattern != null ? pattern.getRegex().toString() : "linked", predicate -> {
+                        if (predicate == null) {
+                            return "";
+                        }
+                        StringBuilder branchBuilder = new StringBuilder();
+                        for (Entry<String, ConversationPattern> restriction : predicate.getBlacklist().entrySet()) {
+                            branchBuilder.append(" ").append(restriction.getKey()).append(" ")
+                                    .append(restriction.getValue().getRegex().toString());
+                        }
+                        return branchBuilder.toString();
+                    }, builder -> {
+                        if (builder == null) {
+                            return "";
+                        }
+                        StringBuilder sb = new StringBuilder();
+                        for (RichOutputBuilder prompt : builder.getPrompts()) {
+                            sb.append(prompt.printString(EnumSet.allOf(PrintingInstructions.class))).append("\r\n");
+                        }
+                        return sb.toString();
+                    });
+
             StringBuilder sb = new StringBuilder();
-            // GsonBuilder gb = new GsonBuilder();
-            // Gson gson = gb.create();
-            if (fence) {
-                sb.append("```mermaid").append("\r\n");
-            }
-            sb.append("stateDiagram-v2").append("\r\n");
-            for (ConversationTreeNode.Builder node : this.nodes.values()) {
-                // String json = gson.toJson(node);
-                sb.append("    ").append(node.getNodeID().toString().replace("-", "")).append(":")
-                        .append(node.getBodySequence().printString(EnumSet.allOf(PrintingInstructions.class)))
-                        .append("\r\n");
-                if (node.getPrompts().size() > 0) {
-                    sb.append("    note right of ").append(node.getNodeID().toString().replace("-", "")).append("\r\n");
-                    for (RichOutputBuilder prompt : node.getPrompts()) {
-                        sb.append("        ").append(prompt.printString(EnumSet.allOf(PrintingInstructions.class)))
-                                .append("\r\n");
+
+            final String startID = this.start.getNodeID().toString().replace("-", "");
+            for (Entry<ConversationPattern, ConversationPredicate> greetBranch : this.greetings.entrySet()) {
+                sb.append("    [*] --> ").append(startID);
+                sb.append(" : ").append(greetBranch.getKey().getExample()).append(" ")
+                        .append(greetBranch.getKey().getRegex().toString());
+                final ConversationPredicate predicate = greetBranch.getValue();
+                if (predicate != null) {
+                    for (Entry<String, ConversationPattern> restriction : predicate.getBlacklist().entrySet()) {
+                        sb.append(" ").append(restriction.getKey()).append(" ")
+                                .append(restriction.getValue().getRegex().toString());
                     }
-                    sb.append("    end note").append("\r\n");
-                }
-
-            }
-
-            for (ConversationTreeBranch greetBranch : this.greetings) {
-                sb.append("    [*] --> ").append(greetBranch.getNodeID().toString().replace("-", ""));
-                sb.append(" : ").append(greetBranch.getRegex().getExample()).append(" ")
-                        .append(greetBranch.getRegex().getRegex().toString());
-
-                for (String restriction : greetBranch.getBlacklist().keySet()) {
-                    sb.append(" ").append(restriction).append(" ")
-                            .append(greetBranch.getBlacklist().get(restriction).toString());
                 }
                 sb.append("\r\n");
             }
 
-            for (UUID source : this.branches.keySet()) {
-                for (ConversationTreeBranch branch : this.branches.get(source)) {
-                    sb.append("    ").append(source.toString().replace("-", "")).append(" --> ")
-                            .append(branch.getNodeID().toString().replace("-", ""));
-                    sb.append(" : ").append(branch.getRegex().toString());
-
-                    for (String restriction : branch.getBlacklist().keySet()) {
-                        sb.append(" ").append(restriction).append(" ")
-                                .append(branch.getBlacklist().get(restriction).toString());
-                    }
-                    sb.append("\r\n");
-                }
-            }
-
-            if (fence) {
-                sb.append("```").append("\r\n");
-            }
-            return sb.toString();
+            mermaid = mermaid.replace("    [*] --> ", sb.toString());
+            return mermaid;
         }
 
         @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
-            builder.append("Builder [start=").append(start).append(", treeName=").append(treeName).append(", nodes=")
-                    .append(nodes).append(", branches=").append(branches).append(", greetings=").append(greetings)
+            builder.append("Builder [start=").append(start).append(", treeName=").append(treeName)
+                    .append(", conversationAtlas=").append(conversationAtlas).append(", greetings=").append(greetings)
                     .append(", repeatWords=").append(repeatWords).append(", endOfConvo=").append(endOfConvo)
                     .append(", notRecognized=").append(notRecognized).append(", tagkeywords=").append(tagkeywords)
                     .append("]");
@@ -495,16 +442,21 @@ public class ConversationTree implements Serializable {
         return treeName;
     }
 
-    @Deprecated
     private ConversationTreeNodeResult tagIt(ConversationContext ctx, ConversationTreeNode node) {
         if (node == null) {
             return null;
         }
         TreeSet<ConversationPattern> branches = new TreeSet<>();
-        if (this.branches.containsKey(node.getNodeID()) && this.tagkeywords) {
-            for (ConversationTreeBranch branch : this.branches.get(node.getNodeID())) {
-                if (branch.canAccess(ctx)) {
-                    branches.add(branch.getRegex());
+        Set<ConversationPattern> patterns = this.conversationAtlas.getLinksForMember(node.getNodeID());
+        if (patterns != null && this.tagkeywords) {
+            for (ConversationPattern branch : patterns) {
+                if (branch == null) {
+                    continue;
+                }
+                final ConversationPredicate predicate = this.conversationAtlas
+                        .getTraversalTestFromMember(node.getNodeID(), branch);
+                if (predicate != null && predicate.canAccess(ctx)) {
+                    branches.add(branch);
                 }
             }
         }
@@ -518,15 +470,15 @@ public class ConversationTree implements Serializable {
         ConversationContext ctx = this.bookmarks.get(talker.getClientID());
         ctx.backtrack();
         UUID backNode = ctx.getTrailEnd();
-        return this.tagIt(ctx, this.nodes.get(backNode));
+        return this.tagIt(ctx, this.conversationAtlas.getAtlasMember(backNode));
     }
 
     protected ConversationTreeNode getNode(UUID nodeID) {
-        return this.nodes.get(nodeID);
+        return this.conversationAtlas.getAtlasMember(nodeID);
     }
 
     protected Map<UUID, ConversationTreeNode> getNodes() {
-        return Collections.unmodifiableMap(this.nodes);
+        return this.conversationAtlas.getAtlasMap();
     }
 
     protected ConversationTreeNode getCurrentNode(CommandInvoker talker) {
@@ -535,14 +487,14 @@ public class ConversationTree implements Serializable {
         return this.getNode(nodeID);
     }
 
-    protected List<ConversationTreeBranch> getBranches(UUID nodeID) {
-        return this.branches.get(nodeID);
-    }
-
     public ConversationTreeNodeResult listen(CommandInvoker talker, String message) {
         if (!this.bookmarks.containsKey(talker.getClientID())) {
-            for (ConversationTreeBranch greet : this.greetings) {
-                Matcher matcher = greet.getRegex().matcher(message);
+            for (Entry<ConversationPattern, ConversationPredicate> greet : this.greetings.entrySet()) {
+                ConversationPattern pattern = greet.getKey();
+                if (pattern == null) {
+                    continue;
+                }
+                Matcher matcher = pattern.getRegex().matcher(message);
                 if (matcher.find()) {
                     ConversationContext ctx = new ConversationContext();
                     ctx.put(ConversationContextKey.TALKER_NAME, ConversationTransformer.ofString(talker.getName()));
@@ -556,32 +508,32 @@ public class ConversationTree implements Serializable {
         }
         ConversationContext ctx = this.bookmarks.get(talker.getClientID());
         UUID id = ctx.getTrailEnd();
-        int hasBranches = this.branches.containsKey(id) ? this.branches.get(id).size() : 0;
-        if (hasBranches > 0) {
-            for (ConversationTreeBranch branch : this.branches.get(id)) {
-                if (branch.canAccess(ctx)) {
-                    Matcher matcher = branch.getRegex().matcher(message);
-                    if (matcher.find()) {
-                        UUID nextID = branch.getNodeID();
-                        ConversationTreeNode node = this.nodes.get(nextID);
-                        if (node != null) {
-                            this.bookmarks.get(talker.getClientID()).addTrail(nextID);
-                            return this.tagIt(ctx, node);
-                        }
-                    }
-                } else {
-                    hasBranches--;
-                }
+        UUID nextNodeID = this.conversationAtlas.attemptAllTraversals(id, pattern -> {
+            if (pattern == null) {
+                return false;
             }
-        }
-        for (ConversationPattern repeater : this.repeatWords) {
-            Matcher matcher = repeater.matcher(message);
-            if (matcher.find() && this.nodes.get(id) != null) {
-                return this.tagIt(ctx, this.nodes.get(id));
+            Matcher matcher = pattern.getRegex().matcher(message);
+            return matcher.find();
+        }, predicate -> {
+            return predicate != null ? predicate.canAccess(ctx) : true;
+        }, true, true);
+        if (nextNodeID != null) {
+            ConversationTreeNode nextNode = this.conversationAtlas.getAtlasMember(nextNodeID);
+            if (nextNode != null) {
+                this.bookmarks.get(talker.getClientID()).addTrail(nextNodeID);
+                return this.tagIt(ctx, nextNode);
             }
         }
 
-        if (hasBranches <= 0) {
+        for (ConversationPattern repeater : this.repeatWords) {
+            Matcher matcher = repeater.matcher(message);
+            if (matcher.find() && this.conversationAtlas.getAtlasMember(id) != null) {
+                return this.tagIt(ctx, this.conversationAtlas.getAtlasMember(id));
+            }
+        }
+
+        Set<ConversationPattern> links = this.conversationAtlas.getLinksForMember(id);
+        if (links == null || links.size() <= 0) {
             this.bookmarks.get(talker.getClientID()).addTrail(this.start.getNodeID());
             return ConversationTreeNodeResult.fromString(ctx, this.endOfConvo, null, null);
         }
@@ -616,7 +568,7 @@ public class ConversationTree implements Serializable {
         if (this.greetings == null || this.greetings.size() == 0) {
             return null;
         }
-        ConversationPattern pattern = this.greetings.first().getRegex();
+        ConversationPattern pattern = this.greetings.keySet().stream().findFirst().orElse(null);
         if (pattern == null) {
             return null;
         }
@@ -625,123 +577,79 @@ public class ConversationTree implements Serializable {
         return ConversationTreeNodeResult.fromString(transformer, pattern.getExample(), null, patterns);
     }
 
-    public String toMermaid(boolean fence) {
+    public String toMermaidStateDiagram(boolean fence) {
+        String mermaid = this.conversationAtlas.toStateDiagramMermaid(fence, true, uuid -> uuid.toString(),
+                pattern -> pattern != null ? pattern.getRegex().toString() : "linked", predicate -> {
+                    if (predicate == null) {
+                        return "";
+                    }
+                    StringBuilder branchBuilder = new StringBuilder();
+                    for (Entry<String, ConversationPattern> restriction : predicate.getBlacklist().entrySet()) {
+                        branchBuilder.append(" ").append(restriction.getKey()).append(" ")
+                                .append(restriction.getValue().getRegex().toString());
+                    }
+                    return branchBuilder.toString();
+                }, node -> {
+                    if (node == null) {
+                        return "";
+                    }
+                    StringBuilder sb = new StringBuilder();
+                    for (RichOutput prompt : node.getPrompts()) {
+                        sb.append(prompt.printString(EnumSet.allOf(PrintingInstructions.class))).append("\r\n");
+                    }
+                    return sb.toString();
+                });
+
         StringBuilder sb = new StringBuilder();
-        // GsonBuilder gb = new GsonBuilder();
-        // Gson gson = gb.create();
-        if (fence) {
-            sb.append("```mermaid").append("\r\n");
-        }
-        sb.append("stateDiagram-v2").append("\r\n");
-        for (ConversationTreeNode node : this.nodes.values()) {
-            // String json = gson.toJson(node);
-            sb.append("    ").append(node.getNodeID().toString().replace("-", "")).append(":")
-                    .append(node.getBodySequence().printString(EnumSet.allOf(PrintingInstructions.class)))
-                    .append("\r\n");
-            if (node.getPrompts().size() > 0) {
-                sb.append("    note right of ").append(node.getNodeID().toString().replace("-", "")).append("\r\n");
-                for (RichOutput prompt : node.getPrompts()) {
-                    sb.append("        ").append(prompt.printString(EnumSet.allOf(PrintingInstructions.class)))
-                            .append("\r\n");
+
+        final String startID = this.start.getNodeID().toString().replace("-", "");
+        for (Entry<ConversationPattern, ConversationPredicate> greetBranch : this.greetings.entrySet()) {
+            sb.append("    [*] --> ").append(startID);
+            sb.append(" : ").append(greetBranch.getKey().getExample()).append(" ")
+                    .append(greetBranch.getKey().getRegex().toString());
+            final ConversationPredicate predicate = greetBranch.getValue();
+            if (predicate != null) {
+                for (Entry<String, ConversationPattern> restriction : predicate.getBlacklist().entrySet()) {
+                    sb.append(" ").append(restriction.getKey()).append(" ")
+                            .append(restriction.getValue().getRegex().toString());
                 }
-                sb.append("    end note").append("\r\n");
-            }
-
-        }
-
-        for (ConversationTreeBranch greetBranch : this.greetings) {
-            sb.append("    [*] --> ").append(greetBranch.getNodeID().toString().replace("-", ""));
-            sb.append(" : ").append(greetBranch.getRegex().getExample()).append(" ")
-                    .append(greetBranch.getRegex().getRegex().toString());
-
-            for (String restriction : greetBranch.getBlacklist().keySet()) {
-                sb.append(" ").append(restriction).append(" ")
-                        .append(greetBranch.getBlacklist().get(restriction).toString());
             }
             sb.append("\r\n");
         }
 
-        for (UUID source : this.branches.keySet()) {
-            for (ConversationTreeBranch branch : this.branches.get(source)) {
-                sb.append("    ").append(source.toString().replace("-", "")).append(" --> ")
-                        .append(branch.getNodeID().toString().replace("-", ""));
-                sb.append(" : ").append(branch.getRegex().toString());
-
-                for (String restriction : branch.getBlacklist().keySet()) {
-                    sb.append(" ").append(restriction).append(" ")
-                            .append(branch.getBlacklist().get(restriction).toString());
-                }
-                sb.append("\r\n");
-            }
-        }
-
-        if (fence) {
-            sb.append("```").append("\r\n");
-        }
-        return sb.toString();
+        mermaid = mermaid.replace("    [*] --> ", sb.toString());
+        return mermaid;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(branches, endOfConvo, greetings, nodes, notRecognized, repeatWords, start, tagkeywords,
-                treeName);
+        return Objects.hash(treeName, start, conversationAtlas, greetings, repeatWords, endOfConvo, notRecognized,
+                tagkeywords);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
+        if (this == obj)
             return true;
-        }
-        if (!(obj instanceof ConversationTree)) {
+        if (!(obj instanceof ConversationTree))
             return false;
-        }
         ConversationTree other = (ConversationTree) obj;
-        if (!this.treeName.equals(other.treeName) || !this.endOfConvo.equals(other.endOfConvo)
-                || !this.notRecognized.equals(other.notRecognized)) {
-            return false;
-        }
-        if (!this.start.equals(other.start)) {
-            return false;
-        }
-        if (!this.greetings.equals(other.greetings) || !this.repeatWords.equals(other.repeatWords)) {
-            return false;
-        }
-        if (this.nodes.size() != other.nodes.size()) {
-            return false;
-        }
-        if (this.branches.size() != other.branches.size()) {
-            return false;
-        }
-        for (UUID nodeID : this.nodes.keySet()) {
-            if (!other.nodes.containsKey(nodeID)) {
-                return false;
-            }
-            if (!this.nodes.get(nodeID).equals(other.nodes.get(nodeID))) {
-                return false;
-            }
-        }
-        for (UUID nodeID : this.branches.keySet()) {
-            if (!other.branches.containsKey(nodeID)) {
-                return false;
-            }
-
-            if (!this.branches.get(nodeID).equals(other.branches.get(nodeID))) {
-                return false;
-            }
-        }
-
-        return true;
+        return Objects.equals(treeName, other.treeName) && Objects.equals(start, other.start)
+                && Objects.equals(conversationAtlas, other.conversationAtlas)
+                && Objects.equals(greetings, other.greetings) && Objects.equals(repeatWords, other.repeatWords)
+                && Objects.equals(endOfConvo, other.endOfConvo) && Objects.equals(notRecognized, other.notRecognized)
+                && tagkeywords == other.tagkeywords;
     }
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("ConversationTree [treename=").append(treeName).append(", branches=").append(branches)
-                .append(", endOfConvo=").append(endOfConvo).append(", greetings=").append(greetings).append(", nodes=")
-                .append(nodes).append(", notRecognized=").append(notRecognized).append(", repeatWords=")
-                .append(repeatWords).append(", start=").append(start).append(", tagkeywords=").append(tagkeywords)
+        StringBuilder builder2 = new StringBuilder();
+        builder2.append("ConversationTree [treeName=").append(treeName).append(", start=").append(start)
+                .append(", conversationAtlas=").append(conversationAtlas).append(", greetings=").append(greetings)
+                .append(", repeatWords=").append(repeatWords).append(", endOfConvo=").append(endOfConvo)
+                .append(", notRecognized=").append(notRecognized).append(", tagkeywords=").append(tagkeywords)
                 .append(", bookmarks=").append(bookmarks).append("]");
-        return builder.toString();
+        return builder2.toString();
     }
 
 }

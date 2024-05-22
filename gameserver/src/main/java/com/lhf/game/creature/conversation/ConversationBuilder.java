@@ -87,7 +87,7 @@ public class ConversationBuilder {
             System.out.println("Select a Node:");
             SortedMap<Integer, ConversationTreeNode.Builder> indexmap = new TreeMap<>();
             Integer i = 1;
-            for (ConversationTreeNode.Builder node : this.tree.getNodes().values()) {
+            for (ConversationTreeNode.Builder node : this.tree.getNodes()) {
                 indexmap.put(i, node);
                 System.out.println(i.toString() + " : " + node.toString());
                 i++;
@@ -107,7 +107,7 @@ public class ConversationBuilder {
 
     private ConversationTreeNode.Builder addNodeToTree(ConversationTreeNode.Builder node) {
         if (this.tree != null) {
-            System.out.println(this.tree.toMermaid(false));
+            System.out.println(this.tree.toMermaidStateDiagram(false));
             try {
                 ConversationTreeNode.Builder prevNode = this.selectValidNode();
                 System.out.println("Now to build out how it will connect");
@@ -232,7 +232,7 @@ public class ConversationBuilder {
                 case 1:
                     System.out.println("Printing mermaid...");
                     if (this.tree != null) {
-                        System.out.println(this.tree.toMermaid(false));
+                        System.out.println(this.tree.toMermaidStateDiagram(false));
                     } else {
                         System.out.println("Tree not made");
                     }

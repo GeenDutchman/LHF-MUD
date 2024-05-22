@@ -86,6 +86,10 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode>, S
             return bodySequence;
         }
 
+        public String getBodyAsString() {
+            return this.getBodySequence().printString();
+        }
+
         public Builder setBodySequence(RichOutputBuilder body) {
             if (body == null) {
                 this.bodySequence = new RichOutputBuilder(NPC_CONVERSATION_TAG);
