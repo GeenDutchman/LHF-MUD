@@ -23,8 +23,6 @@ import com.lhf.game.AffectableEntity;
 import com.lhf.game.Atlas;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.TickType;
-import com.lhf.game.Atlas.AtlasMappingItem;
-import com.lhf.game.Atlas.TargetedTester;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
@@ -224,8 +222,7 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
     public default Set<Directions> getAreaExits(Area area) {
         try {
             AreaAtlas atlas = this.getAtlas();
-            AtlasMappingItem<Area, Directions, UUID, Doorway> ami = atlas.getAtlasMappingItem(area);
-            return ami.getAvailableLinks();
+            return atlas.getLinksForMember(area.getUuid());
         } catch (NullPointerException e) {
             this.log(Level.WARNING, String.format("Atlas error for getting exits: %s", e));
             return Set.of();
@@ -325,37 +322,30 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
                 return ctx.handled();
             }
             Area presentRoom = ctx.getArea();
-            final AtlasMappingItem<Area, Directions, UUID, Doorway> mappingItem = land.getAtlas()
-                    .getAtlasMappingItem(presentRoom.getUuid());
-            if (mappingItem != null) {
-                Map<Directions, TargetedTester<Directions, UUID, Doorway>> exits = mappingItem.getLinks();
-                if (exits == null || exits.size() == 0 || !exits.containsKey(toGo) || exits.get(toGo) == null) {
-                    ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo).Build());
-                    return ctx.handled();
-                }
-                TargetedTester<Directions, UUID, Doorway> doorway = exits.get(toGo);
-                final Area nextRoom = land.getAtlas().getAtlasMember(doorway.getTargetId());
-                if (nextRoom == null) {
-                    ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo)
-                            .setAvailable(exits.keySet()).Build());
-                    return ctx.handled();
-                }
-                Doorway tester = doorway.getPredicate();
-                if (tester != null && !tester.testTraversal(ctx.getCreature(), toGo, presentRoom, presentRoom)) {
-                    ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.BLOCKED).setAttempted(toGo)
-                            .setAvailable(exits.keySet()).Build());
-                    return ctx.handled();
-                }
 
-                if (presentRoom.removeCreature(ctx.getCreature(), toGo)) {
-                    ICreature.eventAccepter.accept(ctx.getCreature(),
-                            TickEvent.getBuilder().setTickType(TickType.ROOM).Build());
-                    nextRoom.addCreature(ctx.getCreature());
-                    return ctx.handled();
-                }
-            } else {
+            Set<Directions> exits = land.getAtlas().getLinksForMember(presentRoom.getUuid());
+            if (exits == null || exits.size() == 0 || !exits.contains(toGo)) {
+                ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo).Build());
+                return ctx.handled();
+            }
+            UUID nextRoomID = land.getAtlas().getTargetFromMember(presentRoom.getUuid(), toGo);
+            final Area nextRoom = land.getAtlas().getAtlasMember(nextRoomID);
+            if (nextRoom == null) {
                 ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.NO_ROOM).setAttempted(command.getDirection())
                         .Build());
+                return ctx.handled();
+            }
+            Doorway tester = land.getAtlas().getTraversalTestFromMember(presentRoom.getUuid(), toGo);
+            if (tester != null && !tester.testTraversal(ctx.getCreature(), toGo, presentRoom, presentRoom)) {
+                ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.BLOCKED).setAttempted(toGo).setAvailable(exits)
+                        .Build());
+                return ctx.handled();
+            }
+
+            if (presentRoom.removeCreature(ctx.getCreature(), toGo)) {
+                ICreature.eventAccepter.accept(ctx.getCreature(),
+                        TickEvent.getBuilder().setTickType(TickType.ROOM).Build());
+                nextRoom.addCreature(ctx.getCreature());
                 return ctx.handled();
             }
             return ctx.failhandle();

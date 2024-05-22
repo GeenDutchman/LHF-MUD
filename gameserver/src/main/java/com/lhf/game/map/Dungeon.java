@@ -15,7 +15,6 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.game.Atlas.AtlasMappingItem;
 import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
@@ -134,7 +133,8 @@ public class Dungeon implements Land {
         }
 
         public String toMermaid(boolean fence) {
-            return "DungeonBuilder\r\n" + this.atlas.toMermaidFlowchart(fence);
+            return "DungeonBuilder\r\n" + this.atlas.toStateDiagramMermaid(fence, true, id -> id.toString(),
+                    dir -> dir.toString(), null, null);
         }
 
         @Override
@@ -266,11 +266,11 @@ public class Dungeon implements Land {
     }
 
     public boolean addCreature(ICreature creature, UUID roomUUID) {
-        AtlasMappingItem<Area, Directions, UUID, Doorway> areaInfo = this.atlas.getAtlasMappingItem(roomUUID);
-        if (areaInfo != null && areaInfo.getAtlasMember() != null) {
-            areaInfo.getAtlasMember().announce(CreatureSpawnedEvent.getBuilder().setCreature(creature).Build());
+        Area area = this.atlas.getAtlasMember(roomUUID);
+        if (area != null) {
+            area.announce(CreatureSpawnedEvent.getBuilder().setCreature(creature).Build());
             creature.setSuccessor(this);
-            return areaInfo.getAtlasMember().addCreature(creature);
+            return area.addCreature(creature);
         }
         return false;
     }
@@ -449,7 +449,8 @@ public class Dungeon implements Land {
     }
 
     public String toMermaid(boolean fence) {
-        return this.getName() + "\r\n" + this.atlas.toMermaidFlowchart(fence);
+        return this.getName() + "\r\n"
+                + this.atlas.toStateDiagramMermaid(fence, true, id -> id.toString(), dir -> dir.toString(), null, null);
     }
 
     @Override

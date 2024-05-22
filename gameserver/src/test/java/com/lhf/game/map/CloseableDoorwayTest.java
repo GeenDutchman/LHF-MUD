@@ -1,14 +1,11 @@
 package com.lhf.game.map;
 
 import java.util.List;
-import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import com.google.common.truth.Truth;
-import com.lhf.game.Atlas.AtlasMappingItem;
-import com.lhf.game.Atlas.TargetedTester;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.map.Dungeon.DungeonBuilder;
 import com.lhf.game.map.Room.RoomBuilder;
@@ -30,22 +27,25 @@ public class CloseableDoorwayTest {
         Area roomA = dungeon.getAreaByName("roomA").orElse(null);
         Area roomB = dungeon.getAreaByName("roomB").orElse(null);
         Truth.assertThat(roomA).isNotNull();
+        Truth.assertThat(roomA.getUuid()).isNotNull();
         Truth.assertThat(roomB).isNotNull();
+        Truth.assertThat(roomB.getUuid()).isNotNull();
 
-        AtlasMappingItem<Area, Directions, UUID, Doorway> aMappingItem = dungeon.getAtlas().getAtlasMappingItem(roomA);
-        AtlasMappingItem<Area, Directions, UUID, Doorway> bMappingItem = dungeon.getAtlas().getAtlasMappingItem(roomB);
+        Truth.assertThat(dungeon.getAtlas().getLinksForMember(roomB.getUuid())).containsExactly(Directions.EAST);
+        Truth.assertThat(dungeon.getAtlas().getLinkTypeBetween(roomB.getUuid(), roomA.getUuid()))
+                .isEqualTo(Directions.EAST);
+        Truth.assertThat(dungeon.getAtlas().getTargetFromMember(roomB.getUuid(), Directions.EAST))
+                .isEqualTo(roomA.getUuid());
+        Truth.assertThat(dungeon.getAtlas().getTraversalTestFromMember(roomB.getUuid(), Directions.EAST))
+                .isEqualTo(closeable);
 
-        Truth.assertThat(bMappingItem.getAvailableLinks()).contains(Directions.EAST);
-        TargetedTester<Directions, UUID, Doorway> aUUID = bMappingItem.getLinks().get(Directions.EAST);
-        Truth.assertThat(aUUID).isNotNull();
-        Truth.assertThat(aUUID.getTargetId()).isEqualTo(roomA.getUuid());
-        Truth.assertThat(aUUID.getPredicate()).isEqualTo(closeable);
-
-        Truth.assertThat(aMappingItem.getAvailableLinks()).contains(Directions.WEST);
-        TargetedTester<Directions, UUID, Doorway> bUUID = aMappingItem.getLinks().get(Directions.WEST);
-        Truth.assertThat(bUUID).isNotNull();
-        Truth.assertThat(bUUID.getTargetId()).isEqualTo(roomB.getUuid());
-        Truth.assertThat(bUUID.getPredicate()).isEqualTo(closeable);
+        Truth.assertThat(dungeon.getAtlas().getLinksForMember(roomA.getUuid())).containsExactly(Directions.WEST);
+        Truth.assertThat(dungeon.getAtlas().getLinkTypeBetween(roomA.getUuid(), roomB.getUuid()))
+                .isEqualTo(Directions.WEST);
+        Truth.assertThat(dungeon.getAtlas().getTargetFromMember(roomA.getUuid(), Directions.WEST))
+                .isEqualTo(roomB.getUuid());
+        Truth.assertThat(dungeon.getAtlas().getTraversalTestFromMember(roomA.getUuid(), Directions.WEST))
+                .isEqualTo(closeable);
 
         Truth.assertThat(closeable.isOpen()).isFalse();
 
