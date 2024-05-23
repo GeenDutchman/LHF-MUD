@@ -8,7 +8,7 @@ import java.util.regex.Matcher;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContext;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
 
-public class ConversationPredicate implements Serializable {
+public final class ConversationPredicate implements Serializable, Comparable<ConversationPredicate> {
     private TreeMap<String, ConversationPattern> blacklist = new TreeMap<>();
 
     public static ConversationPredicate copyFrom(ConversationPredicate other) {
@@ -58,4 +58,23 @@ public class ConversationPredicate implements Serializable {
         }
         return true;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("ConversationPredicate [blacklist=").append(blacklist).append("]");
+        return builder.toString();
+    }
+
+    @Override
+    public int compareTo(ConversationPredicate arg0) {
+        if (arg0 == null) {
+            throw new NullPointerException();
+        }
+        if (this == arg0) {
+            return 0;
+        }
+        return 0; // no idea how to further sort these
+    }
+
 }
