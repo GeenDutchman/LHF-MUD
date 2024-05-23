@@ -22,9 +22,10 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<AtlasMemberID>, AtlasLinkType extends Comparable<AtlasLinkType>, AtlasTraversalTestType> {
-    private static final class TargetedTester<TargetLinkType extends Comparable<TargetLinkType>, TargetIDType extends Comparable<TargetIDType>, TargetTraversalTestType>
-            implements Serializable, Comparable<TargetedTester<TargetLinkType, TargetIDType, TargetTraversalTestType>> {
+public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<AtlasMemberID>, AtlasLinkType extends Comparable<AtlasLinkType>, AtlasTraversalTestType extends Comparable<AtlasTraversalTestType>>
+        implements Comparable<Atlas<AtlasMemberType, AtlasMemberID, AtlasLinkType, AtlasTraversalTestType>> {
+    private static final class TargetedTester<TargetLinkType extends Comparable<TargetLinkType>, TargetIDType extends Comparable<TargetIDType>, TargetTraversalTestType extends Comparable<TargetTraversalTestType>>
+            implements Comparable<TargetedTester<TargetLinkType, TargetIDType, TargetTraversalTestType>> {
         private final TargetLinkType link;
         private final TargetIDType targetId;
         private final TargetTraversalTestType predicate;
@@ -53,12 +54,16 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             if (comparison != 0) {
                 return comparison;
             }
-            return this.targetId.compareTo(other.targetId);
+            comparison = this.targetId.compareTo(other.targetId);
+            if (comparison != 0) {
+                return comparison;
+            }
+            return this.predicate.compareTo(other.predicate);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(link, targetId);
+            return Objects.hash(link, targetId, predicate);
         }
 
         @Override
@@ -68,7 +73,8 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             if (!(obj instanceof TargetedTester))
                 return false;
             TargetedTester<?, ?, ?> other = (TargetedTester<?, ?, ?>) obj;
-            return link == other.link && Objects.equals(targetId, other.targetId);
+            return Objects.equals(link, other.link) && Objects.equals(targetId, other.targetId)
+                    && Objects.equals(predicate, other.predicate);
         }
 
         @Override
@@ -81,7 +87,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
 
     }
 
-    private final static class AtlasMappingItem<MappingMember, MappingLinkType extends Comparable<MappingLinkType>, MappingTargetID extends Comparable<MappingTargetID>, MappingTraversalTestType>
+    private final static class AtlasMappingItem<MappingMember, MappingLinkType extends Comparable<MappingLinkType>, MappingTargetID extends Comparable<MappingTargetID>, MappingTraversalTestType extends Comparable<MappingTraversalTestType>>
             implements Serializable {
         private final MappingMember atlasMember;
         private final TreeMap<MappingLinkType, TargetedTester<MappingLinkType, MappingTargetID, MappingTraversalTestType>> links;
@@ -531,6 +537,11 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
     }
 
     @Override
+    public int compareTo(Atlas<AtlasMemberType, AtlasMemberID, AtlasLinkType, AtlasTraversalTestType> other) {
+        return this.uuid.compareTo(other.uuid);
+    }
+
+    @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("Atlas [uuid=").append(uuid).append(", mapping=").append(mapping).append("]");
@@ -684,7 +695,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         return new DepthFirstIterator();
     }
 
-    public final <TranslateMemberType, TranslateID extends Comparable<TranslateID>, TranslateLinkType extends Comparable<TranslateLinkType>, TranslateTraversalTestType> Map<AtlasMemberID, TranslateID> translate(
+    public final <TranslateMemberType, TranslateID extends Comparable<TranslateID>, TranslateLinkType extends Comparable<TranslateLinkType>, TranslateTraversalTestType extends Comparable<TranslateTraversalTestType>> Map<AtlasMemberID, TranslateID> translate(
             Atlas<TranslateMemberType, TranslateID, TranslateLinkType, TranslateTraversalTestType> translation,
             Function<AtlasMemberType, TranslateMemberType> memberTransformer,
             Function<AtlasLinkType, TranslateLinkType> linkTransformer,
@@ -739,7 +750,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         return visited;
     }
 
-    public final <TranslateMemberType, TranslateID extends Comparable<TranslateID>, TranslateLinkType extends Comparable<TranslateLinkType>, TranslateTraversalTestType> Map<AtlasMemberID, TranslateID> translateToSuppliedAtlas(
+    public final <TranslateMemberType, TranslateID extends Comparable<TranslateID>, TranslateLinkType extends Comparable<TranslateLinkType>, TranslateTraversalTestType extends Comparable<TranslateTraversalTestType>> Map<AtlasMemberID, TranslateID> translateToSuppliedAtlas(
             Supplier<Atlas<TranslateMemberType, TranslateID, TranslateLinkType, TranslateTraversalTestType>> starter,
             Function<AtlasMemberType, TranslateMemberType> memberTransformer,
             Function<AtlasLinkType, TranslateLinkType> linkTransformer,
