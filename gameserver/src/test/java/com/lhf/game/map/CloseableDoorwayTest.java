@@ -32,19 +32,19 @@ public class CloseableDoorwayTest {
         Truth.assertThat(roomB.getUuid()).isNotNull();
 
         Truth.assertThat(dungeon.getAtlas().getLinksForMember(roomB.getUuid())).containsExactly(Directions.EAST);
-        Truth.assertThat(dungeon.getAtlas().getLinkTypeBetween(roomB.getUuid(), roomA.getUuid()))
+        Truth.assertThat(dungeon.getAtlas().getLinkTypeBetweenOrNull(roomB.getUuid(), roomA.getUuid()))
                 .isEqualTo(Directions.EAST);
-        Truth.assertThat(dungeon.getAtlas().getTargetFromMember(roomB.getUuid(), Directions.EAST))
+        Truth.assertThat(dungeon.getAtlas().getTargetFromMemberOrNull(roomB.getUuid(), Directions.EAST))
                 .isEqualTo(roomA.getUuid());
-        Truth.assertThat(dungeon.getAtlas().getTraversalTestFromMember(roomB.getUuid(), Directions.EAST))
+        Truth.assertThat(dungeon.getAtlas().getTraversalTestFromMemberOrNull(roomB.getUuid(), Directions.EAST))
                 .isEqualTo(closeable);
 
         Truth.assertThat(dungeon.getAtlas().getLinksForMember(roomA.getUuid())).containsExactly(Directions.WEST);
-        Truth.assertThat(dungeon.getAtlas().getLinkTypeBetween(roomA.getUuid(), roomB.getUuid()))
+        Truth.assertThat(dungeon.getAtlas().getLinkTypeBetweenOrNull(roomA.getUuid(), roomB.getUuid()))
                 .isEqualTo(Directions.WEST);
-        Truth.assertThat(dungeon.getAtlas().getTargetFromMember(roomA.getUuid(), Directions.WEST))
+        Truth.assertThat(dungeon.getAtlas().getTargetFromMemberOrNull(roomA.getUuid(), Directions.WEST))
                 .isEqualTo(roomB.getUuid());
-        Truth.assertThat(dungeon.getAtlas().getTraversalTestFromMember(roomA.getUuid(), Directions.WEST))
+        Truth.assertThat(dungeon.getAtlas().getTraversalTestFromMemberOrNull(roomA.getUuid(), Directions.WEST))
                 .isEqualTo(closeable);
 
         Truth.assertThat(closeable.isOpen()).isFalse();

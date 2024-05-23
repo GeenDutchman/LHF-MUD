@@ -22,6 +22,7 @@ import com.lhf.RichOutput;
 import com.lhf.RichOutput.PrintingInstructions;
 import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.Atlas;
+import com.lhf.game.Atlas.AtlasTraversalException;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContext;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
 import com.lhf.server.client.Client.ClientID;
@@ -178,7 +179,7 @@ public class ConversationTree implements Serializable {
             if (builderID == null) {
                 return null;
             }
-            return this.conversationAtlas.getAtlasMember(builderID);
+            return this.conversationAtlas.getAtlasMemberOrNull(builderID);
         }
 
         public Builder editNode(Supplier<UUID> idSupplier, Consumer<ConversationTreeNode.Builder> nodeModifier) {
@@ -202,7 +203,7 @@ public class ConversationTree implements Serializable {
             if (fromNodeBuilder == null) {
                 fromNodeBuilder = this.start.getNodeID();
             }
-            ConversationTreeNode.Builder from = this.conversationAtlas.getAtlasMember(fromNodeBuilder);
+            ConversationTreeNode.Builder from = this.conversationAtlas.getAtlasMemberOrNull(fromNodeBuilder);
 
             ConversationPredicate predicate = new ConversationPredicate();
             if (branchEditor != null) {
@@ -258,7 +259,7 @@ public class ConversationTree implements Serializable {
             if (fromHere == null) {
                 fromHere = this.start.getNodeID();
             }
-            return this.conversationAtlas.getLinkTypeBetween(fromHere, toThere);
+            return this.conversationAtlas.getLinkTypeBetweenOrNull(fromHere, toThere);
         }
 
         public synchronized ConversationPredicate getBranchPredicate(UUID fromHere, UUID toThere) {
@@ -268,7 +269,7 @@ public class ConversationTree implements Serializable {
             if (fromHere == null) {
                 fromHere = this.start.getNodeID();
             }
-            return this.conversationAtlas.getTraversalBetween(fromHere, toThere);
+            return this.conversationAtlas.getTraversalBetweenOrNull(fromHere, toThere);
         }
 
         public Builder editBranch(UUID fromHere, UUID toThere, Consumer<ConversationPredicate> branchEditor) {
@@ -454,7 +455,7 @@ public class ConversationTree implements Serializable {
                     continue;
                 }
                 final ConversationPredicate predicate = this.conversationAtlas
-                        .getTraversalTestFromMember(node.getNodeID(), branch);
+                        .getTraversalTestFromMemberOrNull(node.getNodeID(), branch);
                 if (predicate != null && predicate.canAccess(ctx)) {
                     branches.add(branch);
                 }
@@ -470,11 +471,11 @@ public class ConversationTree implements Serializable {
         ConversationContext ctx = this.bookmarks.get(talker.getClientID());
         ctx.backtrack();
         UUID backNode = ctx.getTrailEnd();
-        return this.tagIt(ctx, this.conversationAtlas.getAtlasMember(backNode));
+        return this.tagIt(ctx, this.conversationAtlas.getAtlasMemberOrNull(backNode));
     }
 
     protected ConversationTreeNode getNode(UUID nodeID) {
-        return this.conversationAtlas.getAtlasMember(nodeID);
+        return this.conversationAtlas.getAtlasMemberOrNull(nodeID);
     }
 
     protected Map<UUID, ConversationTreeNode> getNodes() {
@@ -508,15 +509,20 @@ public class ConversationTree implements Serializable {
         }
         ConversationContext ctx = this.bookmarks.get(talker.getClientID());
         UUID id = ctx.getTrailEnd();
-        ConversationTreeNode nextNode = this.conversationAtlas.attemptAllTraversals(id, pattern -> {
-            if (pattern == null) {
-                return false;
-            }
-            Matcher matcher = pattern.getRegex().matcher(message);
-            return matcher.find();
-        }, (traversalTester, source, link, destination) -> {
-            return traversalTester != null ? traversalTester.canAccess(ctx) : true;
-        }, true);
+        ConversationTreeNode nextNode = null;
+        try {
+            nextNode = this.conversationAtlas.attemptAllTraversals(id, pattern -> {
+                if (pattern == null) {
+                    return false;
+                }
+                Matcher matcher = pattern.getRegex().matcher(message);
+                return matcher.find();
+            }, (traversalTester, source, link, destination) -> {
+                return traversalTester != null ? traversalTester.canAccess(ctx) : true;
+            }, true);
+        } catch (AtlasTraversalException e) {
+            // do nothing, we'll try other things
+        }
         if (nextNode != null) {
             this.bookmarks.get(talker.getClientID()).addTrail(nextNode.getNodeID());
             return this.tagIt(ctx, nextNode);
@@ -524,8 +530,8 @@ public class ConversationTree implements Serializable {
 
         for (ConversationPattern repeater : this.repeatWords) {
             Matcher matcher = repeater.matcher(message);
-            if (matcher.find() && this.conversationAtlas.getAtlasMember(id) != null) {
-                return this.tagIt(ctx, this.conversationAtlas.getAtlasMember(id));
+            if (matcher.find() && this.conversationAtlas.getAtlasMemberOrNull(id) != null) {
+                return this.tagIt(ctx, this.conversationAtlas.getAtlasMemberOrNull(id));
             }
         }
 

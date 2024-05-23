@@ -390,21 +390,29 @@ public class ConversationTreeTest {
 
         Builder oneWaySecond = ConversationTreeNode.Builder.ofString("So very friendly!");
 
-        ConversationTree tree = new ConversationTree.Builder().setStartBody(builder).addNode(null,
+        ConversationTree.Builder treeBuilder = new ConversationTree.Builder().setStartBody(builder).addNode(null,
                 new ConversationPattern("both?", "\\bboth\\b", Pattern.CASE_INSENSITIVE), oneWay, (oneBranch) -> {
                     oneBranch.addRule(ConversationContextKey.TALKER_NAME,
                             new ConversationPattern("badperson", "\\b" + "badperson" + "\\b"));
                 }).addNode(null, new ConversationPattern("both?", "\\bboth\\b", Pattern.CASE_INSENSITIVE), otherWay)
                 .addNode(oneWay.getNodeID(),
                         new ConversationPattern("You are friendly?", "\\bfriendly\\b", Pattern.CASE_INSENSITIVE),
-                        oneWaySecond)
-                .build();
+                        oneWaySecond);
 
-        String mermaid = tree.toMermaidStateDiagram(false);
+        String mermaid = treeBuilder.toMermaidStateDiagram(false);
         System.out.println(mermaid);
         Truth.assertThat(mermaid).ignoringCase().contains("greet");
         Truth.assertThat(mermaid).ignoringCase().contains("test");
         Truth.assertThat(mermaid).ignoringCase().contains("friendly");
         Truth.assertThat(mermaid).ignoringCase().contains("badperson");
+
+        ConversationTree tree = treeBuilder.build();
+
+        String mermaid2 = tree.toMermaidStateDiagram(false);
+        System.out.println(mermaid2);
+        Truth.assertThat(mermaid2).ignoringCase().contains("greet");
+        Truth.assertThat(mermaid2).ignoringCase().contains("test");
+        Truth.assertThat(mermaid2).ignoringCase().contains("friendly");
+        Truth.assertThat(mermaid2).ignoringCase().contains("badperson");
     }
 }

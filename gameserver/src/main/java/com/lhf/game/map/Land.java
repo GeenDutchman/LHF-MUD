@@ -216,7 +216,7 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
             }
             return firstMember;
         }
-        return atlas.getAtlasMember(startingAreaUUID);
+        return atlas.getAtlasMemberOrNull(startingAreaUUID);
     }
 
     public default Set<Directions> getAreaExits(Area area) {
@@ -328,14 +328,14 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
                 ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo).Build());
                 return ctx.handled();
             }
-            UUID nextRoomID = land.getAtlas().getTargetFromMember(presentRoom.getUuid(), toGo);
-            final Area nextRoom = land.getAtlas().getAtlasMember(nextRoomID);
+            UUID nextRoomID = land.getAtlas().getTargetFromMemberOrNull(presentRoom.getUuid(), toGo);
+            final Area nextRoom = land.getAtlas().getAtlasMemberOrNull(nextRoomID);
             if (nextRoom == null) {
                 ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.NO_ROOM).setAttempted(command.getDirection())
                         .Build());
                 return ctx.handled();
             }
-            Doorway tester = land.getAtlas().getTraversalTestFromMember(presentRoom.getUuid(), toGo);
+            Doorway tester = land.getAtlas().getTraversalTestFromMemberOrNull(presentRoom.getUuid(), toGo);
             if (tester != null && !tester.testTraversal(ctx.getCreature(), toGo, presentRoom, presentRoom)) {
                 ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.BLOCKED).setAttempted(toGo).setAvailable(exits)
                         .Build());
