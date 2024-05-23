@@ -25,6 +25,152 @@ import java.util.stream.Collectors;
 
 public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<AtlasMemberID>, AtlasLinkType extends Comparable<AtlasLinkType>, AtlasTraversalTestType extends Comparable<AtlasTraversalTestType>>
         implements Comparable<Atlas<AtlasMemberType, AtlasMemberID, AtlasLinkType, AtlasTraversalTestType>> {
+
+    public static class AtlasException extends Exception {
+        public AtlasException(String message) {
+            super(message);
+        }
+
+        public AtlasException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        public AtlasException(Throwable cause) {
+            super(cause);
+        }
+    }
+
+    public static class AtlasMemberException extends AtlasException {
+        final String memberID;
+
+        public AtlasMemberException(String id) {
+            super(String.format("No atlas member found with id '%s'"));
+            this.memberID = id;
+        }
+
+        public AtlasMemberException(String id, Throwable cause) {
+            super(String.format("No atlas member found with id '%s'"), cause);
+            this.memberID = id;
+        }
+
+        public String getMemberID() {
+            return memberID;
+        }
+    }
+
+    public static class AtlasLinkException extends AtlasException {
+        final String source;
+        final String through;
+        final String destination;
+
+        private static String composeDescription(String source, String through, String destination) {
+            if (source != null && through != null && destination != null) {
+                return String.format("No directed link found from source '%s' through '%s' to destination '%s'");
+            } else if (source != null && through != null) {
+                return String.format("No directed link found from source '%s' through '%s'", source, through);
+            } else if (source != null && destination != null) {
+                return String.format("No directed link found from source '%s' to destination '%s'", source,
+                        destination);
+            }
+            return String.format("No directed link found from source '%s' through '%s' to destination '%s'");
+        }
+
+        public AtlasLinkException(String source, String through, String destination) {
+            super(AtlasLinkException.composeDescription(source, through, destination));
+            this.source = source;
+            this.through = null;
+            this.destination = destination;
+        }
+
+        public AtlasLinkException(String source, String through, String destination, Throwable cause) {
+            super(AtlasLinkException.composeDescription(source, through, destination), cause);
+            this.source = source;
+            this.through = null;
+            this.destination = destination;
+        }
+
+        public AtlasLinkException(String message, String source, String through, String destination, Throwable cause) {
+            super(String.format("Error '%s' found with link from source '%s' through '%s' to destination '%s'", message,
+                    source, through, destination), cause);
+            this.source = source;
+            this.through = null;
+            this.destination = destination;
+        }
+
+        public String getSource() {
+            return source;
+        }
+
+        public String getThrough() {
+            return through;
+        }
+
+        public String getDestination() {
+            return destination;
+        }
+
+    }
+
+    public final static class AtlasTraversalException extends AtlasException {
+        public enum TraversalExceptionType {
+            NO_SOURCE, NO_DESTINATION, NO_LINK, FAIL_TRAVERSAL_TEST, OTHER;
+        }
+
+        private static String composeDescription(TraversalExceptionType exceptionType) {
+            if (exceptionType == null) {
+                return "Some other error occurred during traversal. ";
+            }
+            switch (exceptionType) {
+            case FAIL_TRAVERSAL_TEST:
+                return "The traversal test failed. ";
+            case NO_DESTINATION:
+                return "The destination member was not found. ";
+            case NO_LINK:
+                return "No link was found";
+            case NO_SOURCE:
+                return "The source member was not found. ";
+            case OTHER:
+                // fallthrough
+            default:
+                return "Some other error occurred during traversal. ";
+
+            }
+        }
+
+        final TraversalExceptionType type;
+
+        public static AtlasTraversalException failTraversalTest(AtlasException atlasException) {
+            return new AtlasTraversalException(TraversalExceptionType.FAIL_TRAVERSAL_TEST, atlasException);
+        }
+
+        public static AtlasTraversalException noDestination(AtlasException atlasException) {
+            return new AtlasTraversalException(TraversalExceptionType.NO_DESTINATION, atlasException);
+        }
+
+        public static AtlasTraversalException noLink(AtlasException atlasException) {
+            return new AtlasTraversalException(TraversalExceptionType.NO_LINK, atlasException);
+        }
+
+        public static AtlasTraversalException noSource(AtlasException atlasException) {
+            return new AtlasTraversalException(TraversalExceptionType.NO_SOURCE, atlasException);
+        }
+
+        protected AtlasTraversalException(TraversalExceptionType exceptionType) {
+            super(AtlasTraversalException.composeDescription(exceptionType));
+            this.type = exceptionType != null ? exceptionType : TraversalExceptionType.OTHER;
+        }
+
+        protected AtlasTraversalException(TraversalExceptionType exceptionType, AtlasException atlasException) {
+            super(AtlasTraversalException.composeDescription(exceptionType), atlasException);
+            this.type = exceptionType != null ? exceptionType : TraversalExceptionType.OTHER;
+        }
+
+        public TraversalExceptionType getType() {
+            return type;
+        }
+
+    }
+
     private static final class TargetedTester<TargetLinkType extends Comparable<TargetLinkType>, TargetIDType extends Comparable<TargetIDType>, TargetTraversalTestType extends Comparable<TargetTraversalTestType>>
             implements Comparable<TargetedTester<TargetLinkType, TargetIDType, TargetTraversalTestType>> {
         private final TargetLinkType link;
@@ -144,9 +290,11 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             this.links.add(tester);
         }
 
-        protected Map<MappingLinkType, TargetedTester<MappingLinkType, MappingTargetID, MappingTraversalTestType>> getLinksAsMap() {
+        protected Map<MappingLinkType, Set<TargetedTester<MappingLinkType, MappingTargetID, MappingTraversalTestType>>> getLinksAsMap() {
             return this.links.stream().filter(entry -> entry != null)
-                    .collect(Collectors.toUnmodifiableMap(entry -> entry.getLink(), entry -> entry));
+                    .collect(Collectors.groupingBy(entry -> entry.getLink(), () -> new LinkedHashMap<>(),
+                            Collectors.collectingAndThen(Collectors.toCollection(() -> new LinkedHashSet<>()),
+                                    set -> Collections.unmodifiableSet(set))));
         }
 
         public Set<MappingLinkType> getAvailableLinks() {
@@ -391,7 +539,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         }
     }
 
-    public final AtlasMemberType getAtlasMember(AtlasMemberID memberId) {
+    public final AtlasMemberType getAtlasMemberOrNull(AtlasMemberID memberId) {
         synchronized (this.mapping) {
             AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> item = this
                     .getAtlasMappingItem(memberId);
@@ -399,6 +547,23 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                 return null;
             }
             return item.getAtlasMember();
+        }
+    }
+
+    public final AtlasMemberType getAtlasMemberOrThrow(AtlasMemberID memberId) throws AtlasMemberException {
+        synchronized (this.mapping) {
+            AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> item = this
+                    .getAtlasMappingItem(memberId);
+            if (item == null) {
+                throw new AtlasMemberException(memberId.toString(),
+                        new NoSuchElementException(String.format("No element found for id '%s'", memberId)));
+            }
+            AtlasMemberType retrieved = item.getAtlasMember();
+            if (retrieved == null) {
+                throw new AtlasMemberException(memberId.toString(),
+                        new NoSuchElementException(String.format("Null entry found for id '%s'", memberId)));
+            }
+            return retrieved;
         }
     }
 
@@ -422,7 +587,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         return testers.stream().map(tester -> tester.targetId).collect(Collectors.toSet());
     }
 
-    public final AtlasMemberID getTargetFromMember(AtlasMemberID from, AtlasLinkType through) {
+    public final AtlasMemberID getTargetFromMemberOrNull(AtlasMemberID from, AtlasLinkType through) {
         final AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> member = this
                 .getAtlasMappingItem(from);
         if (member == null) {
@@ -440,7 +605,28 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         return first.targetId;
     }
 
-    public final AtlasTraversalTestType getTraversalTestFromMember(AtlasMemberID from, AtlasLinkType through) {
+    public final AtlasMemberID getTargetFromMemberOrThrow(AtlasMemberID from, AtlasLinkType through)
+            throws AtlasMemberException, AtlasLinkException {
+        final AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> member = this
+                .getAtlasMappingItem(from);
+        if (member == null) {
+            throw new AtlasMemberException(from.toString(),
+                    new NoSuchElementException(String.format("No element found for id '%s'", from)));
+        }
+        final SortedSet<TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> targeted = member
+                .getTargetedTesters(through);
+        if (targeted == null) {
+            throw new AtlasLinkException(from.toString(), through.toString(), null, new IllegalStateException(
+                    String.format("Null set of links found for '%s' through '%s'", from, through)));
+        }
+        final TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> first = targeted.first();
+        if (first == null || first.targetId == null) {
+            throw new AtlasLinkException(from.toString(), through.toString(), null);
+        }
+        return first.targetId;
+    }
+
+    public final AtlasTraversalTestType getTraversalTestFromMemberOrNull(AtlasMemberID from, AtlasLinkType through) {
         final AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> member = this
                 .getAtlasMappingItem(from);
         if (member == null) {
@@ -458,13 +644,35 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         return first.predicate;
     }
 
+    public final AtlasTraversalTestType getTraversalTestFromMemberOrThrow(AtlasMemberID from, AtlasLinkType through)
+            throws AtlasMemberException, AtlasLinkException {
+        final AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> member = this
+                .getAtlasMappingItem(from);
+        if (member == null) {
+            throw new AtlasMemberException(from.toString(),
+                    new NoSuchElementException(String.format("No element found for id '%s'", from)));
+        }
+        final SortedSet<TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> targeted = member
+                .getTargetedTesters(through);
+        if (targeted == null) {
+            throw new AtlasLinkException(from.toString(), through.toString(), null, new IllegalStateException(
+                    String.format("Null set of links found for '%s' through '%s'", from, through)));
+        }
+        final TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> first = targeted.first();
+        if (first == null || first.predicate == null) {
+            throw new AtlasLinkException("No traversal test", from.toString(), through.toString(),
+                    first != null && first.targetId != null ? first.targetId.toString() : null, null);
+        }
+        return first.predicate;
+    }
+
     public final SortedSet<AtlasLinkType> getLinksBetween(AtlasMemberID here, AtlasMemberID there) {
+        TreeSet<AtlasLinkType> collected = new TreeSet<>();
         if (here == null || there == null) {
-            return null;
+            return Collections.unmodifiableSortedSet(collected);
         }
         final AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> member = this
                 .getAtlasMappingItem(here);
-        TreeSet<AtlasLinkType> collected = new TreeSet<>();
         if (member == null || member.links == null) {
             return Collections.unmodifiableSortedSet(collected);
         }
@@ -479,7 +687,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         return Collections.unmodifiableSortedSet(collected);
     }
 
-    public final AtlasLinkType getLinkTypeBetween(AtlasMemberID here, AtlasMemberID there) {
+    public final AtlasLinkType getLinkTypeBetweenOrNull(AtlasMemberID here, AtlasMemberID there) {
         final SortedSet<AtlasLinkType> linksSet = this.getLinksBetween(here, there);
         if (linksSet == null) {
             return null;
@@ -487,7 +695,24 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         return linksSet.first();
     }
 
-    public final AtlasTraversalTestType getTraversalBetween(AtlasMemberID here, AtlasMemberID there) {
+    public final AtlasLinkType getLinkTypeBetweenOrThrow(AtlasMemberID here, AtlasMemberID there)
+            throws AtlasMemberException, AtlasLinkException {
+        final SortedSet<AtlasLinkType> linksSet = this.getLinksBetween(here, there);
+        if (linksSet == null) {
+            throw new AtlasLinkException(here.toString(), null, there.toString(),
+                    new IllegalStateException(String.format("Null set of links")));
+        } else if (linksSet.isEmpty()) {
+            throw new AtlasLinkException(here.toString(), null, there.toString());
+        }
+        final AtlasLinkType theLink = linksSet.first();
+        if (theLink == null) {
+            throw new AtlasLinkException(here.toString(), null, there.toString(),
+                    new NullPointerException("First link in set is null"));
+        }
+        return theLink;
+    }
+
+    public final AtlasTraversalTestType getTraversalBetweenOrNull(AtlasMemberID here, AtlasMemberID there) {
         if (here == null || there == null) {
             return null;
         }
@@ -514,51 +739,60 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
     }
 
     public final AtlasMemberType attemptTraversal(AtlasMemberID from, AtlasLinkType through,
-            ContextualTraversalPredicate<AtlasMemberType, AtlasLinkType, AtlasTraversalTestType> traversalPredicate) {
+            ContextualTraversalPredicate<AtlasMemberType, AtlasLinkType, AtlasTraversalTestType> traversalPredicate)
+            throws AtlasTraversalException {
         if (traversalPredicate == null || through == null) {
-            return null;
+            throw new IllegalArgumentException("TravelPredicate and Through should not be null!");
         }
         return this.attemptAllTraversals(from, link -> through.equals(link), traversalPredicate, false);
     }
 
     public final AtlasMemberType attemptAllTraversals(AtlasMemberID from, Predicate<AtlasLinkType> throughPredicate,
             ContextualTraversalPredicate<AtlasMemberType, AtlasLinkType, AtlasTraversalTestType> traversalPredicate,
-            boolean ignoreLinkFailure) {
+            boolean ignoreLinkFailure) throws AtlasTraversalException {
         if (throughPredicate == null || traversalPredicate == null) {
-            return null;
+            throw new IllegalArgumentException("TravelPredicate and Through should not be null!");
         }
         final AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> member = this
                 .getAtlasMappingItem(from);
-        if (member == null || member.links == null) {
-            return null;
+        if (member == null) {
+            throw AtlasTraversalException.noSource(new AtlasMemberException(from.toString()));
+        } else if (member.links == null) {
+            throw AtlasTraversalException.noLink(new AtlasLinkException(from.toString(), null, null,
+                    new IllegalStateException("Atlas member has null associated links")));
         }
         final SortedSet<TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> testers = member
                 .getFilteredTargetedTesters(throughPredicate);
         if (testers == null || testers.isEmpty()) {
-            return null;
+            throw AtlasTraversalException
+                    .noLink(new AtlasLinkException(from.toString(), "provided predicate", null, null));
         }
         for (TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> targetedTester : testers) {
-            if (targetedTester == null) {
+            if (targetedTester == null || targetedTester.targetId == null) {
                 if (ignoreLinkFailure) {
                     continue;
                 }
-                return null;
+                throw AtlasTraversalException.noLink(new AtlasLinkException(from.toString(), "provided predicate", null,
+                        new IllegalStateException("Atlas link is null")));
             }
-            final AtlasMemberType destination = this.getAtlasMember(targetedTester.targetId);
-            if (destination == null) {
+            AtlasMemberType destination;
+            try {
+                destination = this.getAtlasMemberOrThrow(targetedTester.targetId);
+            } catch (AtlasMemberException e) {
                 if (ignoreLinkFailure) {
                     continue;
                 }
-                return null;
+                throw AtlasTraversalException.noDestination(e);
             }
             if (traversalPredicate.test(targetedTester.predicate, member.atlasMember, targetedTester.link,
                     destination)) {
                 return destination;
             } else if (!ignoreLinkFailure) {
-                return null;
+                throw AtlasTraversalException.failTraversalTest(new AtlasLinkException("failed traversal test",
+                        from.toString(), "provided predicate", targetedTester.link.toString(), null));
             }
         }
-        return null;
+        throw AtlasTraversalException.noLink(new AtlasLinkException(from.toString(), "provided predicate", null));
     }
 
     public final UUID getUuid() {
