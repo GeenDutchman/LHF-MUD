@@ -14,7 +14,8 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeMap;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -90,12 +91,12 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
     private final static class AtlasMappingItem<MappingMember, MappingLinkType extends Comparable<MappingLinkType>, MappingTargetID extends Comparable<MappingTargetID>, MappingTraversalTestType extends Comparable<MappingTraversalTestType>>
             implements Serializable {
         private final MappingMember atlasMember;
-        private final TreeMap<MappingLinkType, TargetedTester<MappingLinkType, MappingTargetID, MappingTraversalTestType>> links;
+        private final TreeSet<TargetedTester<MappingLinkType, MappingTargetID, MappingTraversalTestType>> links;
         private LinkedHashSet<MappingTargetID> backLinks;
 
         protected AtlasMappingItem(MappingMember atlasMember) {
             this.atlasMember = atlasMember;
-            this.links = new TreeMap<>();
+            this.links = new TreeSet<>();
             this.backLinks = new LinkedHashSet<>();
         }
 
@@ -103,59 +104,53 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             return atlasMember;
         }
 
-        protected Collection<TargetedTester<MappingLinkType, MappingTargetID, MappingTraversalTestType>> getTargetedTesters() {
-            return this.getLinks().values();
+        protected SortedSet<TargetedTester<MappingLinkType, MappingTargetID, MappingTraversalTestType>> getTargetedTesters(
+                Predicate<MappingLinkType> linkTester) {
+            final TreeSet<TargetedTester<MappingLinkType, MappingTargetID, MappingTraversalTestType>> testers = new TreeSet<>();
+            this.links.stream().filter(tester -> tester != null).forEach(element -> testers.add(element));
+            if (linkTester != null) {
+                testers.removeIf(element -> !linkTester.test(element.link));
+            }
+            return Collections.unmodifiableSortedSet(testers);
+        }
+
+        protected SortedSet<TargetedTester<MappingLinkType, MappingTargetID, MappingTraversalTestType>> getTargetedTesters(
+                MappingLinkType link) {
+            if (link == null) {
+                return Collections.unmodifiableSortedSet(new TreeSet<>());
+            }
+            return this.getTargetedTesters(tryLink -> link.equals(tryLink));
         }
 
         private synchronized void removeLinksTo(MappingTargetID forwardID) {
             if (forwardID == null || this.links == null) {
                 return;
             }
-            final Iterator<Entry<MappingLinkType, TargetedTester<MappingLinkType, MappingTargetID, MappingTraversalTestType>>> linkIterator = this.links
-                    .entrySet().iterator();
-            while (linkIterator.hasNext()) {
-                final Entry<MappingLinkType, TargetedTester<MappingLinkType, MappingTargetID, MappingTraversalTestType>> entry = linkIterator
-                        .next();
-                final TargetedTester<MappingLinkType, MappingTargetID, MappingTraversalTestType> tester = entry
-                        .getValue();
+            Iterator<TargetedTester<MappingLinkType, MappingTargetID, MappingTraversalTestType>> testerIter = this.links
+                    .iterator();
+            while (testerIter.hasNext()) {
+                TargetedTester<MappingLinkType, MappingTargetID, MappingTraversalTestType> tester = testerIter.next();
                 if (tester == null || forwardID.equals(tester.targetId)) {
-                    linkIterator.remove();
-                    continue;
+                    testerIter.remove();
                 }
             }
         }
 
-        protected Map<MappingLinkType, TargetedTester<MappingLinkType, MappingTargetID, MappingTraversalTestType>> getLinks() {
-            return this.links.entrySet().stream().filter(entry -> entry.getKey() != null && entry.getValue() != null)
-                    .collect(Collectors.toUnmodifiableMap(entry -> entry.getKey(), entry -> entry.getValue()));
+        private synchronized void addLink(
+                TargetedTester<MappingLinkType, MappingTargetID, MappingTraversalTestType> tester) {
+            if (tester == null) {
+                return;
+            }
+            this.links.add(tester);
+        }
+
+        protected Map<MappingLinkType, TargetedTester<MappingLinkType, MappingTargetID, MappingTraversalTestType>> getLinksAsMap() {
+            return this.links.stream().filter(entry -> entry != null)
+                    .collect(Collectors.toUnmodifiableMap(entry -> entry.getLink(), entry -> entry));
         }
 
         public Set<MappingLinkType> getAvailableLinks() {
-            return this.getLinks().keySet();
-        }
-
-        public MappingTargetID testTraversal(Predicate<MappingLinkType> linkTester,
-                Predicate<MappingTraversalTestType> traversalTest, boolean pastFirstLinkFailure,
-                boolean pastFirstTraversalFailure) {
-            if (linkTester == null || traversalTest == null) {
-                return null;
-            }
-            for (TargetedTester<MappingLinkType, MappingTargetID, MappingTraversalTestType> targeted : this.links
-                    .values()) {
-                if (targeted == null) {
-                    continue;
-                }
-                if (linkTester.test(targeted.link)) {
-                    if (traversalTest.test(targeted.predicate)) {
-                        return targeted.targetId;
-                    } else if (!pastFirstTraversalFailure) {
-                        return null;
-                    }
-                } else if (!pastFirstLinkFailure) {
-                    return null;
-                }
-            }
-            return null;
+            return Collections.unmodifiableSet(this.getLinksAsMap().keySet());
         }
 
         @Override
@@ -248,7 +243,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                 secondMappingItem = this.emplaceMember(second);
             }
 
-            firstMappingItem.links.put(toSecond, new TargetedTester<>(toSecond, secondID, predicate));
+            firstMappingItem.addLink(new TargetedTester<>(toSecond, secondID, predicate));
             secondMappingItem.backLinks.add(firstID);
         }
     }
@@ -413,18 +408,36 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         return member != null ? member.getAvailableLinks() : Set.of();
     }
 
+    public final Set<AtlasMemberID> getTargetsFromMember(AtlasMemberID from, Predicate<AtlasLinkType> through) {
+        final AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> member = this
+                .getAtlasMappingItem(from);
+        if (member == null) {
+            return Set.of();
+        }
+        SortedSet<TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> testers = member
+                .getTargetedTesters(through);
+        if (testers == null) {
+            return Set.of();
+        }
+        return testers.stream().map(tester -> tester.targetId).collect(Collectors.toSet());
+    }
+
     public final AtlasMemberID getTargetFromMember(AtlasMemberID from, AtlasLinkType through) {
         final AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> member = this
                 .getAtlasMappingItem(from);
         if (member == null) {
             return null;
         }
-        final TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> targeted = member.links
-                .getOrDefault(through, null);
+        final SortedSet<TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> targeted = member
+                .getTargetedTesters(through);
         if (targeted == null) {
             return null;
         }
-        return targeted.targetId;
+        final TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> first = targeted.first();
+        if (first == null) {
+            return null;
+        }
+        return first.targetId;
     }
 
     public final AtlasTraversalTestType getTraversalTestFromMember(AtlasMemberID from, AtlasLinkType through) {
@@ -433,32 +446,45 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         if (member == null) {
             return null;
         }
-        final TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> targeted = member.links
-                .getOrDefault(through, null);
+        final SortedSet<TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> targeted = member
+                .getTargetedTesters(through);
         if (targeted == null) {
             return null;
         }
-        return targeted.predicate;
+        final TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> first = targeted.first();
+        if (first == null) {
+            return null;
+        }
+        return first.predicate;
     }
 
-    public final AtlasLinkType getLinkTypeBetween(AtlasMemberID here, AtlasMemberID there) {
+    public final SortedSet<AtlasLinkType> getLinksBetween(AtlasMemberID here, AtlasMemberID there) {
         if (here == null || there == null) {
             return null;
         }
         final AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> member = this
                 .getAtlasMappingItem(here);
+        TreeSet<AtlasLinkType> collected = new TreeSet<>();
         if (member == null || member.links == null) {
-            return null;
+            return Collections.unmodifiableSortedSet(collected);
         }
-        for (TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> link : member.links.values()) {
+        for (TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> link : member.links) {
             if (link == null) {
                 continue;
             }
             if (there.equals(link.targetId)) {
-                return link.getLink();
+                collected.add(link.link);
             }
         }
-        return null;
+        return Collections.unmodifiableSortedSet(collected);
+    }
+
+    public final AtlasLinkType getLinkTypeBetween(AtlasMemberID here, AtlasMemberID there) {
+        final SortedSet<AtlasLinkType> linksSet = this.getLinksBetween(here, there);
+        if (linksSet == null) {
+            return null;
+        }
+        return linksSet.first();
     }
 
     public final AtlasTraversalTestType getTraversalBetween(AtlasMemberID here, AtlasMemberID there) {
@@ -470,7 +496,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         if (member == null || member.links == null) {
             return null;
         }
-        for (TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> link : member.links.values()) {
+        for (TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> link : member.links) {
             if (link == null) {
                 continue;
             }
@@ -481,30 +507,23 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         return null;
     }
 
-    public final AtlasMemberID attemptTraversal(AtlasMemberID from, AtlasLinkType through,
-            Predicate<AtlasTraversalTestType> traversalPredicate) {
-        if (traversalPredicate == null) {
-            return null;
-        }
-        final AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> member = this
-                .getAtlasMappingItem(from);
-        if (member == null) {
-            return null;
-        }
-        final TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> targeted = member.links
-                .getOrDefault(through, null);
-        if (targeted == null) {
-            return null;
-        }
-        if (traversalPredicate.test(targeted.predicate)) {
-            return targeted.targetId;
-        }
-        return null;
+    @FunctionalInterface
+    public static interface ContextualTraversalPredicate<ContextualMemberType, ContextualLinkType extends Comparable<ContextualLinkType>, ContextualTraversalType extends Comparable<ContextualTraversalType>> {
+        public boolean test(ContextualTraversalType traversalTester, ContextualMemberType source,
+                ContextualLinkType link, ContextualMemberType destination);
     }
 
-    public final AtlasMemberID attemptAllTraversals(AtlasMemberID from, Predicate<AtlasLinkType> throughPredicate,
-            Predicate<AtlasTraversalTestType> traversalPredicate, boolean pastFirstLinkFailure,
-            boolean pastFirstTraversalFailure) {
+    public final AtlasMemberType attemptTraversal(AtlasMemberID from, AtlasLinkType through,
+            ContextualTraversalPredicate<AtlasMemberType, AtlasLinkType, AtlasTraversalTestType> traversalPredicate) {
+        if (traversalPredicate == null || through == null) {
+            return null;
+        }
+        return this.attemptAllTraversals(from, link -> through.equals(link), traversalPredicate, false);
+    }
+
+    public final AtlasMemberType attemptAllTraversals(AtlasMemberID from, Predicate<AtlasLinkType> throughPredicate,
+            ContextualTraversalPredicate<AtlasMemberType, AtlasLinkType, AtlasTraversalTestType> traversalPredicate,
+            boolean ignoreLinkFailure) {
         if (throughPredicate == null || traversalPredicate == null) {
             return null;
         }
@@ -513,8 +532,33 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         if (member == null || member.links == null) {
             return null;
         }
-        return member.testTraversal(throughPredicate, traversalPredicate, pastFirstLinkFailure,
-                pastFirstTraversalFailure);
+        final SortedSet<TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> testers = member
+                .getTargetedTesters(throughPredicate);
+        if (testers == null || testers.isEmpty()) {
+            return null;
+        }
+        for (TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> targetedTester : testers) {
+            if (targetedTester == null) {
+                if (ignoreLinkFailure) {
+                    continue;
+                }
+                return null;
+            }
+            final AtlasMemberType destination = this.getAtlasMember(targetedTester.targetId);
+            if (destination == null) {
+                if (ignoreLinkFailure) {
+                    continue;
+                }
+                return null;
+            }
+            if (traversalPredicate.test(targetedTester.predicate, member.atlasMember, targetedTester.link,
+                    destination)) {
+                return destination;
+            } else if (!ignoreLinkFailure) {
+                return null;
+            }
+        }
+        return null;
     }
 
     public final UUID getUuid() {
