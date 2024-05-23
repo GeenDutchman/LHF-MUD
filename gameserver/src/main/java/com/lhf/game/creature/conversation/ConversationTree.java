@@ -508,21 +508,18 @@ public class ConversationTree implements Serializable {
         }
         ConversationContext ctx = this.bookmarks.get(talker.getClientID());
         UUID id = ctx.getTrailEnd();
-        UUID nextNodeID = this.conversationAtlas.attemptAllTraversals(id, pattern -> {
+        ConversationTreeNode nextNode = this.conversationAtlas.attemptAllTraversals(id, pattern -> {
             if (pattern == null) {
                 return false;
             }
             Matcher matcher = pattern.getRegex().matcher(message);
             return matcher.find();
-        }, predicate -> {
-            return predicate != null ? predicate.canAccess(ctx) : true;
-        }, true, true);
-        if (nextNodeID != null) {
-            ConversationTreeNode nextNode = this.conversationAtlas.getAtlasMember(nextNodeID);
-            if (nextNode != null) {
-                this.bookmarks.get(talker.getClientID()).addTrail(nextNodeID);
-                return this.tagIt(ctx, nextNode);
-            }
+        }, (traversalTester, source, link, destination) -> {
+            return traversalTester != null ? traversalTester.canAccess(ctx) : true;
+        }, true);
+        if (nextNode != null) {
+            this.bookmarks.get(talker.getClientID()).addTrail(nextNode.getNodeID());
+            return this.tagIt(ctx, nextNode);
         }
 
         for (ConversationPattern repeater : this.repeatWords) {
