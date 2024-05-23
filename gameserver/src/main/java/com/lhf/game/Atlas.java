@@ -104,7 +104,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             return atlasMember;
         }
 
-        protected SortedSet<TargetedTester<MappingLinkType, MappingTargetID, MappingTraversalTestType>> getTargetedTesters(
+        protected SortedSet<TargetedTester<MappingLinkType, MappingTargetID, MappingTraversalTestType>> getFilteredTargetedTesters(
                 Predicate<MappingLinkType> linkTester) {
             final TreeSet<TargetedTester<MappingLinkType, MappingTargetID, MappingTraversalTestType>> testers = new TreeSet<>();
             this.links.stream().filter(tester -> tester != null).forEach(element -> testers.add(element));
@@ -119,7 +119,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             if (link == null) {
                 return Collections.unmodifiableSortedSet(new TreeSet<>());
             }
-            return this.getTargetedTesters(tryLink -> link.equals(tryLink));
+            return this.getFilteredTargetedTesters(tryLink -> link.equals(tryLink));
         }
 
         private synchronized void removeLinksTo(MappingTargetID forwardID) {
@@ -415,7 +415,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             return Set.of();
         }
         SortedSet<TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> testers = member
-                .getTargetedTesters(through);
+                .getFilteredTargetedTesters(through);
         if (testers == null) {
             return Set.of();
         }
@@ -533,7 +533,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             return null;
         }
         final SortedSet<TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> testers = member
-                .getTargetedTesters(throughPredicate);
+                .getFilteredTargetedTesters(throughPredicate);
         if (testers == null || testers.isEmpty()) {
             return null;
         }
@@ -650,7 +650,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                 }
                 if (!this.visited.contains(current)) {
                     final Collection<TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType>> targetedTesters = mappingItem
-                            .getTargetedTesters();
+                            .getFilteredTargetedTesters(null);
                     for (final TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> tester : targetedTesters) {
                         final AtlasMemberID targetID = tester.getTargetId();
                         if (targetID != null && !this.visited.contains(targetID)) {
@@ -778,8 +778,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                     .getAtlasMappingItem(vistedEntry.getKey());
             final AtlasMappingItem<TranslateMemberType, TranslateLinkType, TranslateID, TranslateTraversalTestType> translatedMember = translation
                     .getAtlasMappingItem(vistedEntry.getValue());
-            for (final TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> tester : member
-                    .getTargetedTesters()) {
+            for (final TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> tester : member.links) {
                 final AtlasMemberID targetMemberID = tester.getTargetId();
                 final AtlasMappingItem<TranslateMemberType, TranslateLinkType, TranslateID, TranslateTraversalTestType> translatedTarget = translation
                         .getAtlasMappingItem(visited.get(targetMemberID));
@@ -820,8 +819,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             final AtlasMemberType member = mapItem.getAtlasMember();
             final String uuid = this.getIDForMemberType(member).toString();
             sb.append("    ").append(uuid).append("[").append(this.getNameForMemberType(member)).append("]\r\n");
-            for (final TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> dir : mapItem
-                    .getTargetedTesters()) {
+            for (final TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> dir : mapItem.links) {
                 String otherUUID = dir.getTargetId().toString();
                 edges.append("    ").append(uuid).append("-->|").append(dir.getLink()).append("|").append(otherUUID)
                         .append("\r\n");
@@ -902,7 +900,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                 }
             }
 
-            forTesters.accept(id, mappingItem.links.values());
+            forTesters.accept(id, mappingItem.links);
         }
 
         sb.append(linkBuilder.toString()).append("\r\n");
