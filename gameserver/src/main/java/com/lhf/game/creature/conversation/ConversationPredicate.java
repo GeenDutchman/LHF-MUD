@@ -1,7 +1,10 @@
 package com.lhf.game.creature.conversation;
 
 import java.io.Serializable;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 
@@ -71,10 +74,43 @@ public final class ConversationPredicate implements Serializable, Comparable<Con
         if (arg0 == null) {
             throw new NullPointerException();
         }
-        if (this == arg0) {
+        if (this.equals(arg0)) {
             return 0;
         }
-        return 0; // no idea how to further sort these
+        int compare = this.blacklist.size() - arg0.blacklist.size();
+        if (compare != 0) {
+            return compare;
+        }
+        Iterator<Entry<String, ConversationPattern>> myiter = this.blacklist.entrySet().iterator();
+        Iterator<Entry<String, ConversationPattern>> otheriter = arg0.blacklist.entrySet().iterator();
+        while (myiter.hasNext() && otheriter.hasNext()) {
+            Entry<String, ConversationPattern> myEntry = myiter.next();
+            Entry<String, ConversationPattern> otherEntry = otheriter.next();
+            compare = myEntry.getKey().compareTo(otherEntry.getKey());
+            if (compare != 0) {
+                return compare;
+            }
+            compare = myEntry.getValue().compareTo(otherEntry.getValue());
+            if (compare != 0) {
+                return compare;
+            }
+        }
+        return 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(blacklist);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!(obj instanceof ConversationPredicate))
+            return false;
+        ConversationPredicate other = (ConversationPredicate) obj;
+        return Objects.equals(blacklist, other.blacklist);
     }
 
 }
