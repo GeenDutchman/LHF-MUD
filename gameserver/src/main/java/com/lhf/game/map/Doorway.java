@@ -1,9 +1,12 @@
 package com.lhf.game.map;
 
+import java.util.UUID;
+
 import com.lhf.game.creature.ICreature;
 
 public class Doorway implements Comparable<Doorway> {
     protected final String className;
+    private final UUID uuid = UUID.randomUUID();
 
     public Doorway() {
         this.className = this.getClass().getName();
@@ -15,6 +18,10 @@ public class Doorway implements Comparable<Doorway> {
 
     public String getClassName() {
         return className;
+    }
+
+    protected UUID getUuid() {
+        return uuid;
     }
 
     @Override
@@ -30,7 +37,11 @@ public class Doorway implements Comparable<Doorway> {
         if (this == arg0) {
             return 0;
         }
-        return this.getClassName().compareTo(arg0.getClassName());
+        int comparison = this.getClassName().compareTo(arg0.getClassName());
+        if (comparison != 0) {
+            return comparison;
+        }
+        return this.uuid.compareTo(arg0.uuid);
     }
 
 }
