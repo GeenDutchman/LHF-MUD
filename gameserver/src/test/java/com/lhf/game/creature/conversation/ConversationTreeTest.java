@@ -447,6 +447,11 @@ public class ConversationTreeTest {
             mermaid = verbal.toMermaidStateDiagram(false);
             Truth.assertThat(mermaid).ignoringCase().contains("secrets");
 
+            ConversationTree gary = assertDoesNotThrow(() -> manager.convoTreeFromFile("gary"),
+                    () -> "Failed to load gary's tree");
+            mermaid = gary.toMermaidStateDiagram(false);
+            Truth.assertThat(mermaid).ignoringCase().contains("CREATE_VOCATION");
+
             this.rewriteNeeded = false;
         }
 
@@ -484,7 +489,7 @@ public class ConversationTreeTest {
                     .ofString("May the Dungeon Mistress and Dungeon Master watch over and forgive you.");
 
             ConversationTree.Builder builder = new ConversationTree.Builder(start).addDefaultGreetings()
-                    .addDefaultRepeatWords();
+                    .addDefaultRepeatWords().setTreeName("verbal_default");
             builder.addNode(start.getNodeID(), new ConversationPattern("Hi", ".*"), greetings);
             builder.addNode(greetings.getNodeID(), new ConversationPattern("I must go.", ".*"), forgiveness);
             builder.addNode(greetings.getNodeID(), new ConversationPattern("What can you tell me?", "what|tell me"),
@@ -508,9 +513,54 @@ public class ConversationTreeTest {
                             .appendMetadata(ConversationContextKey.TALKER_NAME.name()));
             ConversationPattern anything = new ConversationPattern("anything", ".+");
             ConversationTree.Builder builder = new ConversationTree.Builder(start).addDefaultGreetings()
-                    .addGreeting(anything).addDefaultRepeatWords();
+                    .addGreeting(anything).addDefaultRepeatWords().setTreeName("aggravated");
             builder.addNode(start.getNodeID(), anything, second);
             builder.addNode(second.getNodeID(), anything, start);
+
+            ConversationTree built = builder.build();
+            boolean written = assertDoesNotThrow(() -> manager.convoTreeToFile(built), () -> "Failed to write tree");
+            Truth.assertThat(written).isTrue();
+
+        }
+
+        @Test
+        @Order(5)
+        @EnabledIf("isRewriteNeeded")
+        void writeGary() {
+            ConversationTreeNode.Builder start = ConversationTreeNode.Builder
+                    .ofString("Intro lore placeholder here. Are you ok to start?");
+            ConversationTreeNode.Builder selection = ConversationTreeNode.Builder
+                    .ofString("Do you want to be a FIGHTER, MAGE, or HEALER?");
+            ConversationTreeNode.Builder fighter = ConversationTreeNode.Builder.ofString(
+                    "You have selected FIGHTER. Are you unsure about that, or are you ready to go into the dungeon?")
+                    .addPrompt("STORE CREATE_VOCATION FIGHTER");
+            ConversationTreeNode.Builder mage = ConversationTreeNode.Builder.ofString(
+                    "You have selected MAGE. Are you unsure about that, or are you ready to go into the dungeon?")
+                    .addPrompt("STORE CREATE_VOCATION MAGE");
+            ConversationTreeNode.Builder healer = ConversationTreeNode.Builder.ofString(
+                    "You have selected HEALER. Are you unsure about that, or are you ready to go into the dungeon?")
+                    .addPrompt("STORE CREATE_VOCATION HEALER");
+            ConversationTreeNode.Builder done = ConversationTreeNode.Builder.ofString("It is done!")
+                    .addPrompt(new RichOutputBuilder().appendChild("PROMPT LEWD Ada Lovejax use")
+                            .appendMetadata(ConversationContextKey.TALKER_NAME.name()).appendString("as", " ", " ")
+                            .appendMetadata("CREATE_VOCATION"));
+
+            ConversationTree.Builder builder = new ConversationTree.Builder(start).setTreeName("gary")
+                    .addGreeting(new ConversationPattern(
+                            "This is some lore, but to make a character you need to say \"hi\" to me!", "\\bhi\\b"))
+                    .addDefaultRepeatWords();
+            builder.addNode(start.getNodeID(), new ConversationPattern("ok", "\\b(ok|okay)\\b"), selection);
+            builder.addNode(selection.getNodeID(), new ConversationPattern("FIGHTER", "fighter"), fighter);
+            builder.addNode(selection.getNodeID(), new ConversationPattern("MAGE", "mage"), mage);
+            builder.addNode(selection.getNodeID(), new ConversationPattern("HEALER", "healer"), healer);
+            ConversationPattern unsure = new ConversationPattern("I'm unsure", "\\bunsure\\b");
+            builder.addNode(fighter.getNodeID(), unsure, selection);
+            builder.addNode(mage.getNodeID(), unsure, selection);
+            builder.addNode(healer.getNodeID(), unsure, selection);
+            ConversationPattern ready = new ConversationPattern("I'm ready", "\\bready\\b");
+            builder.addNode(fighter.getNodeID(), ready, done);
+            builder.addNode(mage.getNodeID(), ready, done);
+            builder.addNode(healer.getNodeID(), ready, done);
 
             ConversationTree built = builder.build();
             boolean written = assertDoesNotThrow(() -> manager.convoTreeToFile(built), () -> "Failed to write tree");
