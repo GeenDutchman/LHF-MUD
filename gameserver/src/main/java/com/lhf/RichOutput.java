@@ -279,12 +279,49 @@ public final class RichOutput implements Serializable {
                 this.metaSignal = element.getMetaSignal();
             }
 
-            // public void set(RichOutputBuilder builder) {
-            // this.builder = builder;
-            // if (builder != null) {
-            // this.element = null;
-            // }
-            // }
+            private BuilderElement(String charSequence, Taggable taggable, Examinable examinable,
+                    RichOutputBuilder output, String metaSignal) {
+                this.charSequence = charSequence;
+                this.taggable = Taggable.basicTaggable(taggable);
+                this.examinable = Examinable.basicExaminable(examinable);
+                this.output = output;
+                this.metaSignal = metaSignal;
+            }
+
+            public static BuilderElement ofCharSequence(CharSequence charSequence) {
+                if (charSequence == null) {
+                    return null;
+                }
+                return new BuilderElement(charSequence.toString(), null, null, null, null);
+            }
+
+            public static BuilderElement ofTaggable(Taggable taggable) {
+                if (taggable == null) {
+                    return null;
+                }
+                return new BuilderElement(null, taggable, null, null, null);
+            }
+
+            public static BuilderElement ofExaminable(Examinable examinable) {
+                if (examinable == null) {
+                    return null;
+                }
+                return new BuilderElement(null, null, examinable, null, null);
+            }
+
+            public static BuilderElement ofOutput(RichOutputBuilder sequence) {
+                if (sequence == null) {
+                    return null;
+                }
+                return new BuilderElement(null, null, null, sequence, null);
+            }
+
+            public static BuilderElement ofMetaSignal(String metaSignal) {
+                if (metaSignal == null) {
+                    return null;
+                }
+                return new BuilderElement(null, null, null, null, metaSignal);
+            }
 
             public void set(RichOutputElement element) {
                 if (element != null) {
