@@ -201,11 +201,11 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             if (comparison != 0) {
                 return comparison;
             }
-            comparison = this.targetId.compareTo(other.targetId);
+            comparison = this.predicate.compareTo(other.predicate);
             if (comparison != 0) {
                 return comparison;
             }
-            return this.predicate.compareTo(other.predicate);
+            return this.targetId.compareTo(other.targetId);
         }
 
         @Override
