@@ -490,6 +490,32 @@ public class ConversationTreeTest {
             builder.addNode(greetings.getNodeID(), new ConversationPattern("What can you tell me?", "what|tell me"),
                     secrets);
             builder.addNode(secrets.getNodeID(), new ConversationPattern("Like what?", "what"), smile);
+
+            ConversationTree built = builder.build();
+            boolean written = assertDoesNotThrow(() -> manager.convoTreeToFile(built), () -> "Failed to write tree");
+            Truth.assertThat(written).isTrue();
+        }
+
+        @Test
+        @Order(4)
+        @EnabledIf("isRewriteNeeded")
+        void writeAggravated() {
+            ConversationTreeNode.Builder start = ConversationTreeNode.Builder.ofString(" ")
+                    .addPrompt(new RichOutputBuilder().appendString("PROMPT ATTACK")
+                            .appendMetadata(ConversationContextKey.TALKER_NAME.name()));
+            ConversationTreeNode.Builder second = ConversationTreeNode.Builder.ofString(" ")
+                    .addPrompt(new RichOutputBuilder().appendString("PROMPT ATTACK")
+                            .appendMetadata(ConversationContextKey.TALKER_NAME.name()));
+            ConversationPattern anything = new ConversationPattern("anything", ".+");
+            ConversationTree.Builder builder = new ConversationTree.Builder(start).addDefaultGreetings()
+                    .addGreeting(anything).addDefaultRepeatWords();
+            builder.addNode(start.getNodeID(), anything, second);
+            builder.addNode(second.getNodeID(), anything, start);
+
+            ConversationTree built = builder.build();
+            boolean written = assertDoesNotThrow(() -> manager.convoTreeToFile(built), () -> "Failed to write tree");
+            Truth.assertThat(written).isTrue();
+
         }
     }
 }
