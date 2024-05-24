@@ -310,6 +310,13 @@ public final class RichOutput implements Serializable {
                 return new BuilderElement(null, null, examinable, null, null);
             }
 
+            public static BuilderElement ofMetaSignal(String metaSignal) {
+                if (metaSignal == null) {
+                    return null;
+                }
+                return new BuilderElement(null, null, null, null, metaSignal);
+            }
+
             public void set(RichOutputElement element) {
                 if (element != null) {
                     this.charSequence = element.getCharSequenceAsString();
@@ -459,13 +466,7 @@ public final class RichOutput implements Serializable {
 
         public RichOutputBuilder appendRichOutput(RichOutput toAdd, String before, String after) {
             if (toAdd != null) {
-                if (before != null) {
-                    this.collapseStrings(before);
-                }
-                this.elements.add(new BuilderElement(RichOutputElement.ofOutput(toAdd)));
-                if (after != null) {
-                    this.elements.add(BuilderElement.ofCharSequence(after));
-                }
+                this.appendRichOutputElement(RichOutputElement.ofOutput(toAdd), before, after);
             }
             return this;
         }
@@ -648,6 +649,23 @@ public final class RichOutput implements Serializable {
             }
             if (after != null) {
                 this.appendString(after);
+            }
+            return this;
+        }
+
+        public RichOutputBuilder appendMetadata(String metaSignal) {
+            return this.appendMetadata(metaSignal, " ", null);
+        }
+
+        public RichOutputBuilder appendMetadata(String toAdd, String before, String after) {
+            if (toAdd != null) {
+                if (before != null) {
+                    this.collapseStrings(before);
+                }
+                this.elements.add(BuilderElement.ofMetaSignal(toAdd));
+                if (after != null) {
+                    this.elements.add(BuilderElement.ofCharSequence(after));
+                }
             }
             return this;
         }
