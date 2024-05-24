@@ -440,7 +440,7 @@ public class ConversationTreeTest {
         @Test
         @Order(2)
         @Disabled
-        void writeNontVerbalDefault() {
+        void writeNonVerbalDefault() {
             ConversationTreeNode.Builder Grr = ConversationTreeNode.Builder.ofString("Grr");
             ConversationTreeNode.Builder Hsss = ConversationTreeNode.Builder.ofString("Hsss");
             ConversationTreeNode.Builder Growl = ConversationTreeNode.Builder.ofString("Growl");
@@ -453,6 +453,39 @@ public class ConversationTreeTest {
             ConversationTree built = builder.build();
             boolean written = assertDoesNotThrow(() -> manager.convoTreeToFile(built), () -> "Failed to write tree");
             Truth.assertThat(written).isTrue();
+        }
+
+        @Test
+        @Order(1)
+        void readVerbalDefault() {
+            ConversationTree nonVerbal = assertDoesNotThrow(() -> manager.convoTreeFromFile("verbal_default"),
+                    () -> "Failed to load tree");
+            String mermaid = nonVerbal.toMermaidStateDiagram(false);
+            Truth.assertThat(mermaid).ignoringCase().contains("secrets");
+        }
+
+        @Test
+        @Order(2)
+        @Disabled
+        void writeVerbalDefault() {
+            ConversationTreeNode.Builder start = ConversationTreeNode.Builder
+                    .ofRichOutputBuilder(new RichOutputBuilder().appendChild("Hello")
+                            .appendMetadata(ConversationContextKey.TALKER_TAGGED_NAME.name()));
+            ConversationTreeNode.Builder secrets = ConversationTreeNode.Builder
+                    .ofString("This dungeon has secrets, if you look.");
+            ConversationTreeNode.Builder smile = ConversationTreeNode.Builder
+                    .ofString("*Mysterious Smile* I have said enough.");
+            ConversationTreeNode.Builder greetings = ConversationTreeNode.Builder.ofString("Greetings");
+            ConversationTreeNode.Builder forgiveness = ConversationTreeNode.Builder
+                    .ofString("May the Dungeon Mistress and Dungeon Master watch over and forgive you.");
+
+            ConversationTree.Builder builder = new ConversationTree.Builder(start).addDefaultGreetings()
+                    .addDefaultRepeatWords();
+            builder.addNode(start.getNodeID(), new ConversationPattern("Hi", ".*"), greetings);
+            builder.addNode(greetings.getNodeID(), new ConversationPattern("I must go.", ".*"), forgiveness);
+            builder.addNode(greetings.getNodeID(), new ConversationPattern("What can you tell me?", "tell me"),
+                    secrets);
+            builder.addNode(secrets.getNodeID(), new ConversationPattern("Like what?", "what"), smile);
         }
     }
 }
