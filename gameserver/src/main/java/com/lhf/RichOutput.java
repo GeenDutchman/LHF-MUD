@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -414,16 +415,16 @@ public final class RichOutput implements Serializable {
         }
 
         private String sequenceName;
-        private List<BuilderElement> elements;
+        private LinkedList<BuilderElement> elements;
 
         public RichOutputBuilder() {
             this.sequenceName = null;
-            this.elements = new ArrayList<>();
+            this.elements = new LinkedList<>();
         }
 
         public RichOutputBuilder(String sequenceName) {
             this.sequenceName = sequenceName;
-            this.elements = new ArrayList<>();
+            this.elements = new LinkedList<>();
         }
 
         private static RichOutputBuilder ofRichOutput(RichOutput output) {
