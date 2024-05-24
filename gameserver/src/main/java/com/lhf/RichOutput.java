@@ -310,20 +310,6 @@ public final class RichOutput implements Serializable {
                 return new BuilderElement(null, null, examinable, null, null);
             }
 
-            public static BuilderElement ofOutput(RichOutputBuilder sequence) {
-                if (sequence == null) {
-                    return null;
-                }
-                return new BuilderElement(null, null, null, sequence, null);
-            }
-
-            public static BuilderElement ofMetaSignal(String metaSignal) {
-                if (metaSignal == null) {
-                    return null;
-                }
-                return new BuilderElement(null, null, null, null, metaSignal);
-            }
-
             public void set(RichOutputElement element) {
                 if (element != null) {
                     this.charSequence = element.getCharSequenceAsString();
@@ -457,11 +443,11 @@ public final class RichOutput implements Serializable {
         public RichOutputBuilder appendRichOutputElement(RichOutputElement toAdd, String before, String after) {
             if (toAdd != null) {
                 if (before != null) {
-                    this.elements.add(new BuilderElement(RichOutputElement.ofCharSequence(before)));
+                    this.collapseStrings(before);
                 }
                 this.elements.add(new BuilderElement(toAdd));
                 if (after != null) {
-                    this.elements.add(new BuilderElement(RichOutputElement.ofCharSequence(after)));
+                    this.elements.add(BuilderElement.ofCharSequence(after));
                 }
             }
             return this;
@@ -474,11 +460,11 @@ public final class RichOutput implements Serializable {
         public RichOutputBuilder appendRichOutput(RichOutput toAdd, String before, String after) {
             if (toAdd != null) {
                 if (before != null) {
-                    this.elements.add(new BuilderElement(RichOutputElement.ofCharSequence(before)));
+                    this.collapseStrings(before);
                 }
                 this.elements.add(new BuilderElement(RichOutputElement.ofOutput(toAdd)));
                 if (after != null) {
-                    this.elements.add(new BuilderElement(RichOutputElement.ofCharSequence(after)));
+                    this.elements.add(BuilderElement.ofCharSequence(after));
                 }
             }
             return this;
@@ -491,11 +477,11 @@ public final class RichOutput implements Serializable {
         public RichOutputBuilder appendRichOutputBuilder(RichOutputBuilder toAdd, String before, String after) {
             if (toAdd != null) {
                 if (before != null) {
-                    this.elements.add(new BuilderElement(RichOutputElement.ofCharSequence(before)));
+                    this.collapseStrings(before);
                 }
                 this.elements.add(new BuilderElement(toAdd));
                 if (after != null) {
-                    this.elements.add(new BuilderElement(RichOutputElement.ofCharSequence(after)));
+                    this.elements.add(BuilderElement.ofCharSequence(after));
                 }
             }
             return this;
@@ -509,15 +495,35 @@ public final class RichOutput implements Serializable {
             return this.appendString(toAdd, this.elements.isEmpty() ? null : " ", null);
         }
 
+        private RichOutputBuilder collapseStrings(String toAdd) {
+            if (toAdd != null) {
+                BuilderElement last = this.elements.pollLast(); // removes last element or null
+                if (last == null) {
+                    this.elements.addLast(BuilderElement.ofCharSequence(toAdd));
+                } else {
+                    if (last.charSequence == null) {
+                        this.elements.addLast(last);
+                        this.elements.addLast(BuilderElement.ofCharSequence(toAdd));
+                    } else {
+                        last.charSequence = last.charSequence + toAdd; // collapse string elements
+                        this.elements.addLast(last);
+                    }
+                }
+            }
+            return this;
+        }
+
         public RichOutputBuilder appendString(String toAdd, String before, String after) {
             if (toAdd != null) {
+                StringBuilder sb = new StringBuilder();
                 if (before != null) {
-                    this.elements.add(new BuilderElement(RichOutputElement.ofCharSequence(before)));
+                    sb.append(before);
                 }
-                this.elements.add(new BuilderElement(RichOutputElement.ofCharSequence(toAdd)));
+                sb.append(toAdd);
                 if (after != null) {
-                    this.elements.add(new BuilderElement(RichOutputElement.ofCharSequence(after)));
+                    sb.append(after);
                 }
+                this.collapseStrings(sb.toString());
             }
             return this;
         }
@@ -529,12 +535,12 @@ public final class RichOutput implements Serializable {
         public RichOutputBuilder appendExaminable(Examinable toAdd, String before, String after) {
             if (toAdd != null) {
                 if (before != null) {
-                    this.elements.add(new BuilderElement(RichOutputElement.ofCharSequence(before)));
+                    this.collapseStrings(before);
                 }
-                this.elements.add(new BuilderElement(RichOutputElement.ofExaminable(toAdd)));
+                this.elements.add(BuilderElement.ofExaminable(toAdd));
                 toAdd.produceExtraDescription(this);
                 if (after != null) {
-                    this.elements.add(new BuilderElement(RichOutputElement.ofCharSequence(after)));
+                    this.elements.add(BuilderElement.ofCharSequence(after));
                 }
             }
             return this;
@@ -551,11 +557,11 @@ public final class RichOutput implements Serializable {
         public RichOutputBuilder appendTaggable(Taggable toAdd, String before, String after) {
             if (toAdd != null) {
                 if (before != null) {
-                    this.elements.add(new BuilderElement(RichOutputElement.ofCharSequence(before)));
+                    this.collapseStrings(before);
                 }
-                this.elements.add(new BuilderElement(RichOutputElement.ofTaggable(toAdd)));
+                this.elements.add(BuilderElement.ofTaggable(toAdd));
                 if (after != null) {
-                    this.elements.add(new BuilderElement(RichOutputElement.ofCharSequence(after)));
+                    this.elements.add(BuilderElement.ofCharSequence(after));
                 }
             }
             return this;
