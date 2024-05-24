@@ -1,5 +1,6 @@
 package com.lhf.game.creature.conversation;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.regex.Pattern;
@@ -8,7 +9,12 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -414,5 +420,39 @@ public class ConversationTreeTest {
         Truth.assertThat(mermaid2).ignoringCase().contains("test");
         Truth.assertThat(mermaid2).ignoringCase().contains("friendly");
         Truth.assertThat(mermaid2).ignoringCase().contains("badperson");
+    }
+
+    @Nested
+    @ExtendWith(MockitoExtension.class)
+    @TestMethodOrder(OrderAnnotation.class)
+    class StaticConversations {
+        private ConversationManager manager = new ConversationManager();
+
+        @Test
+        @Order(1)
+        void readNonVerbalDefault() {
+            ConversationTree nonVerbal = assertDoesNotThrow(() -> manager.convoTreeFromFile("non_verbal_default"),
+                    () -> "Failed to load tree");
+            String mermaid = nonVerbal.toMermaidStateDiagram(false);
+            Truth.assertThat(mermaid).ignoringCase().contains("Growl");
+        }
+
+        @Test
+        @Order(2)
+        @Disabled
+        void writeNontVerbalDefault() {
+            ConversationTreeNode.Builder Grr = ConversationTreeNode.Builder.ofString("Grr");
+            ConversationTreeNode.Builder Hsss = ConversationTreeNode.Builder.ofString("Hsss");
+            ConversationTreeNode.Builder Growl = ConversationTreeNode.Builder.ofString("Growl");
+            ConversationTreeNode.Builder Snarl = ConversationTreeNode.Builder.ofString("Snarl");
+            ConversationPattern pattern = new ConversationPattern("Grr", ".*");
+            ConversationTree.Builder builder = new ConversationTree.Builder(Grr).setTreeName("non_verbal_default")
+                    .setStart(Grr).addNode(Grr.getNodeID(), pattern, Hsss).addNode(Hsss.getNodeID(), pattern, Growl)
+                    .addNode(Growl.getNodeID(), pattern, Snarl).addDefaultGreetings();
+
+            ConversationTree built = builder.build();
+            boolean written = assertDoesNotThrow(() -> manager.convoTreeToFile(built), () -> "Failed to write tree");
+            Truth.assertThat(written).isTrue();
+        }
     }
 }
