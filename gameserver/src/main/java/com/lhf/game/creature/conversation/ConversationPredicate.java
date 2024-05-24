@@ -17,6 +17,18 @@ public final class ConversationPredicate implements Serializable, Comparable<Con
     public static class Builder implements Serializable {
         private SortedMap<String, ConversationPattern> blacklist = new TreeMap<>();
 
+        public Builder setRules(Map<String, ConversationPattern> newRules) {
+            this.blacklist.clear();
+            return this.addRules(newRules);
+        }
+
+        public Builder addRules(Map<String, ConversationPattern> newRules) {
+            if (newRules != null) {
+                this.blacklist.putAll(newRules);
+            }
+            return this;
+        }
+
         public Builder addRule(ConversationContextKey key, ConversationPattern pattern) {
             this.addRule(key.name(), pattern);
             return this;
@@ -59,6 +71,10 @@ public final class ConversationPredicate implements Serializable, Comparable<Con
 
     public static Builder getBuilder() {
         return new Builder();
+    }
+
+    public static ConversationPredicate copyFrom(ConversationPredicate other) {
+        return new ConversationPredicate(other != null ? other.getBlacklist() : null);
     }
 
     public ConversationPredicate(Map<String, ConversationPattern> blacklist) {

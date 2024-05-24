@@ -17,6 +17,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.lhf.RichOutput;
 import com.lhf.RichOutput.PrintingInstructions;
@@ -66,7 +67,7 @@ public class ConversationTree implements Serializable {
         this.start = builder.getStart().build();
         this.bookmarks = new TreeMap<>();
         this.conversationAtlas = builder.buildNodes();
-        this.greetings = Collections.unmodifiableSortedMap(new TreeMap<>(builder.getGreetings()));
+        this.greetings = Collections.unmodifiableSortedMap(new TreeMap<>(builder.getBuiltGreetings()));
         this.repeatWords = Collections.unmodifiableSortedSet(new TreeSet<>(builder.getRepeatWords()));
         this.endOfConvo = builder.getEndOfConvo();
         this.notRecognized = builder.getNotRecognized();
@@ -100,7 +101,7 @@ public class ConversationTree implements Serializable {
         private final ConversationTreeNode.Builder start;
         private String treeName;
         private BuilderAtlas conversationAtlas;
-        private SortedMap<ConversationPattern, ConversationPredicate> greetings;
+        private SortedMap<ConversationPattern, ConversationPredicate.Builder> greetings;
         private SortedSet<ConversationPattern> repeatWords;
         private String endOfConvo;
         private String notRecognized;
@@ -196,7 +197,7 @@ public class ConversationTree implements Serializable {
         }
 
         public Builder addNode(UUID fromNodeBuilder, ConversationPattern pathToNode,
-                ConversationTreeNode.Builder nextNode, Consumer<ConversationPredicate> branchEditor) {
+                ConversationTreeNode.Builder nextNode, Consumer<ConversationPredicate.Builder> branchEditor) {
             if (nextNode == null) {
                 return this;
             }
@@ -205,11 +206,11 @@ public class ConversationTree implements Serializable {
             }
             ConversationTreeNode.Builder from = this.conversationAtlas.getAtlasMemberOrNull(fromNodeBuilder);
 
-            ConversationPredicate predicate = new ConversationPredicate();
+            ConversationPredicate.Builder predicate = new ConversationPredicate.Builder();
             if (branchEditor != null) {
                 branchEditor.accept(predicate);
             }
-            this.conversationAtlas.connectOneWay(from, pathToNode, nextNode, predicate);
+            this.conversationAtlas.connectOneWay(from, pathToNode, nextNode, predicate.build());
 
             return this;
         }
@@ -220,7 +221,7 @@ public class ConversationTree implements Serializable {
         }
 
         public Builder addNode(UUID fromNodeBuilder, ConversationPattern pathToNode, String nextNode,
-                Consumer<ConversationPredicate> branchEditor) {
+                Consumer<ConversationPredicate.Builder> branchEditor) {
             if (nextNode == null) {
                 return this;
             }
@@ -302,7 +303,7 @@ public class ConversationTree implements Serializable {
             if (this.greetings == null) {
                 this.greetings = new TreeMap<>();
             }
-            this.greetings.put(regex, new ConversationPredicate());
+            this.greetings.put(regex, new ConversationPredicate.Builder());
             return this;
         }
 
@@ -329,12 +330,21 @@ public class ConversationTree implements Serializable {
             return translated;
         }
 
-        public SortedMap<ConversationPattern, ConversationPredicate> getGreetings() {
+        public SortedMap<ConversationPattern, ConversationPredicate.Builder> getGreetings() {
             return greetings;
         }
 
+        public SortedMap<ConversationPattern, ConversationPredicate> getBuiltGreetings() {
+            return greetings.entrySet().stream().collect(Collectors.toMap(entry -> entry.getKey(),
+                    entry -> entry.getValue().build(), (a, b) -> b, () -> new TreeMap<>()));
+        }
+
         public Builder setGreetings(SortedMap<ConversationPattern, ConversationPredicate> greetings) {
-            this.greetings = greetings != null ? new TreeMap<>(greetings) : new TreeMap<>();
+            this.greetings = greetings != null
+                    ? greetings.entrySet().stream().collect(Collectors.toMap(entry -> entry.getKey(),
+                            entry -> ConversationPredicate.getBuilder().addRules(entry.getValue().getBlacklist()),
+                            (a, b) -> b, () -> new TreeMap<ConversationPattern, ConversationPredicate.Builder>()))
+                    : new TreeMap<>();
             return this;
         }
 
@@ -400,11 +410,11 @@ public class ConversationTree implements Serializable {
             StringBuilder sb = new StringBuilder();
 
             final String startID = this.start.getNodeID().toString().replace("-", "");
-            for (Entry<ConversationPattern, ConversationPredicate> greetBranch : this.greetings.entrySet()) {
+            for (Entry<ConversationPattern, ConversationPredicate.Builder> greetBranch : this.greetings.entrySet()) {
                 sb.append("    [*] --> ").append(startID);
                 sb.append(" : ").append(greetBranch.getKey().getExample()).append(" ")
                         .append(greetBranch.getKey().getRegex().toString());
-                final ConversationPredicate predicate = greetBranch.getValue();
+                final ConversationPredicate.Builder predicate = greetBranch.getValue();
                 if (predicate != null) {
                     for (Entry<String, ConversationPattern> restriction : predicate.getBlacklist().entrySet()) {
                         sb.append(" ").append(restriction.getKey()).append(" ")
@@ -454,10 +464,11 @@ public class ConversationTree implements Serializable {
                 if (branch == null) {
                     continue;
                 }
-                final ConversationPredicate predicate = this.conversationAtlas
-                        .getTraversalTestFromMemberOrNull(node.getNodeID(), branch);
-                if (predicate != null && predicate.canAccess(ctx)) {
-                    branches.add(branch);
+                final SortedSet<ConversationPredicate> predicates = this.conversationAtlas
+                        .getTraversalTestsFromMember(node.getNodeID(), branch);
+                if (predicates != null) {
+                    predicates.stream().filter(predicate -> predicate.canAccess(ctx))
+                            .forEach(predicate -> branches.add(branch));
                 }
             }
         }
