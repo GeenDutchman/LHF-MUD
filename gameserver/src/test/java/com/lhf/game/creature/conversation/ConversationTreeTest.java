@@ -483,7 +483,7 @@ public class ConversationTreeTest {
                     .addDefaultRepeatWords();
             builder.addNode(start.getNodeID(), new ConversationPattern("Hi", ".*"), greetings);
             builder.addNode(greetings.getNodeID(), new ConversationPattern("I must go.", ".*"), forgiveness);
-            builder.addNode(greetings.getNodeID(), new ConversationPattern("What can you tell me?", "tell me"),
+            builder.addNode(greetings.getNodeID(), new ConversationPattern("What can you tell me?", "what|tell me"),
                     secrets);
             builder.addNode(secrets.getNodeID(), new ConversationPattern("Like what?", "what"), smile);
         }
