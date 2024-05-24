@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -427,19 +428,31 @@ public class ConversationTreeTest {
     @TestMethodOrder(OrderAnnotation.class)
     class StaticConversations {
         private ConversationManager manager = new ConversationManager();
+        private boolean rewriteNeeded = true;
+
+        public boolean isRewriteNeeded() {
+            return rewriteNeeded;
+        }
 
         @Test
         @Order(1)
-        void readNonVerbalDefault() {
+        void readStaticFiles() {
             ConversationTree nonVerbal = assertDoesNotThrow(() -> manager.convoTreeFromFile("non_verbal_default"),
-                    () -> "Failed to load tree");
+                    () -> "Failed to load non verbal tree");
             String mermaid = nonVerbal.toMermaidStateDiagram(false);
             Truth.assertThat(mermaid).ignoringCase().contains("Growl");
+
+            ConversationTree verbal = assertDoesNotThrow(() -> manager.convoTreeFromFile("verbal_default"),
+                    () -> "Failed to load verbal tree");
+            mermaid = verbal.toMermaidStateDiagram(false);
+            Truth.assertThat(mermaid).ignoringCase().contains("secrets");
+
+            this.rewriteNeeded = false;
         }
 
         @Test
         @Order(2)
-        @Disabled
+        @EnabledIf("isRewriteNeeded")
         void writeNonVerbalDefault() {
             ConversationTreeNode.Builder Grr = ConversationTreeNode.Builder.ofString("Grr");
             ConversationTreeNode.Builder Hsss = ConversationTreeNode.Builder.ofString("Hsss");
@@ -456,17 +469,8 @@ public class ConversationTreeTest {
         }
 
         @Test
-        @Order(1)
-        void readVerbalDefault() {
-            ConversationTree nonVerbal = assertDoesNotThrow(() -> manager.convoTreeFromFile("verbal_default"),
-                    () -> "Failed to load tree");
-            String mermaid = nonVerbal.toMermaidStateDiagram(false);
-            Truth.assertThat(mermaid).ignoringCase().contains("secrets");
-        }
-
-        @Test
-        @Order(2)
-        @Disabled
+        @Order(3)
+        @EnabledIf("isRewriteNeeded")
         void writeVerbalDefault() {
             ConversationTreeNode.Builder start = ConversationTreeNode.Builder
                     .ofRichOutputBuilder(new RichOutputBuilder().appendChild("Hello")
