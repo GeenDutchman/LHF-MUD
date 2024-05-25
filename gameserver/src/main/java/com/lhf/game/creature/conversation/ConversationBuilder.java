@@ -123,7 +123,7 @@ public class ConversationBuilder {
             System.err.println("The tree is not yet made!");
             System.err.println("Create tree?");
             if (this.yesOrNo()) {
-                this.tree = new ConversationTree.Builder().setStart(node);
+                this.tree = new ConversationTree.Builder(node);
             }
         }
         return node;

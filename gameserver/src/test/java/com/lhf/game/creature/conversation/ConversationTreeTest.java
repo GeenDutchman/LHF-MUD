@@ -434,7 +434,7 @@ public class ConversationTreeTest {
         System.out.println("built");
         System.out.println(builtMermaid);
 
-        Truth.assertThat(builtMermaid).isEqualTo(builderMermaid);
+        Truth.assertThat(builderMermaid).isEqualTo(builtMermaid);
 
         ConversationTree.Builder copier = ConversationTree.Builder.fromTree(built);
         // final String copierMermaid = copier.toMermaidStateDiagram(false);
@@ -445,6 +445,8 @@ public class ConversationTreeTest {
         final String copiedMermaid = copied.toMermaidStateDiagram(false);
         System.out.println("copied");
         System.out.println(copiedMermaid);
+
+        Truth.assertThat(copiedMermaid).isEqualTo(builtMermaid);
 
         Gson gson = GsonBuilderFactory.start().prettyPrinting().conversation().build();
 
@@ -547,7 +549,7 @@ public class ConversationTreeTest {
 
         @Test
         @Order(5)
-        @EnabledIf("isRewriteNeeded")
+        // @EnabledIf("isRewriteNeeded")
         void writeGary() {
 
             ConversationTree.Builder builder = StaticConversationTreeProducer.produceGary();
