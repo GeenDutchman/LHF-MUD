@@ -1,244 +1,320 @@
 {
-  "treeName": "gary2",
+  "treeName": "gary",
   "start": {
-    "nodeID": "bfd86c75-dbea-4594-8ba6-4bfd965854fe",
+    "nodeID": "5a4dc489-e954-41e4-9229-502341bd2085",
     "bodySequence": {
       "sequenceName": "NPCConversation",
       "elements": [
         {
-          "charSequence": "intro lore placeholder here. Are you ok to start?"
+          "charSequence": "Intro lore placeholder here. Are you ok to start?"
         }
       ]
     },
     "prompts": []
   },
-  "nodes": {
-    "bfd86c75-dbea-4594-8ba6-4bfd965854fe": {
-      "nodeID": "bfd86c75-dbea-4594-8ba6-4bfd965854fe",
-      "bodySequence": {
-        "sequenceName": "NPCConversation",
-        "elements": [
+  "conversationAtlas": {
+    "uuid": "b6175ac8-0d90-43f0-ac22-313a37121fd7",
+    "mapping": {
+      "5a4dc489-e954-41e4-9229-502341bd2085": {
+        "atlasMember": {
+          "nodeID": "5a4dc489-e954-41e4-9229-502341bd2085",
+          "bodySequence": {
+            "sequenceName": "NPCConversation",
+            "elements": [
+              {
+                "charSequence": "Intro lore placeholder here. Are you ok to start?"
+              }
+            ]
+          },
+          "prompts": []
+        },
+        "links": [
           {
-            "charSequence": "intro lore placeholder here. Are you ok to start?"
-          }
-        ]
-      },
-      "prompts": []
-    },
-    "49c08723-75d9-4b85-9692-2fc806929caf": {
-      "nodeID": "49c08723-75d9-4b85-9692-2fc806929caf",
-      "bodySequence": {
-        "sequenceName": "NPCConversation",
-        "elements": [
-          {
-            "charSequence": "Do you want to be a FIGHTER, MAGE, or HEALER?"
-          }
-        ]
-      },
-      "prompts": []
-    },
-    "78230606-dc57-4c45-9c2a-396082e4ab22": {
-      "nodeID": "78230606-dc57-4c45-9c2a-396082e4ab22",
-      "bodySequence": {
-        "sequenceName": "NPCConversation",
-        "elements": [
-          {
-            "charSequence": "You have selected FIGHTER. Are you unsure about that, or are you ready to go into the dungeon?"
-          }
-        ]
-      },
-      "prompts": [
-        {
-          "elements": [
-            {
-              "charSequence": "STORE CREATE_VOCATION FIGHTER"
-            }
-          ]
-        }
-      ]
-    },
-    "9d79707b-0f79-48f8-8f0c-e31d1b9c49ed": {
-      "nodeID": "9d79707b-0f79-48f8-8f0c-e31d1b9c49ed",
-      "bodySequence": {
-        "sequenceName": "NPCConversation",
-        "elements": [
-          {
-            "charSequence": "You have selected MAGE. Are you unsure about that, or are you ready to go into the dungeon?"
-          }
-        ]
-      },
-      "prompts": [
-        {
-          "elements": [
-            {
-              "charSequence": "STORE CREATE_VOCATION MAGE"
-            }
-          ]
-        }
-      ]
-    },
-    "f43b6168-8f85-43dc-b95c-d954484a85d3": {
-      "nodeID": "f43b6168-8f85-43dc-b95c-d954484a85d3",
-      "bodySequence": {
-        "sequenceName": "NPCConversation",
-        "elements": [
-          {
-            "charSequence": "You have selected HEALER. Are you unsure about that, or are you ready to go into the dungeon?"
-          }
-        ]
-      },
-      "prompts": [
-        {
-          "elements": [
-            {
-              "charSequence": "STORE CREATE_VOCATION HEALER"
-            }
-          ]
-        }
-      ]
-    },
-    "8b2acab7-e866-420e-9b45-d0edc58845ae": {
-      "nodeID": "8b2acab7-e866-420e-9b45-d0edc58845ae",
-      "bodySequence": {
-        "sequenceName": "NPCConversation",
-        "elements": [
-          {
-            "charSequence": "It is done!"
-          }
-        ]
-      },
-      "prompts": [
-        {
-          "elements": [
-            {
-              "charSequence": "PROMPT LEWD Ada Lovejax use "
+            "link": {
+              "regex": "\\b(ok|okay)\\b",
+              "flags": 2,
+              "example": "ok"
             },
-            {
-              "metaSignal": "TALKER_NAME"
+            "targetId": "0a145398-6cf2-4458-9cc8-5aadfc255d25",
+            "predicate": {
+              "blacklist": {}
+            }
+          }
+        ],
+        "backLinks": []
+      },
+      "0a145398-6cf2-4458-9cc8-5aadfc255d25": {
+        "atlasMember": {
+          "nodeID": "0a145398-6cf2-4458-9cc8-5aadfc255d25",
+          "bodySequence": {
+            "sequenceName": "NPCConversation",
+            "elements": [
+              {
+                "charSequence": "Do you want to be a FIGHTER, MAGE, or HEALER?"
+              }
+            ]
+          },
+          "prompts": []
+        },
+        "links": [
+          {
+            "link": {
+              "regex": "fighter",
+              "flags": 2,
+              "example": "FIGHTER"
             },
-            {
-              "charSequence": " as "
+            "targetId": "238578fa-0bda-4528-9b40-e3ca8cdaa5e1",
+            "predicate": {
+              "blacklist": {}
+            }
+          },
+          {
+            "link": {
+              "regex": "healer",
+              "flags": 2,
+              "example": "HEALER"
             },
+            "targetId": "41455d90-cef6-49fd-8763-69828570ca91",
+            "predicate": {
+              "blacklist": {}
+            }
+          },
+          {
+            "link": {
+              "regex": "mage",
+              "flags": 2,
+              "example": "MAGE"
+            },
+            "targetId": "5edd7c3c-073c-4059-928e-e798915362ff",
+            "predicate": {
+              "blacklist": {}
+            }
+          }
+        ],
+        "backLinks": [
+          "5a4dc489-e954-41e4-9229-502341bd2085",
+          "238578fa-0bda-4528-9b40-e3ca8cdaa5e1",
+          "5edd7c3c-073c-4059-928e-e798915362ff",
+          "41455d90-cef6-49fd-8763-69828570ca91"
+        ]
+      },
+      "238578fa-0bda-4528-9b40-e3ca8cdaa5e1": {
+        "atlasMember": {
+          "nodeID": "238578fa-0bda-4528-9b40-e3ca8cdaa5e1",
+          "bodySequence": {
+            "sequenceName": "NPCConversation",
+            "elements": [
+              {
+                "charSequence": "You have selected FIGHTER. Are you unsure about that, or are you ready to go into the dungeon?"
+              }
+            ]
+          },
+          "prompts": [
             {
-              "metaSignal": "CREATE_VOCATION"
+              "elements": [
+                {
+                  "charSequence": "STORE CREATE_VOCATION FIGHTER"
+                }
+              ]
             }
           ]
-        }
-      ]
+        },
+        "links": [
+          {
+            "link": {
+              "regex": "\\bunsure\\b",
+              "flags": 2,
+              "example": "I\u0027m unsure"
+            },
+            "targetId": "0a145398-6cf2-4458-9cc8-5aadfc255d25",
+            "predicate": {
+              "blacklist": {}
+            }
+          },
+          {
+            "link": {
+              "regex": "\\bready\\b",
+              "flags": 2,
+              "example": "I\u0027m ready"
+            },
+            "targetId": "1b371969-5ec5-4b7b-ae88-91b756c4307b",
+            "predicate": {
+              "blacklist": {}
+            }
+          }
+        ],
+        "backLinks": [
+          "0a145398-6cf2-4458-9cc8-5aadfc255d25"
+        ]
+      },
+      "5edd7c3c-073c-4059-928e-e798915362ff": {
+        "atlasMember": {
+          "nodeID": "5edd7c3c-073c-4059-928e-e798915362ff",
+          "bodySequence": {
+            "sequenceName": "NPCConversation",
+            "elements": [
+              {
+                "charSequence": "You have selected MAGE. Are you unsure about that, or are you ready to go into the dungeon?"
+              }
+            ]
+          },
+          "prompts": [
+            {
+              "elements": [
+                {
+                  "charSequence": "STORE CREATE_VOCATION MAGE"
+                }
+              ]
+            }
+          ]
+        },
+        "links": [
+          {
+            "link": {
+              "regex": "\\bunsure\\b",
+              "flags": 2,
+              "example": "I\u0027m unsure"
+            },
+            "targetId": "0a145398-6cf2-4458-9cc8-5aadfc255d25",
+            "predicate": {
+              "blacklist": {}
+            }
+          },
+          {
+            "link": {
+              "regex": "\\bready\\b",
+              "flags": 2,
+              "example": "I\u0027m ready"
+            },
+            "targetId": "1b371969-5ec5-4b7b-ae88-91b756c4307b",
+            "predicate": {
+              "blacklist": {}
+            }
+          }
+        ],
+        "backLinks": [
+          "0a145398-6cf2-4458-9cc8-5aadfc255d25"
+        ]
+      },
+      "41455d90-cef6-49fd-8763-69828570ca91": {
+        "atlasMember": {
+          "nodeID": "41455d90-cef6-49fd-8763-69828570ca91",
+          "bodySequence": {
+            "sequenceName": "NPCConversation",
+            "elements": [
+              {
+                "charSequence": "You have selected HEALER. Are you unsure about that, or are you ready to go into the dungeon?"
+              }
+            ]
+          },
+          "prompts": [
+            {
+              "elements": [
+                {
+                  "charSequence": "STORE CREATE_VOCATION HEALER"
+                }
+              ]
+            }
+          ]
+        },
+        "links": [
+          {
+            "link": {
+              "regex": "\\bunsure\\b",
+              "flags": 2,
+              "example": "I\u0027m unsure"
+            },
+            "targetId": "0a145398-6cf2-4458-9cc8-5aadfc255d25",
+            "predicate": {
+              "blacklist": {}
+            }
+          },
+          {
+            "link": {
+              "regex": "\\bready\\b",
+              "flags": 2,
+              "example": "I\u0027m ready"
+            },
+            "targetId": "1b371969-5ec5-4b7b-ae88-91b756c4307b",
+            "predicate": {
+              "blacklist": {}
+            }
+          }
+        ],
+        "backLinks": [
+          "0a145398-6cf2-4458-9cc8-5aadfc255d25"
+        ]
+      },
+      "1b371969-5ec5-4b7b-ae88-91b756c4307b": {
+        "atlasMember": {
+          "nodeID": "1b371969-5ec5-4b7b-ae88-91b756c4307b",
+          "bodySequence": {
+            "sequenceName": "NPCConversation",
+            "elements": [
+              {
+                "charSequence": "It is done!"
+              }
+            ]
+          },
+          "prompts": [
+            {
+              "elements": [
+                {
+                  "charSequence": "PROMPT LEWD Ada Lovejax use "
+                },
+                {
+                  "metaSignal": "TALKER_NAME"
+                },
+                {
+                  "charSequence": " as  "
+                },
+                {
+                  "metaSignal": "CREATE_VOCATION"
+                }
+              ]
+            }
+          ]
+        },
+        "links": [],
+        "backLinks": [
+          "238578fa-0bda-4528-9b40-e3ca8cdaa5e1",
+          "5edd7c3c-073c-4059-928e-e798915362ff",
+          "41455d90-cef6-49fd-8763-69828570ca91"
+        ]
+      }
     }
   },
-  "branches": {
-    "bfd86c75-dbea-4594-8ba6-4bfd965854fe": [
+  "greetings": [
+    [
       {
-        "regex": {
-          "regex": "\\b(ok|okay)\\b",
-          "flags": 2,
-          "example": "ok"
-        },
-        "nodeID": "49c08723-75d9-4b85-9692-2fc806929caf",
+        "regex": "^\\s*hello\\b",
+        "flags": 2,
+        "example": "hello"
+      },
+      {
         "blacklist": {}
       }
     ],
-    "49c08723-75d9-4b85-9692-2fc806929caf": [
+    [
       {
-        "regex": {
-          "regex": "fighter",
-          "flags": 2,
-          "example": "Fighter"
-        },
-        "nodeID": "78230606-dc57-4c45-9c2a-396082e4ab22",
-        "blacklist": {}
+        "regex": "^\\s*hi\\b",
+        "flags": 2,
+        "example": "hi"
       },
       {
-        "regex": {
-          "regex": "mage",
-          "flags": 2,
-          "example": "Mage"
-        },
-        "nodeID": "9d79707b-0f79-48f8-8f0c-e31d1b9c49ed",
-        "blacklist": {}
-      },
-      {
-        "regex": {
-          "regex": "healer",
-          "flags": 2,
-          "example": "Healer"
-        },
-        "nodeID": "f43b6168-8f85-43dc-b95c-d954484a85d3",
         "blacklist": {}
       }
     ],
-    "78230606-dc57-4c45-9c2a-396082e4ab22": [
+    [
       {
-        "regex": {
-          "regex": "\\bready\\b",
-          "flags": 2,
-          "example": "I\u0027m ready"
-        },
-        "nodeID": "8b2acab7-e866-420e-9b45-d0edc58845ae",
-        "blacklist": {}
+        "regex": "\\bhi\\b",
+        "flags": 2,
+        "example": "This is some lore, but to make a character you need to say \"hi\" to me!"
       },
       {
-        "regex": {
-          "regex": "\\bunsure\\b",
-          "flags": 2,
-          "example": "I\u0027m unsure"
-        },
-        "nodeID": "49c08723-75d9-4b85-9692-2fc806929caf",
-        "blacklist": {}
-      }
-    ],
-    "9d79707b-0f79-48f8-8f0c-e31d1b9c49ed": [
-      {
-        "regex": {
-          "regex": "\\bready\\b",
-          "flags": 2,
-          "example": "I\u0027m ready"
-        },
-        "nodeID": "8b2acab7-e866-420e-9b45-d0edc58845ae",
-        "blacklist": {}
-      },
-      {
-        "regex": {
-          "regex": "\\bunsure\\b",
-          "flags": 2,
-          "example": "I\u0027m unsure"
-        },
-        "nodeID": "49c08723-75d9-4b85-9692-2fc806929caf",
-        "blacklist": {}
-      }
-    ],
-    "f43b6168-8f85-43dc-b95c-d954484a85d3": [
-      {
-        "regex": {
-          "regex": "\\bready\\b",
-          "flags": 2,
-          "example": "I\u0027m ready"
-        },
-        "nodeID": "8b2acab7-e866-420e-9b45-d0edc58845ae",
-        "blacklist": {}
-      },
-      {
-        "regex": {
-          "regex": "\\bunsure\\b",
-          "flags": 2,
-          "example": "I\u0027m unsure"
-        },
-        "nodeID": "49c08723-75d9-4b85-9692-2fc806929caf",
         "blacklist": {}
       }
     ]
-  },
-  "greetings": [
-    {
-      "regex": {
-        "regex": "\\bhi\\b",
-        "flags": 2,
-        "example": "this is some lore, but to make a character you need to say \"hi\" to me!"
-      },
-      "nodeID": "bfd86c75-dbea-4594-8ba6-4bfd965854fe",
-      "blacklist": {}
-    }
   ],
   "repeatWords": [
     {

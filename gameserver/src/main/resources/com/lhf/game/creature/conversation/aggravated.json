@@ -1,7 +1,7 @@
 {
   "treeName": "aggravated",
   "start": {
-    "nodeID": "17d1c7a0-ecf9-4c3e-949e-600ba26337e3",
+    "nodeID": "c9ebd18e-706b-46b4-8e98-86a19ab85931",
     "bodySequence": {
       "sequenceName": "NPCConversation",
       "elements": [
@@ -23,106 +23,124 @@
       }
     ]
   },
-  "nodes": {
-    "17d1c7a0-ecf9-4c3e-949e-600ba26337e3": {
-      "nodeID": "17d1c7a0-ecf9-4c3e-949e-600ba26337e3",
-      "bodySequence": {
-        "sequenceName": "NPCConversation",
-        "elements": [
-          {
-            "charSequence": " "
-          }
-        ]
-      },
-      "prompts": [
-        {
-          "elements": [
+  "conversationAtlas": {
+    "uuid": "215c91ae-daa5-49fb-a985-3900bb6c84d6",
+    "mapping": {
+      "c9ebd18e-706b-46b4-8e98-86a19ab85931": {
+        "atlasMember": {
+          "nodeID": "c9ebd18e-706b-46b4-8e98-86a19ab85931",
+          "bodySequence": {
+            "sequenceName": "NPCConversation",
+            "elements": [
+              {
+                "charSequence": " "
+              }
+            ]
+          },
+          "prompts": [
             {
-              "charSequence": "PROMPT ATTACK "
-            },
-            {
-              "metaSignal": "TALKER_NAME"
+              "elements": [
+                {
+                  "charSequence": "PROMPT ATTACK "
+                },
+                {
+                  "metaSignal": "TALKER_NAME"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    "63f4869a-4cbb-423b-98a1-57fa71414afd": {
-      "nodeID": "63f4869a-4cbb-423b-98a1-57fa71414afd",
-      "bodySequence": {
-        "sequenceName": "NPCConversation",
-        "elements": [
+        },
+        "links": [
           {
-            "charSequence": " "
+            "link": {
+              "regex": ".+",
+              "flags": 2,
+              "example": "anything"
+            },
+            "targetId": "6f7de7f1-1dfc-41b5-9b2c-f44999d74bd4",
+            "predicate": {
+              "blacklist": {}
+            }
           }
+        ],
+        "backLinks": [
+          "6f7de7f1-1dfc-41b5-9b2c-f44999d74bd4"
         ]
       },
-      "prompts": [
-        {
-          "elements": [
+      "6f7de7f1-1dfc-41b5-9b2c-f44999d74bd4": {
+        "atlasMember": {
+          "nodeID": "6f7de7f1-1dfc-41b5-9b2c-f44999d74bd4",
+          "bodySequence": {
+            "sequenceName": "NPCConversation",
+            "elements": [
+              {
+                "charSequence": " "
+              }
+            ]
+          },
+          "prompts": [
             {
-              "charSequence": "PROMPT ATTACK "
-            },
-            {
-              "metaSignal": "TALKER_NAME"
+              "elements": [
+                {
+                  "charSequence": "PROMPT ATTACK "
+                },
+                {
+                  "metaSignal": "TALKER_NAME"
+                }
+              ]
             }
           ]
-        }
-      ]
+        },
+        "links": [
+          {
+            "link": {
+              "regex": ".+",
+              "flags": 2,
+              "example": "anything"
+            },
+            "targetId": "c9ebd18e-706b-46b4-8e98-86a19ab85931",
+            "predicate": {
+              "blacklist": {}
+            }
+          }
+        ],
+        "backLinks": [
+          "c9ebd18e-706b-46b4-8e98-86a19ab85931"
+        ]
+      }
     }
   },
-  "branches": {
-    "17d1c7a0-ecf9-4c3e-949e-600ba26337e3": [
-      {
-        "regex": {
-          "regex": ".*",
-          "flags": 2,
-          "example": "Really?"
-        },
-        "nodeID": "63f4869a-4cbb-423b-98a1-57fa71414afd",
-        "blacklist": {}
-      }
-    ],
-    "63f4869a-4cbb-423b-98a1-57fa71414afd": [
-      {
-        "regex": {
-          "regex": ".*",
-          "flags": 2,
-          "example": "Really?"
-        },
-        "nodeID": "63f4869a-4cbb-423b-98a1-57fa71414afd",
-        "blacklist": {}
-      }
-    ]
-  },
   "greetings": [
-    {
-      "regex": {
-        "regex": "^hello\\b",
+    [
+      {
+        "regex": "^\\s*hello\\b",
         "flags": 2,
         "example": "hello"
       },
-      "nodeID": "17d1c7a0-ecf9-4c3e-949e-600ba26337e3",
-      "blacklist": {}
-    },
-    {
-      "regex": {
-        "regex": "^hi\\b",
+      {
+        "blacklist": {}
+      }
+    ],
+    [
+      {
+        "regex": "^\\s*hi\\b",
         "flags": 2,
         "example": "hi"
       },
-      "nodeID": "17d1c7a0-ecf9-4c3e-949e-600ba26337e3",
-      "blacklist": {}
-    },
-    {
-      "regex": {
-        "regex": ".*",
+      {
+        "blacklist": {}
+      }
+    ],
+    [
+      {
+        "regex": ".+",
         "flags": 2,
-        "example": "Greetings"
+        "example": "anything"
       },
-      "nodeID": "17d1c7a0-ecf9-4c3e-949e-600ba26337e3",
-      "blacklist": {}
-    }
+      {
+        "blacklist": {}
+      }
+    ]
   ],
   "repeatWords": [
     {
