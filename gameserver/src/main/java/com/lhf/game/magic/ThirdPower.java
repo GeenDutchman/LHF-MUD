@@ -368,8 +368,6 @@ public class ThirdPower implements CommandChainHandler {
                 }
             }
 
-            // TODO: summons and banish
-
             this.log(Level.FINE, "Casting DMRoom targeting spell");
             ResourceCost level = casting.getLevel() != null
                     && entry.getLevel().compareTo(ResourceCost.fromInt(casting.getLevel())) <= 0
@@ -396,8 +394,6 @@ public class ThirdPower implements CommandChainHandler {
             }
 
             RoomTargetingSpell spell = new RoomTargetingSpell(entry, caster);
-
-            // TODO: summons and banish
 
             this.log(Level.FINE, "Casting Room targeting spell");
             ResourceCost level = casting.getLevel() != null

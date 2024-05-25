@@ -14,7 +14,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import com.google.common.truth.Truth;
-import com.google.common.truth.Truth8;
 import com.lhf.game.battle.BattleStats;
 import com.lhf.game.battle.BattleStats.BattleStatsQuery;
 import com.lhf.game.creature.NonPlayerCharacter;
@@ -100,7 +99,7 @@ public class BattleTurnHandlerTest {
         AIComBundle.eventAccepter.accept(searcher.getNPC(),
                 BattleRoundEvent.getBuilder().setAboutCreature(searcher.getNPC()).setNeeded().Build());
 
-        Truth8.assertThat(searcher.getNPC().getHarmMemories().getLastAttackerName()).isEmpty();
+        Truth.assertThat(searcher.getNPC().getHarmMemories().getLastAttackerName()).isEmpty();
         Mockito.verify(searcher.mockedWrappedHandler, Mockito.timeout(1000)).apply(Mockito.any(),
                 Mockito.argThat((command) -> command != null && command.getWhole().contains("PASS")));
     }
