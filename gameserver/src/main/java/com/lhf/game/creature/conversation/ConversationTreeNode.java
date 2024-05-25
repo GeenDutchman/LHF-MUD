@@ -58,6 +58,13 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode>, S
                 for (RichOutputElement element : body.getElements()) {
                     sub.appendRichOutputElement(element, null, null);
                 }
+                for (RichOutput prompt : node.getPrompts()) {
+                    RichOutputBuilder builder = new RichOutputBuilder(prompt.getBuilderName());
+                    for (RichOutputElement element : prompt.getElements()) {
+                        builder.appendRichOutputElement(element, null, null);
+                    }
+                    this.prompts.add(builder);
+                }
             } else {
                 this.nodeID = UUID.randomUUID();
             }
