@@ -132,14 +132,13 @@ public class ConversationTree implements Serializable {
         }
 
         public static Builder fromTree(ConversationTree tree) {
-            Builder builder = new Builder();
+            Builder builder = new Builder(new ConversationTreeNode.Builder(tree != null ? tree.start : null));
             if (tree == null) {
                 return builder;
             }
-            builder.setTreeName(tree.getTreeName())
-                    .editStartNode(node -> node.getBodySequence().appendRichOutput(tree.start.getBodySequence()))
-                    .setEndOfConvo(tree.getEndOfConvo()).setNotRecognized(tree.getNotRecognized())
-                    .setGreetings(tree.greetings).setRepeatWords(tree.repeatWords).setTagkeywords(tree.tagkeywords);
+            builder.setTreeName(tree.getTreeName()).setEndOfConvo(tree.getEndOfConvo())
+                    .setNotRecognized(tree.getNotRecognized()).setGreetings(tree.greetings)
+                    .setRepeatWords(tree.repeatWords).setTagkeywords(tree.tagkeywords);
             tree.conversationAtlas.translate(builder.conversationAtlas, node -> new ConversationTreeNode.Builder(node),
                     Function.identity(), ConversationPredicate::copyFrom);
 
@@ -158,14 +157,6 @@ public class ConversationTree implements Serializable {
         public Builder setStartBody(String body) {
             this.start.setBodySequence(
                     new RichOutputBuilder(ConversationTreeNode.NPC_CONVERSATION_TAG).appendString(body, null, null));
-            return this;
-        }
-
-        public Builder setStart(ConversationTreeNode.Builder nextStart) {
-            if (nextStart != null) {
-                this.start.setBodySequence(nextStart.getBodySequence());
-                nextStart.getPrompts().stream().forEach(prompt -> this.start.addPrompt(prompt));
-            }
             return this;
         }
 

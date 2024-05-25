@@ -425,11 +425,16 @@ public class ConversationTreeTest {
     @Test
     void copyTest() {
         ConversationTree.Builder builder = StaticConversationTreeProducer.produceGary();
+        final String builderMermaid = builder.toMermaidStateDiagram(false);
+        // System.out.println("builder");
+        // System.out.println(builderMermaid);
 
         ConversationTree built = builder.build();
         final String builtMermaid = built.toMermaidStateDiagram(false);
         System.out.println("built");
         System.out.println(builtMermaid);
+
+        Truth.assertThat(builtMermaid).isEqualTo(builderMermaid);
 
         ConversationTree.Builder copier = ConversationTree.Builder.fromTree(built);
         // final String copierMermaid = copier.toMermaidStateDiagram(false);

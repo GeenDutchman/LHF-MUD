@@ -33,7 +33,7 @@ public final class StaticConversationTreeProducer {
         ConversationTreeNode.Builder Snarl = ConversationTreeNode.Builder.ofString("Snarl");
         ConversationPattern pattern = new ConversationPattern("Grr", ".*", Pattern.CASE_INSENSITIVE);
         ConversationTree.Builder builder = new ConversationTree.Builder(Grr).setTreeName("non_verbal_default")
-                .setStart(Grr).addNode(Grr.getNodeID(), pattern, Hsss).addNode(Hsss.getNodeID(), pattern, Growl)
+                .addNode(Grr.getNodeID(), pattern, Hsss).addNode(Hsss.getNodeID(), pattern, Growl)
                 .addNode(Growl.getNodeID(), pattern, Snarl).addDefaultGreetings();
         return builder;
     }
