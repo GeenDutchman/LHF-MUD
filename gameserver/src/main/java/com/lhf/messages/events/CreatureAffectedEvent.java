@@ -3,7 +3,7 @@ package com.lhf.messages.events;
 import java.util.EnumSet;
 import java.util.Map;
 
-import com.lhf.OutputBuilder;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.Taggable;
 import com.lhf.Taggable.BasicTaggable;
 import com.lhf.game.creature.CreatureEffect;
@@ -163,11 +163,11 @@ public class CreatureAffectedEvent extends GameEvent {
     }
 
     @Override
-    public void buildOutput(OutputBuilder builder) {
+    public void buildOutput(RichOutputBuilder builder) {
         if (builder == null) {
             return;
         }
-        OutputBuilder affectation = builder.produceSubBuilder("Affectation");
+        RichOutputBuilder affectation = builder.produceSubBuilder("Affectation");
         if (this.creatureResponsible != null) {
             affectation.appendTaggable(this.creatureResponsible);
             if (this.generatedBy != null) {
@@ -192,16 +192,16 @@ public class CreatureAffectedEvent extends GameEvent {
 
         MultiRollResult damageResults = this.getDamages();
         if (damageResults != null && !damageResults.isEmpty()) {
-            OutputBuilder damages = builder.produceSubBuilder("Damages");
+            RichOutputBuilder damages = builder.produceSubBuilder("Damages");
             this.possesiveCreature(damages, this.affected);
             damages.appendString("health will change by");
-            OutputBuilder healthDelta = damages.produceSubBuilder("Amount");
+            RichOutputBuilder healthDelta = damages.produceSubBuilder("Amount");
             healthDelta.appendTaggable(damageResults);
         }
 
         if (this.highlightedDelta == null) {
             if (this.isResultedInDeath()) {
-                OutputBuilder deathNotice = builder.produceSubBuilder("Notice");
+                RichOutputBuilder deathNotice = builder.produceSubBuilder("Notice");
                 deathNotice.appendString("As a result of these things");
                 this.addressCreature(deathNotice, this.affected, false);
                 deathNotice.appendString("has died.");
@@ -210,7 +210,7 @@ public class CreatureAffectedEvent extends GameEvent {
         }
 
         if (this.highlightedDelta != null && this.highlightedDelta.getStatChanges().size() > 0) {
-            OutputBuilder statChanges = builder.produceSubBuilder("Stats");
+            RichOutputBuilder statChanges = builder.produceSubBuilder("Stats");
             for (Map.Entry<Stats, Integer> deltas : this.highlightedDelta.getStatChanges().entrySet()) {
                 statChanges.appendString(deltas.getKey().toString(), "\r\n", " ").appendString("will change by")
                         .appendString(deltas.getValue().toString());
@@ -218,7 +218,7 @@ public class CreatureAffectedEvent extends GameEvent {
         }
 
         if (this.isResultedInDeath()) {
-            OutputBuilder deathNotice = builder.produceSubBuilder("Notice");
+            RichOutputBuilder deathNotice = builder.produceSubBuilder("Notice");
             deathNotice.appendString("As a result of these things");
             this.addressCreature(deathNotice, this.affected, false);
             deathNotice.appendString("has died.");
@@ -226,7 +226,7 @@ public class CreatureAffectedEvent extends GameEvent {
         }
 
         if (this.highlightedDelta.getAttributeScoreChanges().size() > 0) {
-            OutputBuilder attributeScoreChanges = builder.produceSubBuilder("Scores");
+            RichOutputBuilder attributeScoreChanges = builder.produceSubBuilder("Scores");
             for (Map.Entry<Attributes, Integer> deltas : this.highlightedDelta.getAttributeScoreChanges().entrySet()) {
                 attributeScoreChanges.appendString(deltas.getKey().toString(), "\r\n", " ")
                         .appendString("score will change by").appendString(deltas.getValue().toString());
@@ -234,7 +234,7 @@ public class CreatureAffectedEvent extends GameEvent {
         }
 
         if (this.highlightedDelta.getAttributeBonusChanges().size() > 0) {
-            OutputBuilder attributeBonusChanges = builder.produceSubBuilder("Bonuses");
+            RichOutputBuilder attributeBonusChanges = builder.produceSubBuilder("Bonuses");
             for (Map.Entry<Attributes, Integer> deltas : this.highlightedDelta.getAttributeBonusChanges().entrySet()) {
                 attributeBonusChanges.appendString(deltas.getKey().toString(), "\r\n", " ")
                         .appendString("bonus will change by").appendString(deltas.getValue().toString());

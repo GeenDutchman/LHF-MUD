@@ -11,7 +11,7 @@ import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.lhf.OutputBuilder;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.LockableItemContainer;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.IItem;
@@ -115,7 +115,7 @@ public class Chest extends InteractObject implements LockableItemContainer {
                 if (nodeGenerator == null) {
                     return;
                 }
-                OutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                RichOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
                 description.appendTaggable(creature);
                 description.appendString("discovers that the");
                 description.appendTaggable(this);
@@ -126,7 +126,7 @@ public class Chest extends InteractObject implements LockableItemContainer {
                 if (nodeGenerator == null) {
                     return;
                 }
-                OutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                RichOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
                 description.appendTaggable(creature);
                 description.appendString("tries the");
                 description.appendTaggable(this);

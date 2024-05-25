@@ -1,6 +1,6 @@
 package com.lhf.messages.events;
 
-import com.lhf.OutputBuilder;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.messages.GameEventType;
 
 public class BadUserDuplicationEvent extends WelcomeEvent {
@@ -31,7 +31,7 @@ public class BadUserDuplicationEvent extends WelcomeEvent {
     }
 
     @Override
-    public void buildOutput(OutputBuilder builder) {
+    public void buildOutput(RichOutputBuilder builder) {
         if (builder == null) {
             return;
         }

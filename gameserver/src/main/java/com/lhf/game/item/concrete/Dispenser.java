@@ -8,7 +8,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Queue;
 
-import com.lhf.OutputBuilder;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.ItemContainer;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.IItem;
@@ -62,7 +62,7 @@ public class Dispenser extends InteractObject implements ItemContainer {
                 if (nodeGenerator == null) {
                     return;
                 }
-                OutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                RichOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
                 description.appendTaggable(retrieved);
                 description.appendString("was despensed because of");
                 description.appendTaggable(creature, " ", ".");

@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 
 public class ConversationBuilder {
     private Scanner input;
-    private ConversationTree tree = null;
+    private ConversationTree.Builder tree = null;
 
     public ConversationBuilder() {
         this.input = new Scanner(System.in);
@@ -56,7 +56,7 @@ public class ConversationBuilder {
         return pattern;
     }
 
-    private ConversationTreeNode buildNodeBody(ConversationTreeNode node) {
+    private ConversationTreeNode.Builder buildNodeBody(ConversationTreeNode.Builder node) {
         System.out.println("Do you want to add more body?");
         boolean addBody = this.yesOrNo();
         while (addBody) {
@@ -69,7 +69,7 @@ public class ConversationBuilder {
         return node;
     }
 
-    private ConversationTreeNode buildNodePrompts(ConversationTreeNode node) {
+    private ConversationTreeNode.Builder buildNodePrompts(ConversationTreeNode.Builder node) {
         System.out.println("Do you want to add more prompts?");
         boolean addPrompts = this.yesOrNo();
         while (addPrompts) {
@@ -82,17 +82,17 @@ public class ConversationBuilder {
         return node;
     }
 
-    private ConversationTreeNode selectValidNode() {
+    private ConversationTreeNode.Builder selectValidNode() {
         try {
             System.out.println("Select a Node:");
-            SortedMap<Integer, ConversationTreeNode> indexmap = new TreeMap<>();
+            SortedMap<Integer, ConversationTreeNode.Builder> indexmap = new TreeMap<>();
             Integer i = 1;
-            for (ConversationTreeNode node : this.tree.getNodes().values()) {
+            for (ConversationTreeNode.Builder node : this.tree.getNodes()) {
                 indexmap.put(i, node);
                 System.out.println(i.toString() + " : " + node.toString());
                 i++;
             }
-            ConversationTreeNode nextNode = indexmap.get(this.input.nextInt());
+            ConversationTreeNode.Builder nextNode = indexmap.get(this.input.nextInt());
             this.input.nextLine();
             if (nextNode == null) {
                 throw new IllegalArgumentException("Not a valid node");
@@ -105,11 +105,11 @@ public class ConversationBuilder {
         }
     }
 
-    private ConversationTreeNode addNodeToTree(ConversationTreeNode node) {
+    private ConversationTreeNode.Builder addNodeToTree(ConversationTreeNode.Builder node) {
         if (this.tree != null) {
-            System.out.println(this.tree.toMermaid(false));
+            System.out.println(this.tree.toMermaidStateDiagram(false));
             try {
-                ConversationTreeNode prevNode = this.selectValidNode();
+                ConversationTreeNode.Builder prevNode = this.selectValidNode();
                 System.out.println("Now to build out how it will connect");
                 ConversationPattern link = this.buildPattern();
                 this.tree.addNode(prevNode.getNodeID(), link, node);
@@ -123,16 +123,16 @@ public class ConversationBuilder {
             System.err.println("The tree is not yet made!");
             System.err.println("Create tree?");
             if (this.yesOrNo()) {
-                this.tree = new ConversationTree(node);
+                this.tree = new ConversationTree.Builder(node);
             }
         }
         return node;
     }
 
-    public ConversationTreeNode buildNode(ConversationTreeNode node) {
+    public ConversationTreeNode.Builder buildNode(ConversationTreeNode.Builder node) {
         if (node == null) {
             System.out.println("What do you want in the body of the node?");
-            node = new ConversationTreeNode(this.input.nextLine());
+            node = ConversationTreeNode.Builder.ofString(this.input.nextLine());
         }
         System.out.println(node.toString());
         System.out.println("Are you done with this node?");
@@ -145,11 +145,11 @@ public class ConversationBuilder {
         return node;
     }
 
-    public ConversationTree buildTree() {
+    public ConversationTree.Builder buildTree() {
         if (this.tree == null) {
-            ConversationTreeNode start = this.buildNode(null);
+            ConversationTreeNode.Builder start = this.buildNode(null);
             if (start != null) {
-                this.tree = new ConversationTree(start);
+                this.tree = new ConversationTree.Builder(start);
                 return this.tree;
             }
         }
@@ -165,7 +165,7 @@ public class ConversationBuilder {
         }
     }
 
-    private ConversationTree nameTree() {
+    private ConversationTree.Builder nameTree() {
         System.out.println("Name the tree");
         if (this.tree == null) {
             this.buildTree();
@@ -188,22 +188,22 @@ public class ConversationBuilder {
         if (this.tree != null) {
             ConversationManager manager = new ConversationManager();
             this.nameTree();
-            if (!manager.convoTreeToFile(this.tree)) {
+            if (!manager.convoTreeBuilderToFile(this.tree)) {
                 System.err.println("An error writing the file occured");
             }
         } else {
             System.err.println("No tree to write!");
         }
-        return this.tree;
+        return this.tree.build();
     }
 
-    private ConversationTree loadTree() {
+    private ConversationTree.Builder loadTree() {
         System.out.println("Load the tree");
         ConversationManager manager = new ConversationManager();
         System.out.println("What is the name of the tree?");
         String name = this.input.nextLine();
         try {
-            this.tree = manager.convoTreeFromFile(name);
+            this.tree = manager.convoTreeBuilderFromFile(name);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             this.tree = null;
@@ -226,54 +226,54 @@ public class ConversationBuilder {
                 response = this.input.nextInt();
                 this.input.nextLine();
                 switch (response) {
-                    case 0:
-                        System.out.println("You selected to exit");
-                        break;
-                    case 1:
-                        System.out.println("Printing mermaid...");
-                        if (this.tree != null) {
-                            System.out.println(this.tree.toMermaid(false));
-                        } else {
-                            System.out.println("Tree not made");
-                        }
-                        break;
-                    case 2:
-                        System.out.println("Building tree...");
-                        if (this.buildTree() == null) {
-                            System.err.println("Error building tree!");
-                        }
-                        break;
-                    case 3:
-                        System.out.println("Building New node...");
-                        if (this.buildNode(null) == null) {
-                            System.err.println("Error building new node!");
-                        }
-                        break;
-                    case 4:
-                        System.out.println("Modify existing node...");
-                        if (this.buildNode(this.selectValidNode()) == null) {
-                            System.err.println("Error modifying existing node!");
-                        }
-                        break;
-                    case 5:
-                        System.out.println("Add greeting");
-                        this.buildGreetings();
-                        break;
-                    case 6:
-                        System.out.println("Writing the tree");
-                        if (this.writeTree() == null) {
-                            System.err.println("Error writing tree");
-                        }
-                        break;
-                    case 7:
-                        System.out.println("Load from a named file");
-                        if (this.loadTree() == null) {
-                            System.err.println("Error loading tree");
-                        }
-                        break;
-                    default:
-                        System.out.println("Bad command, retrying...");
-                        break;
+                case 0:
+                    System.out.println("You selected to exit");
+                    break;
+                case 1:
+                    System.out.println("Printing mermaid...");
+                    if (this.tree != null) {
+                        System.out.println(this.tree.toMermaidStateDiagram(false));
+                    } else {
+                        System.out.println("Tree not made");
+                    }
+                    break;
+                case 2:
+                    System.out.println("Building tree...");
+                    if (this.buildTree() == null) {
+                        System.err.println("Error building tree!");
+                    }
+                    break;
+                case 3:
+                    System.out.println("Building New node...");
+                    if (this.buildNode(null) == null) {
+                        System.err.println("Error building new node!");
+                    }
+                    break;
+                case 4:
+                    System.out.println("Modify existing node...");
+                    if (this.buildNode(this.selectValidNode()) == null) {
+                        System.err.println("Error modifying existing node!");
+                    }
+                    break;
+                case 5:
+                    System.out.println("Add greeting");
+                    this.buildGreetings();
+                    break;
+                case 6:
+                    System.out.println("Writing the tree");
+                    if (this.writeTree() == null) {
+                        System.err.println("Error writing tree");
+                    }
+                    break;
+                case 7:
+                    System.out.println("Load from a named file");
+                    if (this.loadTree() == null) {
+                        System.err.println("Error loading tree");
+                    }
+                    break;
+                default:
+                    System.out.println("Bad command, retrying...");
+                    break;
                 }
             } catch (Exception e) {
                 System.err.println("Something bad happened!");

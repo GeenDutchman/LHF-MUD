@@ -117,6 +117,7 @@ public class GsonBuilderFactory {
     public synchronized GsonBuilderFactory conversation() {
         if (!this.loaded.contains(Loaded.CONVERSATION)) {
             this.loaded.add(Loaded.CONVERSATION);
+            this.gsonBuilder.enableComplexMapKeySerialization();
             this.gsonBuilder.registerTypeAdapter(ConversationPattern.class, new ConversationPatternSerializer());
         }
         return this;
@@ -164,8 +165,7 @@ public class GsonBuilderFactory {
                     .registerSubtype(QuestEffect.class, QuestEffect.class.getName())
                     .registerSubtype(DungeonEffect.class, DungeonEffect.class.getName())
                     .registerSubtype(RoomEffect.class, RoomEffect.class.getName())
-                    .registerSubtype(DMRoomEffect.class, DMRoomEffect.class.getName())
-                    .recognizeSubtypes();
+                    .registerSubtype(DMRoomEffect.class, DMRoomEffect.class.getName()).recognizeSubtypes();
             this.gsonBuilder.registerTypeAdapterFactory(effectAdapter);
         }
         return this;
@@ -192,8 +192,7 @@ public class GsonBuilderFactory {
                     .registerSubtype(RoomExitHandler.class, RoomExitHandler.class.getName())
                     .registerSubtype(SpeakOnOtherEntry.class, SpeakOnOtherEntry.class.getName())
                     .registerSubtype(SpokenPromptChunk.class, SpokenPromptChunk.class.getName())
-                    .registerSubtype(SilencedHandler.class, SilencedHandler.class.getName())
-                    .recognizeSubtypes();
+                    .registerSubtype(SilencedHandler.class, SilencedHandler.class.getName()).recognizeSubtypes();
             this.gsonBuilder.registerTypeAdapterFactory(aiHandlerAdapterFactory);
         }
         return this;
@@ -214,8 +213,7 @@ public class GsonBuilderFactory {
                     .registerSubtype(INonPlayerCharacterBuildInfo.class, INonPlayerCharacterBuildInfo.class.getName())
                     .registerSubtype(DungeonMasterBuildInfo.class, DungeonMasterBuildInfo.class.getName())
                     .registerSubtype(MonsterBuildInfo.class, MonsterBuildInfo.class.getName())
-                    .registerSubtype(INPCBuildInfo.class, INPCBuildInfo.class.getName())
-                    .recognizeSubtypes();
+                    .registerSubtype(INPCBuildInfo.class, INPCBuildInfo.class.getName()).recognizeSubtypes();
             this.gsonBuilder.registerTypeAdapterFactory(creatureBuilderAdapterFactory);
         }
         return this;
@@ -228,8 +226,7 @@ public class GsonBuilderFactory {
                     .of(LewdProduct.class, "className", true)
                     .registerSubtype(AfterGlow.class, AfterGlow.class.getName())
                     .registerSubtype(LewdBabyMaker.class, LewdBabyMaker.class.getName())
-                    .registerSubtype(LewdProductList.class, LewdProductList.class.getName())
-                    .recognizeSubtypes();
+                    .registerSubtype(LewdProductList.class, LewdProductList.class.getName()).recognizeSubtypes();
             this.gsonBuilder.registerTypeAdapterFactory(lewdProductAdapterFactory);
         }
         return this;
@@ -264,8 +261,7 @@ public class GsonBuilderFactory {
             final RuntimeTypeAdapterFactory<AreaBuilder> areaAdapterFactory = RuntimeTypeAdapterFactory
                     .of(AreaBuilder.class, "className", true)
                     .registerSubtype(RoomBuilder.class, RoomBuilder.class.getName())
-                    .registerSubtype(DMRoomBuilder.class, DMRoomBuilder.class.getName())
-                    .recognizeSubtypes();
+                    .registerSubtype(DMRoomBuilder.class, DMRoomBuilder.class.getName()).recognizeSubtypes();
             this.gsonBuilder.registerTypeAdapterFactory(areaAdapterFactory);
         }
         return this;
@@ -275,12 +271,10 @@ public class GsonBuilderFactory {
         if (!this.loaded.contains(Loaded.DOORWAYS)) {
             this.loaded.add(Loaded.DOORWAYS);
             final RuntimeTypeAdapterFactory<Doorway> doorwayAdapterFactory = RuntimeTypeAdapterFactory
-                    .of(Doorway.class, "className", true)
-                    .registerSubtype(Doorway.class, Doorway.class.getName())
+                    .of(Doorway.class, "className", true).registerSubtype(Doorway.class, Doorway.class.getName())
                     .registerSubtype(OneWayDoorway.class, OneWayDoorway.class.getName())
                     .registerSubtype(CloseableDoorway.class, CloseableDoorway.class.getName())
-                    .registerSubtype(KeyedDoorway.class, KeyedDoorway.class.getName())
-                    .recognizeSubtypes();
+                    .registerSubtype(KeyedDoorway.class, KeyedDoorway.class.getName()).recognizeSubtypes();
             this.gsonBuilder.registerTypeAdapterFactory(doorwayAdapterFactory);
         }
         return this;
@@ -295,8 +289,7 @@ public class GsonBuilderFactory {
             this.gsonBuilder.registerTypeAdapter(LandBuilderID.class, new LandBuilderID.IDTypeAdapter());
             final RuntimeTypeAdapterFactory<LandBuilder> landAdapterFactory = RuntimeTypeAdapterFactory
                     .of(LandBuilder.class, "className", true)
-                    .registerSubtype(DungeonBuilder.class, DungeonBuilder.class.getName())
-                    .recognizeSubtypes();
+                    .registerSubtype(DungeonBuilder.class, DungeonBuilder.class.getName()).recognizeSubtypes();
             this.gsonBuilder.registerTypeAdapterFactory(landAdapterFactory);
         }
         return this;
@@ -307,8 +300,7 @@ public class GsonBuilderFactory {
             this.loaded.add(Loaded.CACHED);
             DataTypeAdapterFactory dtaf = new DataTypeAdapterFactory.Builder()
                     .add(IItem.class, new CachedIItemTypeAdapter())
-                    .add(ICreature.class, new CachedICreatureTypeAdapter())
-                    .build();
+                    .add(ICreature.class, new CachedICreatureTypeAdapter()).build();
             this.gsonBuilder.registerTypeAdapterFactory(dtaf);
         }
         return this;
@@ -332,8 +324,7 @@ public class GsonBuilderFactory {
                     .registerSubtype(ThunderStrike.class, ThunderStrike.class.getName())
                     .registerSubtype(Thaumaturgy.class, Thaumaturgy.class.getName())
                     .registerSubtype(Ensouling.class, Ensouling.class.getName())
-                    .registerSubtype(ElectricWisp.class, ElectricWisp.class.getName())
-                    .recognizeSubtypes();
+                    .registerSubtype(ElectricWisp.class, ElectricWisp.class.getName()).recognizeSubtypes();
             this.gsonBuilder.registerTypeAdapterFactory(spellEntryAdapter);
         }
         return this;

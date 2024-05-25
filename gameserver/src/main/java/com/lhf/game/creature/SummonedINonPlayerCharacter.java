@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
-import com.lhf.OutputBuilder;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo.SummonData;
 import com.lhf.game.creature.inventory.Inventory;
@@ -496,7 +496,7 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
-    public void produceExtraDescription(OutputBuilder builder) {
+    public void produceExtraDescription(RichOutputBuilder builder) {
         if (builder == null) {
             return;
         }

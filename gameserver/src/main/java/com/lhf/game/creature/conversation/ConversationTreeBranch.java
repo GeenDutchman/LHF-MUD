@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContext;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
 
+@Deprecated
 public class ConversationTreeBranch implements Serializable, Comparable<ConversationTreeBranch> {
     private final ConversationPattern regex;
     private final UUID nodeID;
@@ -36,6 +37,9 @@ public class ConversationTreeBranch implements Serializable, Comparable<Conversa
     }
 
     public Map<String, ConversationPattern> getBlacklist() {
+        if (this.blacklist == null) {
+            this.blacklist = new TreeMap<>();
+        }
         return this.blacklist;
     }
 

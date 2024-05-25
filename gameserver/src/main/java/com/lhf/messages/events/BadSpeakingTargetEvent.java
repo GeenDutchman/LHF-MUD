@@ -1,6 +1,6 @@
 package com.lhf.messages.events;
 
-import com.lhf.OutputBuilder;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.messages.GameEventType;
 
 public class BadSpeakingTargetEvent extends GameEvent {
@@ -71,7 +71,7 @@ public class BadSpeakingTargetEvent extends GameEvent {
     }
 
     @Override
-    public void buildOutput(OutputBuilder builder) {
+    public void buildOutput(RichOutputBuilder builder) {
         if (builder == null) {
             return;
         }

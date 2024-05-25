@@ -12,13 +12,15 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
-import com.google.common.base.Function;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import com.lhf.game.AffectableEntity;
+import com.lhf.game.Atlas;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
@@ -26,8 +28,6 @@ import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.map.Area.AreaBuilder;
 import com.lhf.game.map.Area.AreaBuilder.AreaBuilderID;
-import com.lhf.game.map.Atlas.AtlasMappingItem;
-import com.lhf.game.map.Atlas.TargetedTester;
 import com.lhf.game.map.commandHandlers.LandSeeHandler;
 import com.lhf.game.map.commandHandlers.LandShoutHandler;
 import com.lhf.messages.CommandChainHandler;
@@ -47,7 +47,7 @@ import com.lhf.server.interfaces.NotNull;
 
 public interface Land extends CreatureContainer, CommandChainHandler, AffectableEntity<DungeonEffect> {
 
-    public final class AreaAtlas extends Atlas<Area, UUID> {
+    public final class AreaAtlas extends Atlas<Area, UUID, Directions, Doorway> {
 
         protected AreaAtlas() {
             super();
@@ -61,6 +61,14 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
         @Override
         public String getNameForMemberType(Area member) {
             return member.getName();
+        }
+
+        @Override
+        public Directions translateLinkToOpposite(Directions link) {
+            if (link == null) {
+                return null;
+            }
+            return link.opposite();
         }
 
     }
@@ -128,7 +136,8 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
 
         public abstract String getName();
 
-        public final class AreaBuilderAtlas extends Atlas<AreaBuilder, AreaBuilderID> implements Serializable {
+        public final class AreaBuilderAtlas extends Atlas<AreaBuilder, AreaBuilderID, Directions, Doorway>
+                implements Serializable {
 
             protected AreaBuilderAtlas() {
                 super();
@@ -144,6 +153,14 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
                 return member.getName();
             }
 
+            @Override
+            public Directions translateLinkToOpposite(Directions link) {
+                if (link == null) {
+                    return null;
+                }
+                return link.opposite();
+            }
+
         }
 
         public abstract AreaBuilder getStartingAreaBuilder();
@@ -153,15 +170,22 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
         public default Map<AreaBuilderID, UUID> translateAtlas(Land builtLand, AIRunner aiRunner,
                 ConversationManager conversationManager, boolean fallbackNoConversation) {
 
+            final Supplier<Atlas<Area, UUID, Directions, Doorway>> starter = () -> builtLand.getAtlas();
+
             final Function<AreaBuilder, Area> transformer = (builder) -> {
                 return builder.build(builtLand, builtLand, aiRunner, conversationManager, fallbackNoConversation);
             };
+
+            final Function<Directions, Directions> linkTransforer = (dir) -> dir;
+
+            final Function<Doorway, Doorway> traversalTransformer = (doorway) -> doorway;
 
             final AreaBuilderAtlas builderAtlas = this.getAtlas();
             if (builderAtlas == null) {
                 return null;
             }
-            return builderAtlas.translate(() -> builtLand.getAtlas(), transformer);
+            return builderAtlas.<Area, UUID, Directions, Doorway>translateToSuppliedAtlas(starter, transformer,
+                    linkTransforer, traversalTransformer);
         }
 
         public default Land quickBuild(CommandChainHandler successor, AIRunner aiRunner) {
@@ -192,14 +216,13 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
             }
             return firstMember;
         }
-        return atlas.getAtlasMember(startingAreaUUID);
+        return atlas.getAtlasMemberOrNull(startingAreaUUID);
     }
 
     public default Set<Directions> getAreaExits(Area area) {
         try {
             AreaAtlas atlas = this.getAtlas();
-            AtlasMappingItem<Area, UUID> ami = atlas.getAtlasMappingItem(area);
-            return ami.getAvailableDirections();
+            return atlas.getLinksForMember(area.getUuid());
         } catch (NullPointerException e) {
             this.log(Level.WARNING, String.format("Atlas error for getting exits: %s", e));
             return Set.of();
@@ -299,36 +322,30 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
                 return ctx.handled();
             }
             Area presentRoom = ctx.getArea();
-            final AtlasMappingItem<Area, UUID> mappingItem = land.getAtlas().getAtlasMappingItem(presentRoom.getUuid());
-            if (mappingItem != null) {
-                Map<Directions, TargetedTester<UUID>> exits = mappingItem.getDirections();
-                if (exits == null || exits.size() == 0 || !exits.containsKey(toGo) || exits.get(toGo) == null) {
-                    ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo).Build());
-                    return ctx.handled();
-                }
-                TargetedTester<UUID> doorway = exits.get(toGo);
-                final Area nextRoom = land.getAtlas().getAtlasMember(doorway.getTargetId());
-                if (nextRoom == null) {
-                    ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo)
-                            .setAvailable(exits.keySet()).Build());
-                    return ctx.handled();
-                }
-                Doorway tester = doorway.getPredicate();
-                if (tester != null && !tester.testTraversal(ctx.getCreature(), toGo, presentRoom, presentRoom)) {
-                    ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.BLOCKED).setAttempted(toGo)
-                            .setAvailable(exits.keySet()).Build());
-                    return ctx.handled();
-                }
 
-                if (presentRoom.removeCreature(ctx.getCreature(), toGo)) {
-                    ICreature.eventAccepter.accept(ctx.getCreature(),
-                            TickEvent.getBuilder().setTickType(TickType.ROOM).Build());
-                    nextRoom.addCreature(ctx.getCreature());
-                    return ctx.handled();
-                }
-            } else {
+            Set<Directions> exits = land.getAtlas().getLinksForMember(presentRoom.getUuid());
+            if (exits == null || exits.size() == 0 || !exits.contains(toGo)) {
+                ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo).Build());
+                return ctx.handled();
+            }
+            UUID nextRoomID = land.getAtlas().getTargetFromMemberOrNull(presentRoom.getUuid(), toGo);
+            final Area nextRoom = land.getAtlas().getAtlasMemberOrNull(nextRoomID);
+            if (nextRoom == null) {
                 ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.NO_ROOM).setAttempted(command.getDirection())
                         .Build());
+                return ctx.handled();
+            }
+            Doorway tester = land.getAtlas().getTraversalTestFromMemberOrNull(presentRoom.getUuid(), toGo);
+            if (tester != null && !tester.testTraversal(ctx.getCreature(), toGo, presentRoom, presentRoom)) {
+                ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.BLOCKED).setAttempted(toGo).setAvailable(exits)
+                        .Build());
+                return ctx.handled();
+            }
+
+            if (presentRoom.removeCreature(ctx.getCreature(), toGo)) {
+                ICreature.eventAccepter.accept(ctx.getCreature(),
+                        TickEvent.getBuilder().setTickType(TickType.ROOM).Build());
+                nextRoom.addCreature(ctx.getCreature());
                 return ctx.handled();
             }
             return ctx.failhandle();

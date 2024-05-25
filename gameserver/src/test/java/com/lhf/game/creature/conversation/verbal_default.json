@@ -1,150 +1,196 @@
 {
   "treeName": "verbal_default",
   "start": {
-    "nodeID": "876ae9d8-8c55-43c8-a3d5-ede57116d1cf",
-    "body": "Hello TALKER_TAGGED_NAME",
+    "nodeID": "a1de65fe-fb94-4cb8-acd2-03b99b35f669",
     "bodySequence": {
       "sequenceName": "NPCConversation",
       "elements": [
         {
-          "charSequence": "Hello "
-        },
-        {
-          "metaSignal": "TALKER_TAGGED_NAME"
+          "output": {
+            "elements": [
+              {
+                "charSequence": "Hello "
+              },
+              {
+                "metaSignal": "TALKER_TAGGED_NAME"
+              }
+            ]
+          }
         }
       ]
     },
     "prompts": []
   },
-  "nodes": {
-    "876ae9d8-8c55-43c8-a3d5-ede57116d1cf": {
-      "nodeID": "876ae9d8-8c55-43c8-a3d5-ede57116d1cf",
-      "body": "Hello TALKER_TAGGED_NAME",
-      "bodySequence": {
-        "sequenceName": "NPCConversation",
-        "elements": [
+  "conversationAtlas": {
+    "uuid": "54ae2bcf-c2e5-4ead-b6ad-976639fbab21",
+    "mapping": {
+      "a1de65fe-fb94-4cb8-acd2-03b99b35f669": {
+        "atlasMember": {
+          "nodeID": "a1de65fe-fb94-4cb8-acd2-03b99b35f669",
+          "bodySequence": {
+            "sequenceName": "NPCConversation",
+            "elements": [
+              {
+                "output": {
+                  "elements": [
+                    {
+                      "charSequence": "Hello "
+                    },
+                    {
+                      "metaSignal": "TALKER_TAGGED_NAME"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "prompts": []
+        },
+        "links": [
           {
-            "charSequence": "Hello "
+            "link": {
+              "regex": ".*",
+              "flags": 2,
+              "example": "Hi"
+            },
+            "targetId": "c73309ac-c0eb-4991-b155-139274b1bbcf",
+            "predicate": {
+              "blacklist": {}
+            }
+          }
+        ],
+        "backLinks": []
+      },
+      "c73309ac-c0eb-4991-b155-139274b1bbcf": {
+        "atlasMember": {
+          "nodeID": "c73309ac-c0eb-4991-b155-139274b1bbcf",
+          "bodySequence": {
+            "sequenceName": "NPCConversation",
+            "elements": [
+              {
+                "charSequence": "Greetings"
+              }
+            ]
+          },
+          "prompts": []
+        },
+        "links": [
+          {
+            "link": {
+              "regex": "what|tell me",
+              "flags": 2,
+              "example": "What can you tell me?"
+            },
+            "targetId": "36da1187-40e9-45ec-b497-c14d3ea3825b",
+            "predicate": {
+              "blacklist": {}
+            }
           },
           {
-            "metaSignal": "TALKER_TAGGED_NAME"
+            "link": {
+              "regex": ".*",
+              "flags": 2,
+              "example": "I must go."
+            },
+            "targetId": "a2d74a40-e099-413b-b977-39e481946a6b",
+            "predicate": {
+              "blacklist": {}
+            }
           }
+        ],
+        "backLinks": [
+          "a1de65fe-fb94-4cb8-acd2-03b99b35f669"
         ]
       },
-      "prompts": []
-    },
-    "d9d4dba4-178d-4b56-b595-6f8630b37cfb": {
-      "nodeID": "d9d4dba4-178d-4b56-b595-6f8630b37cfb",
-      "bodySequence": {
-        "sequenceName": "NPCConversation",
-        "elements": [
+      "a2d74a40-e099-413b-b977-39e481946a6b": {
+        "atlasMember": {
+          "nodeID": "a2d74a40-e099-413b-b977-39e481946a6b",
+          "bodySequence": {
+            "sequenceName": "NPCConversation",
+            "elements": [
+              {
+                "charSequence": "May the Dungeon Mistress and Dungeon Master watch over and forgive you."
+              }
+            ]
+          },
+          "prompts": []
+        },
+        "links": [],
+        "backLinks": [
+          "c73309ac-c0eb-4991-b155-139274b1bbcf"
+        ]
+      },
+      "36da1187-40e9-45ec-b497-c14d3ea3825b": {
+        "atlasMember": {
+          "nodeID": "36da1187-40e9-45ec-b497-c14d3ea3825b",
+          "bodySequence": {
+            "sequenceName": "NPCConversation",
+            "elements": [
+              {
+                "charSequence": "This dungeon has secrets, if you look."
+              }
+            ]
+          },
+          "prompts": []
+        },
+        "links": [
           {
-            "charSequence": "This dungeon has secrets, if you look."
+            "link": {
+              "regex": "what",
+              "flags": 0,
+              "example": "Like what?"
+            },
+            "targetId": "6a55b7d3-f054-49c2-915d-f4c218e46c1b",
+            "predicate": {
+              "blacklist": {}
+            }
           }
+        ],
+        "backLinks": [
+          "c73309ac-c0eb-4991-b155-139274b1bbcf"
         ]
       },
-      "prompts": []
-    },
-    "e6c1df87-4705-4d96-a1ea-4e475dc7960e": {
-      "nodeID": "e6c1df87-4705-4d96-a1ea-4e475dc7960e",
-      "bodySequence": {
-        "sequenceName": "NPCConversation",
-        "elements": [
-          {
-            "charSequence": "*Mysterious Smile* I have said enough."
-          }
+      "6a55b7d3-f054-49c2-915d-f4c218e46c1b": {
+        "atlasMember": {
+          "nodeID": "6a55b7d3-f054-49c2-915d-f4c218e46c1b",
+          "bodySequence": {
+            "sequenceName": "NPCConversation",
+            "elements": [
+              {
+                "charSequence": "*Mysterious Smile* I have said enough."
+              }
+            ]
+          },
+          "prompts": []
+        },
+        "links": [],
+        "backLinks": [
+          "36da1187-40e9-45ec-b497-c14d3ea3825b"
         ]
-      },
-      "prompts": []
-    },
-    "e6d244d5-8cb7-4e7e-a9e8-44269b6fad0d": {
-      "nodeID": "e6d244d5-8cb7-4e7e-a9e8-44269b6fad0d",
-      "bodySequence": {
-        "sequenceName": "NPCConversation",
-        "elements": [
-          {
-            "charSequence": "Greetings"
-          }
-        ]
-      },
-      "prompts": []
-    },
-    "3f432397-ca0b-4081-b690-e7136291c686": {
-      "nodeID": "3f432397-ca0b-4081-b690-e7136291c686",
-      "bodySequence": {
-        "sequenceName": "NPCConversation",
-        "elements": [
-          {
-            "charSequence": "May the Dungeon Mistress and Dungeon Master watch over and forgive you."
-          }
-        ]
-      },
-      "prompts": []
+      }
     }
   },
-  "branches": {
-    "876ae9d8-8c55-43c8-a3d5-ede57116d1cf": [
-      {
-        "regex": {
-          "regex": ".*",
-          "flags": 2,
-          "example": "Hi"
-        },
-        "nodeID": "e6d244d5-8cb7-4e7e-a9e8-44269b6fad0d",
-        "blacklist": {}
-      }
-    ],
-    "d9d4dba4-178d-4b56-b595-6f8630b37cfb": [
-      {
-        "regex": {
-          "regex": "what",
-          "flags": 2,
-          "example": "Like what?"
-        },
-        "nodeID": "e6c1df87-4705-4d96-a1ea-4e475dc7960e",
-        "blacklist": {}
-      }
-    ],
-    "e6d244d5-8cb7-4e7e-a9e8-44269b6fad0d": [
-      {
-        "regex": {
-          "regex": "tell me",
-          "flags": 2,
-          "example": "What can you tell me?"
-        },
-        "nodeID": "d9d4dba4-178d-4b56-b595-6f8630b37cfb",
-        "blacklist": {}
-      },
-      {
-        "regex": {
-          "regex": ".*",
-          "flags": 2,
-          "example": "I must go."
-        },
-        "nodeID": "3f432397-ca0b-4081-b690-e7136291c686",
-        "blacklist": {}
-      }
-    ]
-  },
   "greetings": [
-    {
-      "regex": {
-        "regex": "^hello\\b",
+    [
+      {
+        "regex": "^\\s*hello\\b",
         "flags": 2,
         "example": "hello"
       },
-      "nodeID": "876ae9d8-8c55-43c8-a3d5-ede57116d1cf",
-      "blacklist": {}
-    },
-    {
-      "regex": {
-        "regex": "^hi\\b",
+      {
+        "blacklist": {}
+      }
+    ],
+    [
+      {
+        "regex": "^\\s*hi\\b",
         "flags": 2,
         "example": "hi"
       },
-      "nodeID": "876ae9d8-8c55-43c8-a3d5-ede57116d1cf",
-      "blacklist": {}
-    }
+      {
+        "blacklist": {}
+      }
+    ]
   ],
   "repeatWords": [
     {

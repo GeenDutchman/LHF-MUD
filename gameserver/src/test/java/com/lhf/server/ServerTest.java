@@ -164,7 +164,7 @@ public class ServerTest {
                 .send(Mockito.argThat(new MessageMatcher(GameEventType.SPEAKING, "to make a character you need")));
         this.comm.handleCommand("say hi to gary lovejax");
         Mockito.verify(this.comm.sssb, Mockito.timeout(waitMillis))
-                .send(Mockito.argThat(new MessageMatcher(GameEventType.SPEAKING, "intro lore placeholder here")));
+                .send(Mockito.argThat(new MessageMatcher(GameEventType.SPEAKING, "Intro lore placeholder here")));
         this.comm.handleCommand("say ok to gary lovejax");
         Mockito.verify(this.comm.sssb, Mockito.timeout(waitMillis))
                 .send(Mockito.argThat(new MessageMatcher(GameEventType.SPEAKING, "MAGE")));

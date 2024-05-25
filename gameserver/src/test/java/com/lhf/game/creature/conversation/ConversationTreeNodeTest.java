@@ -3,7 +3,8 @@ package com.lhf.game.creature.conversation;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.truth.Truth;
-import com.lhf.OutputBuilder.OutputBuilderElement;
+import com.lhf.RichOutput.RichOutputBuilder;
+import com.lhf.RichOutput.RichOutputElement;
 
 public class ConversationTreeNodeTest {
 
@@ -11,27 +12,24 @@ public class ConversationTreeNodeTest {
 
     @Test
     void testEmptyNode() {
-        ConversationTreeNode node = new ConversationTreeNode(basicEmpty);
+        ConversationTreeNode node = ConversationTreeNode.Builder.ofString(basicEmpty).build();
         Truth.assertThat(node.getBodyAsString()).contains("nothing");
     }
 
     @Test
     void testPopulatedBody() {
-        ConversationTreeNode node = new ConversationTreeNode(basicEmpty);
         String body = "I have something for you";
-        node.addBody(body);
+        ConversationTreeNode node = ConversationTreeNode.Builder.ofString(body).build();
         Truth.assertThat(node.getBodyAsString()).contains(body);
     }
 
     @Test
     void testDoublePopulatedBody() {
-        ConversationTreeNode node = new ConversationTreeNode(basicEmpty);
-
         String body1 = "I have something for you";
-        node.addBody(body1);
-
         String body2 = "and it should be useful";
-        node.addBody(body2);
+        RichOutputBuilder builder = new RichOutputBuilder().appendString(basicEmpty).appendString(body1)
+                .appendString(body2);
+        ConversationTreeNode node = ConversationTreeNode.Builder.ofRichOutputBuilder(builder).build();
 
         Truth.assertThat(node.getBodyAsString()).contains(body1);
         Truth.assertThat(node.getBodyAsString()).contains(body2);
@@ -39,13 +37,12 @@ public class ConversationTreeNodeTest {
 
     @Test
     void testGetResult() {
-        ConversationTreeNode node = new ConversationTreeNode(basicEmpty);
-        node.addPrompt("PROMPT say cheese to anna");
-
+        ConversationTreeNode node = ConversationTreeNode.Builder.ofString(basicEmpty)
+                .addPrompt("PROMPT say cheese to anna").build();
         ConversationTransformer transformer = new ConversationTransformer() {
 
             @Override
-            public OutputBuilderElement apply(OutputBuilderElement arg0) {
+            public RichOutputElement apply(RichOutputElement arg0) {
                 return arg0;
             }
 

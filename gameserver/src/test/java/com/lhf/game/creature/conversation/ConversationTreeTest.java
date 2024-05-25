@@ -1,6 +1,6 @@
 package com.lhf.game.creature.conversation;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.regex.Pattern;
@@ -9,16 +9,24 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
 import com.google.gson.Gson;
+import com.lhf.RichOutput.RichOutputBuilder;
+import com.lhf.RichOutput.RichOutputElement;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
+import com.lhf.game.creature.conversation.ConversationTreeNode.Builder;
 import com.lhf.game.serialization.GsonBuilderFactory;
 import com.lhf.server.client.Client.ClientID;
 
@@ -36,18 +44,10 @@ public class ConversationTreeTest {
     }
 
     @Test
-    void testListenNoStartNode() {
-        assertThrows(NullPointerException.class, () -> {
-            new ConversationTree(null);
-        });
-    }
-
-    @Test
     void testIgnoreUngreeted() {
         Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
 
-        ConversationTreeNode node = new ConversationTreeNode(basicEmpty);
-        ConversationTree tree = new ConversationTree(node);
+        ConversationTree tree = new ConversationTree.Builder().setStartBody(basicEmpty).build();
         ConversationTreeNodeResult response = tree.listen(talker, "unrecongized words like zaosdff");
         Truth.assertThat(response).isNull();
     }
@@ -59,15 +59,13 @@ public class ConversationTreeTest {
         Mockito.when(this.talker.getTagName()).thenReturn("npc");
         Mockito.when(this.talker.getSimpleContent()).thenCallRealMethod();
 
-        ConversationTreeNode start = new ConversationTreeNode(basicEmpty);
-        ConversationTree tree = new ConversationTree(start);
         String secondBody = "Yes I am!";
-        tree.addNode(start.getNodeID(),
-                new ConversationPattern("Are you sure?", "\\bsure\\b.*?", Pattern.CASE_INSENSITIVE),
-                new ConversationTreeNode(secondBody));
+        ConversationTree tree = new ConversationTree.Builder(basicEmpty).addNode(null,
+                new ConversationPattern("Are you sure?", "\\bsure\\b.*?", Pattern.CASE_INSENSITIVE), secondBody)
+                .build();
 
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response.printString()).isEqualTo(start.getBodyAsString());
+        Truth.assertThat(response.printString()).isEqualTo(basicEmpty);
         response = tree.listen(talker, "Are you sure?");
         Truth.assertThat(response.printString()).isEqualTo(secondBody);
     }
@@ -79,18 +77,16 @@ public class ConversationTreeTest {
         Mockito.when(this.talker.getTagName()).thenReturn("npc");
         Mockito.when(this.talker.getSimpleContent()).thenCallRealMethod();
 
-        ConversationTreeNode start = new ConversationTreeNode(basicEmpty);
-        ConversationTree tree = new ConversationTree(start);
         String secondBody = "Yes I am!";
-        tree.addNode(start.getNodeID(),
-                new ConversationPattern("Are you sure?", "\\bsure\\b.*?", Pattern.CASE_INSENSITIVE),
-                new ConversationTreeNode(secondBody));
         String thirdBody = "Fine!";
-        tree.addNode(start.getNodeID(), new ConversationPattern("Fine!", "^fine\\b!$", Pattern.CASE_INSENSITIVE),
-                new ConversationTreeNode(thirdBody));
+        ConversationTree tree = new ConversationTree.Builder(basicEmpty)
+                .addNode(null, new ConversationPattern("Are you sure?", "\\bsure\\b.*?", Pattern.CASE_INSENSITIVE),
+                        secondBody)
+                .addNode(null, new ConversationPattern("Fine!", "^fine\\b!$", Pattern.CASE_INSENSITIVE), thirdBody)
+                .build();
 
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response.printString()).isEqualTo(start.getBodyAsString());
+        Truth.assertThat(response.printString()).isEqualTo(basicEmpty);
         response = tree.listen(talker, "Are you sure?");
         Truth.assertThat(response.printString()).isEqualTo(secondBody);
 
@@ -106,18 +102,16 @@ public class ConversationTreeTest {
         Mockito.when(this.talker.getTagName()).thenReturn("npc");
         Mockito.when(this.talker.getSimpleContent()).thenCallRealMethod();
 
-        ConversationTreeNode start = new ConversationTreeNode(basicEmpty);
-        ConversationTree tree = new ConversationTree(start);
         String secondBody = "Yes I am!";
-        tree.addNode(start.getNodeID(),
-                new ConversationPattern("Are you sure?", "\\bsure\\b.*?", Pattern.CASE_INSENSITIVE),
-                new ConversationTreeNode(secondBody));
         String thirdBody = "Fine!";
-        tree.addNode(start.getNodeID(), new ConversationPattern("Fine!", "^fine\\b!$", Pattern.CASE_INSENSITIVE),
-                new ConversationTreeNode(thirdBody));
+        ConversationTree tree = new ConversationTree.Builder(basicEmpty)
+                .addNode(null, new ConversationPattern("Are you sure?", "\\bsure\\b.*?", Pattern.CASE_INSENSITIVE),
+                        secondBody)
+                .addNode(null, new ConversationPattern("Fine!", "^fine\\b!$", Pattern.CASE_INSENSITIVE), thirdBody)
+                .build();
 
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response.printString()).isEqualTo(start.getBodyAsString());
+        Truth.assertThat(response.printString()).isEqualTo(basicEmpty);
         response = tree.listen(talker, "Are you sure?");
         Truth.assertThat(response.printString()).isEqualTo(secondBody);
 
@@ -141,29 +135,29 @@ public class ConversationTreeTest {
         Mockito.when(this.talker.getTagName()).thenReturn("npc");
         Mockito.when(this.talker.getSimpleContent()).thenCallRealMethod();
 
-        ConversationTreeNode start = new ConversationTreeNode(basicEmpty);
-        ConversationTree tree = new ConversationTree(start);
         String secondBody = "Yes I am!";
-        ConversationTreeNode secondNode = new ConversationTreeNode(secondBody);
-        tree.addNode(start.getNodeID(), new ConversationPattern("sure?", "\\bsure\\b.*?", Pattern.CASE_INSENSITIVE),
-                secondNode);
+        Builder secondNode = ConversationTreeNode.Builder.ofString(secondBody);
         String thirdBody = "Fine!";
-        tree.addNode(secondNode.getNodeID(), new ConversationPattern("fine!", "^fine\\b!$", Pattern.CASE_INSENSITIVE),
-                new ConversationTreeNode(thirdBody));
+        ConversationTree tree = new ConversationTree.Builder(basicEmpty)
+                .addNode(null, new ConversationPattern("Are you sure?", "\\bsure\\b.*?", Pattern.CASE_INSENSITIVE),
+                        secondNode)
+                .addNode(secondNode.getNodeID(),
+                        new ConversationPattern("Fine!", "^fine\\b!$", Pattern.CASE_INSENSITIVE), thirdBody)
+                .build();
 
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response.printString()).isEqualTo(start.getBodyAsString());
+        Truth.assertThat(response.printString()).isEqualTo(basicEmpty);
         response = tree.listen(talker, "zippity doo dah");
         Truth.assertThat(response.printString()).doesNotContain(tree.getEndOfConvo());
         Truth.assertThat(response.printString()).isEqualTo(tree.getNotRecognized());
         response = tree.listen(talker, "what was that again?");
-        Truth.assertThat(response.printString()).isEqualTo(start.getBodyAsString());
+        Truth.assertThat(response.printString()).isEqualTo(basicEmpty);
         response = tree.listen(talker, "Are you sure?");
-        Truth.assertThat(response.printString()).isEqualTo(secondNode.getBodyAsString());
+        Truth.assertThat(response.printString()).isEqualTo(secondBody);
         response = tree.listen(talker, "zippity eh");
         Truth.assertThat(response.printString()).isEqualTo(tree.getNotRecognized());
         response = tree.listen(talker, "what was that again?");
-        Truth.assertThat(response.printString()).isEqualTo(secondNode.getBodyAsString());
+        Truth.assertThat(response.printString()).isEqualTo(secondBody);
 
     }
 
@@ -174,17 +168,16 @@ public class ConversationTreeTest {
         Mockito.when(this.talker.getTagName()).thenReturn("npc");
         Mockito.when(this.talker.getSimpleContent()).thenCallRealMethod();
 
-        ConversationTreeNode start = new ConversationTreeNode(basicEmpty);
-        ConversationTree tree = new ConversationTree(start);
         String secondBody = "Yes I am!";
-        tree.addNode(start.getNodeID(), new ConversationPattern("sure?", "\\bsure\\b.*?", Pattern.CASE_INSENSITIVE),
-                new ConversationTreeNode(secondBody));
         String thirdBody = "Fine!";
-        tree.addNode(start.getNodeID(), new ConversationPattern("fine!", "^fine\\b!$", Pattern.CASE_INSENSITIVE),
-                new ConversationTreeNode(thirdBody));
+        ConversationTree tree = new ConversationTree.Builder(basicEmpty)
+                .addNode(null, new ConversationPattern("Are you sure?", "\\bsure\\b.*?", Pattern.CASE_INSENSITIVE),
+                        secondBody)
+                .addNode(null, new ConversationPattern("Fine!", "^fine\\b!$", Pattern.CASE_INSENSITIVE), thirdBody)
+                .build();
 
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response.printString()).isEqualTo(start.getBodyAsString());
+        Truth.assertThat(response.printString()).isEqualTo(basicEmpty);
         response = tree.listen(talker, "Are you sure?");
         Truth.assertThat(response.printString()).isEqualTo(secondBody);
 
@@ -200,13 +193,11 @@ public class ConversationTreeTest {
         Mockito.when(this.talker.getSimpleContent()).thenCallRealMethod();
 
         String body1 = "Hello there new young traveller!";
-        ConversationTreeNode start = new ConversationTreeNode(body1);
-        ConversationTree tree = new ConversationTree(start);
         String body2 = "Why yes, you are a traveller, are you not?";
-        ConversationTreeNode second = new ConversationTreeNode(body2);
+        ConversationTree tree = new ConversationTree.Builder(body1).addNode(null,
+                new ConversationPattern("I'm a traveller?", "\\btraveller\\b", Pattern.CASE_INSENSITIVE), body2)
+                .build();
 
-        tree.addNode(start.getNodeID(),
-                new ConversationPattern("I'm a traveller?", "\\btraveller\\b", Pattern.CASE_INSENSITIVE), second);
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
         try {
             String xml = response.printXML();
@@ -223,9 +214,10 @@ public class ConversationTreeTest {
         Mockito.when(this.talker.getTagName()).thenReturn("npc");
         Mockito.when(this.talker.getSimpleContent()).thenCallRealMethod();
 
-        ConversationTreeNode start = new ConversationTreeNode("I greet you back")
-                .addMetaSignal(ConversationContextKey.TALKER_TAGGED_NAME);
-        ConversationTree tree = new ConversationTree(start);
+        RichOutputBuilder builder = new RichOutputBuilder(ConversationTreeNode.NPC_CONVERSATION_TAG)
+                .appendChild("I greet you back").appendRichOutputElement(
+                        RichOutputElement.ofMetaSignal(ConversationContextKey.TALKER_TAGGED_NAME.name()));
+        ConversationTree tree = new ConversationTree.Builder().setStartBody(builder).build();
 
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
         Truth.assertThat(response.printString()).contains(talker.getName());
@@ -247,21 +239,22 @@ public class ConversationTreeTest {
 
         Truth.assertThat(unwelcome.getName()).isNotEqualTo(talker.getName());
 
-        ConversationTreeNode start = new ConversationTreeNode(
-                "I greet you back " + ConversationContextKey.TALKER_TAGGED_NAME);
-        start.addBody("I will test the welcome and the unwelcome both");
-        ConversationTree tree = new ConversationTree(start);
-        ConversationTreeNode oneWay = new ConversationTreeNode("I am friendly");
-        ConversationTreeNode otherWay = new ConversationTreeNode("I am not friendly");
+        String oneWay = "I am friendly";
+        String otherWay = "I am not friendly";
 
-        ConversationTreeBranch oneBranch = tree.addNode(start.getNodeID(),
-                new ConversationPattern("I'm welcome?", "\\bwelcome\\b", Pattern.CASE_INSENSITIVE), oneWay);
-        tree.addNode(start.getNodeID(),
-                new ConversationPattern("I'm unwelcome?", "\\bunwelcome\\b", Pattern.CASE_INSENSITIVE), otherWay);
-
-        // unwelcome is not welcome to the oneWay
-        oneBranch.addRule(ConversationContextKey.TALKER_NAME,
-                new ConversationPattern(unwelcome.getName(), "\\b" + unwelcome.getName() + "\\b"));
+        RichOutputBuilder builder = new RichOutputBuilder(ConversationTreeNode.NPC_CONVERSATION_TAG)
+                .appendChild("I greet you back")
+                .appendRichOutputElement(
+                        RichOutputElement.ofMetaSignal(ConversationContextKey.TALKER_TAGGED_NAME.name()))
+                .appendChild("I will test the welcome and the unwelcome both");
+        ConversationTree tree = new ConversationTree.Builder().setStartBody(builder)
+                .addNode(null, new ConversationPattern("I'm welcome?", "\\bwelcome\\b", Pattern.CASE_INSENSITIVE),
+                        oneWay,
+                        (oneBranch) -> oneBranch.addRule(ConversationContextKey.TALKER_NAME,
+                                new ConversationPattern(unwelcome.getName(), "\\b" + unwelcome.getName() + "\\b")))
+                .addNode(null, new ConversationPattern("I'm unwelcome?", "\\bunwelcome\\b", Pattern.CASE_INSENSITIVE),
+                        otherWay)
+                .build();
 
         // welcome
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
@@ -274,11 +267,11 @@ public class ConversationTreeTest {
         }
 
         response = tree.listen(talker, "I think I'm welcome");
-        Truth.assertThat(response.printString()).isEqualTo(oneWay.getBodyAsString());
+        Truth.assertThat(response.printString()).isEqualTo(oneWay);
         response = tree.listen(talker, "But I'll start over");
         Truth.assertThat(response.printString()).contains(tree.getEndOfConvo());
         response = tree.listen(talker, "Am I unwelcome?");
-        Truth.assertThat(response.printString()).isEqualTo(otherWay.getBodyAsString());
+        Truth.assertThat(response.printString()).isEqualTo(otherWay);
 
         // unwelcome
         response = tree.listen(unwelcome, "hello there!");
@@ -293,7 +286,7 @@ public class ConversationTreeTest {
         response = tree.listen(unwelcome, "Am I welcome?");
         Truth.assertThat(response.printString()).ignoringCase().isEqualTo(tree.getNotRecognized());
         response = tree.listen(unwelcome, "Am I unwelcome?");
-        Truth.assertThat(response.printString()).isEqualTo(otherWay.getBodyAsString());
+        Truth.assertThat(response.printString()).isEqualTo(otherWay);
 
     }
 
@@ -313,22 +306,20 @@ public class ConversationTreeTest {
 
         Truth.assertThat(unwelcome.getName()).isNotEqualTo(talker.getName());
 
-        ConversationTreeNode start = new ConversationTreeNode(
-                "I greet you back " + ConversationContextKey.TALKER_TAGGED_NAME);
-        start.addBody("I will test the welcome and the unwelcome both");
-        ConversationTree tree = new ConversationTree(start);
-        ConversationTreeNode oneWay = new ConversationTreeNode("I am friendly");
-        ConversationTreeNode otherWay = new ConversationTreeNode("I am not friendly");
+        String oneWay = "I am friendly";
+        String otherWay = "I am not friendly";
 
-        // order matters!
-        ConversationTreeBranch oneBranch = tree.addNode(start.getNodeID(),
-                new ConversationPattern("both?", "\\bboth\\b", Pattern.CASE_INSENSITIVE), oneWay);
-        tree.addNode(start.getNodeID(), new ConversationPattern("both?", "\\bboth\\b", Pattern.CASE_INSENSITIVE),
-                otherWay);
-
-        // unwelcome is not welcome to the oneWay
-        oneBranch.addRule(ConversationContextKey.TALKER_NAME,
-                new ConversationPattern(unwelcome.getName(), "\\b" + Pattern.quote(unwelcome.getName()) + "\\b"));
+        RichOutputBuilder builder = new RichOutputBuilder(ConversationTreeNode.NPC_CONVERSATION_TAG)
+                .appendChild("I greet you back")
+                .appendRichOutputElement(
+                        RichOutputElement.ofMetaSignal(ConversationContextKey.TALKER_TAGGED_NAME.name()))
+                .appendChild("I will test the welcome and the unwelcome both");
+        ConversationTree tree = new ConversationTree.Builder().setStartBody(builder).addNode(null,
+                new ConversationPattern("both?", "\\bboth\\b", Pattern.CASE_INSENSITIVE), oneWay, (oneBranch) -> {
+                    oneBranch.addRule(ConversationContextKey.TALKER_NAME,
+                            new ConversationPattern(unwelcome.getName(), "\\b" + unwelcome.getName() + "\\b"));
+                }).addNode(null, new ConversationPattern("both?", "\\bboth\\b", Pattern.CASE_INSENSITIVE), otherWay)
+                .build();
 
         // welcome
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
@@ -339,7 +330,7 @@ public class ConversationTreeTest {
             fail(e);
         }
         response = tree.listen(talker, "You test both?");
-        Truth.assertThat(response.printString()).isEqualTo(oneWay.getBodyAsString());
+        Truth.assertThat(response.printString()).isEqualTo(oneWay);
 
         // unwelcome
         response = tree.listen(unwelcome, "hello there!");
@@ -350,31 +341,31 @@ public class ConversationTreeTest {
             fail(e);
         }
         response = tree.listen(unwelcome, "You test both?");
-        Truth.assertThat(response.printString()).isEqualTo(otherWay.getBodyAsString());
+        Truth.assertThat(response.printString()).isEqualTo(otherWay);
     }
 
     @Test
     void testSerialization() {
-        ConversationTreeNode start = new ConversationTreeNode(
-                "I greet you back " + ConversationContextKey.TALKER_TAGGED_NAME);
-        start.addBody("I will test the welcome and the unwelcome both");
-        ConversationTree tree = new ConversationTree(start);
-        ConversationTreeNode oneWay = new ConversationTreeNode("I am friendly");
-        ConversationTreeNode otherWay = new ConversationTreeNode("I am not friendly");
+        RichOutputBuilder builder = new RichOutputBuilder(ConversationTreeNode.NPC_CONVERSATION_TAG)
+                .appendChild("I greet you back")
+                .appendRichOutputElement(
+                        RichOutputElement.ofMetaSignal(ConversationContextKey.TALKER_TAGGED_NAME.name()))
+                .appendChild("I will test the welcome and the unwelcome both");
 
-        // order matters!
-        ConversationTreeBranch oneBranch = tree.addNode(start.getNodeID(),
-                new ConversationPattern("both?", "\\bboth\\b", Pattern.CASE_INSENSITIVE), oneWay);
-        tree.addNode(start.getNodeID(), new ConversationPattern("both?", "\\bboth\\b", Pattern.CASE_INSENSITIVE),
-                otherWay);
+        Builder oneWay = ConversationTreeNode.Builder.ofString("I am friendly");
+        Builder otherWay = ConversationTreeNode.Builder.ofString("I am not friendly");
 
-        // unwelcome is not welcome to the oneWay
-        oneBranch.addRule(ConversationContextKey.TALKER_NAME,
-                new ConversationPattern("badperson", "\\b" + "badperson" + "\\b"));
+        Builder oneWaySecond = ConversationTreeNode.Builder.ofString("So very friendly!");
 
-        ConversationTreeNode oneWaySecond = new ConversationTreeNode("So very friendly!");
-        tree.addNode(oneWay.getNodeID(),
-                new ConversationPattern("You are friendly?", "\\bfriendly\\b", Pattern.CASE_INSENSITIVE), oneWaySecond);
+        ConversationTree tree = new ConversationTree.Builder().setStartBody(builder).addNode(null,
+                new ConversationPattern("both?", "\\bboth\\b", Pattern.CASE_INSENSITIVE), oneWay, (oneBranch) -> {
+                    oneBranch.addRule(ConversationContextKey.TALKER_NAME,
+                            new ConversationPattern("badperson", "\\b" + "badperson" + "\\b"));
+                }).addNode(null, new ConversationPattern("both?", "\\bboth\\b", Pattern.CASE_INSENSITIVE), otherWay)
+                .addNode(oneWay.getNodeID(),
+                        new ConversationPattern("You are friendly?", "\\bfriendly\\b", Pattern.CASE_INSENSITIVE),
+                        oneWaySecond)
+                .build();
 
         Gson gson = GsonBuilderFactory.start().conversation().build();
         String json = gson.toJson(tree);
@@ -393,33 +384,188 @@ public class ConversationTreeTest {
 
     @Test
     void testMermaid() {
-        ConversationTreeNode start = new ConversationTreeNode(
-                "I greet you back " + ConversationContextKey.TALKER_TAGGED_NAME);
-        start.addBody("I will test the welcome and the unwelcome both");
-        ConversationTree tree = new ConversationTree(start);
-        ConversationTreeNode oneWay = new ConversationTreeNode("I am friendly");
+        RichOutputBuilder builder = new RichOutputBuilder(ConversationTreeNode.NPC_CONVERSATION_TAG)
+                .appendChild("I greet you back")
+                .appendRichOutputElement(
+                        RichOutputElement.ofMetaSignal(ConversationContextKey.TALKER_TAGGED_NAME.name()))
+                .appendChild("I will test the welcome and the unwelcome both");
+
+        Builder oneWay = ConversationTreeNode.Builder.ofString("I am friendly");
+        Builder otherWay = ConversationTreeNode.Builder.ofString("I am not friendly");
         oneWay.addPrompt("PROMPT DROP money");
-        ConversationTreeNode otherWay = new ConversationTreeNode("I am not friendly");
 
-        // order matters!
-        ConversationTreeBranch oneBranch = tree.addNode(start.getNodeID(),
-                new ConversationPattern("both?", "\\bboth\\b", Pattern.CASE_INSENSITIVE), oneWay);
-        tree.addNode(start.getNodeID(), new ConversationPattern("both?", "\\bboth\\b", Pattern.CASE_INSENSITIVE),
-                otherWay);
+        Builder oneWaySecond = ConversationTreeNode.Builder.ofString("So very friendly!");
 
-        // unwelcome is not welcome to the oneWay
-        oneBranch.addRule(ConversationContextKey.TALKER_NAME,
-                new ConversationPattern("badperson", "\\b" + "badperson" + "\\b"));
+        ConversationTree.Builder treeBuilder = new ConversationTree.Builder().setStartBody(builder).addNode(null,
+                new ConversationPattern("both?", "\\bboth\\b", Pattern.CASE_INSENSITIVE), oneWay, (oneBranch) -> {
+                    oneBranch.addRule(ConversationContextKey.TALKER_NAME,
+                            new ConversationPattern("badperson", "\\b" + "badperson" + "\\b"));
+                }).addNode(null, new ConversationPattern("both?", "\\bboth\\b", Pattern.CASE_INSENSITIVE), otherWay)
+                .addNode(oneWay.getNodeID(),
+                        new ConversationPattern("You are friendly?", "\\bfriendly\\b", Pattern.CASE_INSENSITIVE),
+                        oneWaySecond);
 
-        ConversationTreeNode oneWaySecond = new ConversationTreeNode("So very friendly!");
-        tree.addNode(oneWay.getNodeID(),
-                new ConversationPattern("you are friendly?", "\\bfriendly\\b", Pattern.CASE_INSENSITIVE), oneWaySecond);
-
-        String mermaid = tree.toMermaid(false);
+        String mermaid = treeBuilder.toMermaidStateDiagram(false);
         System.out.println(mermaid);
         Truth.assertThat(mermaid).ignoringCase().contains("greet");
         Truth.assertThat(mermaid).ignoringCase().contains("test");
         Truth.assertThat(mermaid).ignoringCase().contains("friendly");
         Truth.assertThat(mermaid).ignoringCase().contains("badperson");
+
+        ConversationTree tree = treeBuilder.build();
+
+        String mermaid2 = tree.toMermaidStateDiagram(false);
+        System.out.println(mermaid2);
+        Truth.assertThat(mermaid2).ignoringCase().contains("greet");
+        Truth.assertThat(mermaid2).ignoringCase().contains("test");
+        Truth.assertThat(mermaid2).ignoringCase().contains("friendly");
+        Truth.assertThat(mermaid2).ignoringCase().contains("badperson");
+    }
+
+    @Test
+    void copyTest() {
+        ConversationTree.Builder builder = StaticConversationTreeProducer.produceGary();
+        final String builderMermaid = builder.toMermaidStateDiagram(false);
+        // System.out.println("builder");
+        // System.out.println(builderMermaid);
+
+        ConversationTree built = builder.build();
+        final String builtMermaid = built.toMermaidStateDiagram(false);
+        System.out.println("built");
+        System.out.println(builtMermaid);
+
+        Truth.assertThat(builderMermaid).isEqualTo(builtMermaid);
+
+        ConversationTree.Builder copier = ConversationTree.Builder.fromTree(built);
+        // final String copierMermaid = copier.toMermaidStateDiagram(false);
+        // System.out.println("copier");
+        // System.out.println(copierMermaid);
+
+        ConversationTree copied = copier.build();
+        final String copiedMermaid = copied.toMermaidStateDiagram(false);
+        System.out.println("copied");
+        System.out.println(copiedMermaid);
+
+        Truth.assertThat(copiedMermaid).isEqualTo(builtMermaid);
+
+        Gson gson = GsonBuilderFactory.start().prettyPrinting().conversation().build();
+
+        final String asJson = gson.toJson(built, ConversationTree.class);
+        // System.out.println("json");
+        // System.out.println(asJson);
+
+        ConversationTree fromJson = gson.fromJson(asJson, ConversationTree.class);
+        final String jsonMermaid = fromJson.toMermaidStateDiagram(false);
+        System.out.println("fromJson");
+        System.out.println(jsonMermaid);
+
+        ConversationTree.Builder jsonCopier = ConversationTree.Builder.fromTree(fromJson);
+        // final String jsonCopierMermaid = jsonCopier.toMermaidStateDiagram(false);
+        // System.out.println("jsonCopierMermaid");
+        // System.out.println(jsonCopierMermaid);
+
+        ConversationTree jsonCopied = jsonCopier.build();
+        final String jsonCopiedMermaid = jsonCopied.toMermaidStateDiagram(false);
+        System.out.println("jsonCopiedMermaid");
+        System.out.println(jsonCopiedMermaid);
+
+        Truth.assertThat(jsonMermaid).isEqualTo(builtMermaid);
+
+    }
+
+    @Nested
+    @ExtendWith(MockitoExtension.class)
+    @TestMethodOrder(OrderAnnotation.class)
+    class StaticConversations {
+        private ConversationManager manager = new ConversationManager();
+
+        public boolean isRewriteNeeded() {
+            return false;
+        }
+
+        @Test
+        @Order(1)
+        void readStaticFiles() {
+            ConversationTree nonVerbal = assertDoesNotThrow(() -> manager.convoTreeFromFile("non_verbal_default"),
+                    () -> "Failed to load non verbal tree, rewrite it");
+            String mermaid = nonVerbal.toMermaidStateDiagram(false);
+            System.out.println("non_verbal_default");
+            System.out.println(mermaid);
+            Truth.assertThat(mermaid).ignoringCase().contains("Growl");
+
+            ConversationTree verbal = assertDoesNotThrow(() -> manager.convoTreeFromFile("verbal_default"),
+                    () -> "Failed to load verbal tree, rewrite it");
+            mermaid = verbal.toMermaidStateDiagram(false);
+            System.out.println("verbal_default");
+            System.out.println(mermaid);
+            Truth.assertThat(mermaid).ignoringCase().contains("secrets");
+        }
+
+        @Test
+        @Order(1)
+        void readGary() {
+            ConversationTree gary = assertDoesNotThrow(() -> manager.convoTreeFromFile("gary"),
+                    () -> "Failed to load gary's tree, rewrite it");
+            String mermaid = gary.toMermaidStateDiagram(false);
+            System.out.println("gary");
+            System.out.println(mermaid);
+            Truth.assertThat(mermaid).contains("CREATE_VOCATION");
+
+        }
+
+        @Test
+        @Order(2)
+        @EnabledIf("isRewriteNeeded")
+        void writeNonVerbalDefault() {
+            ConversationTree.Builder builder = StaticConversationTreeProducer.produceNonVerbalDefault();
+
+            ConversationTree built = builder.build();
+            boolean written = assertDoesNotThrow(() -> manager.convoTreeToFile(built), () -> "Failed to write tree");
+            Truth.assertThat(written).isTrue();
+        }
+
+        @Test
+        @Order(3)
+        @EnabledIf("isRewriteNeeded")
+        void writeVerbalDefault() {
+            ConversationTree.Builder builder = StaticConversationTreeProducer.produceVerbalDefault();
+
+            ConversationTree built = builder.build();
+            boolean written = assertDoesNotThrow(() -> manager.convoTreeToFile(built), () -> "Failed to write tree");
+            Truth.assertThat(written).isTrue();
+        }
+
+        @Test
+        @Order(4)
+        @EnabledIf("isRewriteNeeded")
+        void writeAggravated() {
+            ConversationTree.Builder builder = StaticConversationTreeProducer.produceAggravated();
+
+            ConversationTree built = builder.build();
+            boolean written = assertDoesNotThrow(() -> manager.convoTreeToFile(built), () -> "Failed to write tree");
+            Truth.assertThat(written).isTrue();
+
+        }
+
+        @Test
+        @Order(5)
+        @EnabledIf("isRewriteNeeded")
+        void writeGary() {
+
+            ConversationTree.Builder builder = StaticConversationTreeProducer.produceGary();
+
+            ConversationTree built = builder.build();
+            boolean written = assertDoesNotThrow(() -> manager.convoTreeToFile(built), () -> "Failed to write tree");
+            Truth.assertThat(written).isTrue();
+
+            ConversationTree gary = assertDoesNotThrow(() -> manager.convoTreeFromFile("gary"),
+                    () -> "Failed to load gary's tree, rewrite it");
+            String mermaid = gary.toMermaidStateDiagram(false);
+            System.out.println("gary");
+            System.out.println(mermaid);
+            Truth.assertThat(mermaid).contains("CREATE_VOCATION");
+            Truth.assertThat(built.toMermaidStateDiagram(false)).isEqualTo(mermaid);
+
+        }
     }
 }

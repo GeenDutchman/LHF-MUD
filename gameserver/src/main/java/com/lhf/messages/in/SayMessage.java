@@ -3,8 +3,8 @@ package com.lhf.messages.in;
 import java.util.List;
 import java.util.StringJoiner;
 
-import com.lhf.OutputBuilder;
-import com.lhf.OutputBuilder.OutputSequence;
+import com.lhf.RichOutput;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -13,29 +13,30 @@ import com.lhf.messages.grammar.PrepositionalPhrases;
 import com.lhf.messages.grammar.Prepositions;
 
 public class SayMessage extends Command {
-    private final OutputSequence sequence;
+    private final RichOutput sequence;
 
     public SayMessage(AMessageType command, String whole, Boolean isValid, PhraseList phrases,
             PrepositionalPhrases prepositional) {
         super(command, whole, isValid, phrases, prepositional);
-        this.sequence = new OutputSequence();
+        RichOutputBuilder builder = new RichOutputBuilder();
         final List<String> retrieved = this.getDirects();
         if (retrieved != null && retrieved.size() > 0) {
-            this.sequence.appendString(retrieved.get(0), null, null);
+            builder.appendString(retrieved.get(0), null, null);
         }
+        this.sequence = builder.build();
     }
 
-    private SayMessage(OutputBuilder output, String target, Boolean isValid) {
+    private SayMessage(RichOutput output, String target, Boolean isValid) {
         super(AMessageType.SAY, new StringBuilder("SAY \"").append(output.printString()).append("\"")
                 .append(target != null ? " to " + target : "").toString(), isValid);
-        this.sequence = OutputSequence.copy(output);
+        this.sequence = output;
         this.addDirect(output.printString());
         if (target != null) {
             this.addIndirect(Prepositions.TO, target);
         }
     }
 
-    public static SayMessage fromOutputBuilder(OutputBuilder output, String target) {
+    public static SayMessage fromOutputBuilder(RichOutput output, String target) {
         if (output == null) {
             throw new IllegalArgumentException("Cannot create SayMessage from null OutputBuilder");
         }
@@ -52,8 +53,8 @@ public class SayMessage extends Command {
         return this.sequence.printString();
     }
 
-    public OutputSequence getSequence() {
-        return OutputSequence.copy(sequence);
+    public RichOutput getSequence() {
+        return sequence;
     }
 
     public String getTarget() {

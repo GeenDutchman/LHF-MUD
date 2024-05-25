@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.TreeSet;
 
-import com.lhf.OutputBuilder;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.Taggable;
 import com.lhf.Taggable.BasicTaggable;
 import com.lhf.game.battle.BattleStats.BattleStatRecord;
@@ -110,7 +110,7 @@ public class BattleStatsRequestedEvent extends GameEvent {
     }
 
     @Override
-    public void buildOutput(OutputBuilder builder) {
+    public void buildOutput(RichOutputBuilder builder) {
         if (builder == null) {
             return;
         }
@@ -126,19 +126,19 @@ public class BattleStatsRequestedEvent extends GameEvent {
             builder.appendTaggable(Taggable.BasicTaggable.customTaggable("Turn", this.turnCount.get().toString()),
                     " Turn:", null);
         }
-        OutputBuilder battleStats = builder.produceSubBuilder("BattleStats");
+        RichOutputBuilder battleStats = builder.produceSubBuilder("BattleStats");
         for (final BattleStatRecord battleStatRecord : records) {
-            OutputBuilder battleStat = battleStats.produceSubBuilder("BattleStatRecord");
+            RichOutputBuilder battleStat = battleStats.produceSubBuilder("BattleStatRecord");
             battleStat.appendTaggable(BasicTaggable.customTaggable("TargetName", battleStatRecord.getTargetName()));
             battleStat
                     .appendTaggable(BasicTaggable.customTaggable("Faction", battleStatRecord.getFaction().toString()));
             battleStat.appendTaggable(battleStatRecord.getVocation());
             battleStat.appendTaggable(battleStatRecord.getBucket());
-            OutputBuilder stats = battleStat.produceSubBuilder("Stats");
+            RichOutputBuilder stats = battleStat.produceSubBuilder("Stats");
             for (final Entry<BattleStat, Integer> entry : battleStatRecord.getStats().entrySet()) {
                 final String key = entry.getKey().toString();
                 final String value = entry.getValue().toString();
-                OutputBuilder stat = stats.produceSubBuilder(key);
+                RichOutputBuilder stat = stats.produceSubBuilder(key);
                 stat.appendString(key);
                 stat.appendString(value, ":", null);
             }

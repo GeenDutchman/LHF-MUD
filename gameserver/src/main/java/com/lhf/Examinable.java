@@ -4,8 +4,7 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
-import com.lhf.OutputBuilder.OutputSequence;
-import com.lhf.OutputBuilder.OutputSequenceElement;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.messages.events.SeeEvent;
 
 public interface Examinable extends Taggable {
@@ -18,7 +17,7 @@ public interface Examinable extends Taggable {
         return this.getName();
     }
 
-    public default void produceExtraDescription(OutputBuilder builder) {
+    public default void produceExtraDescription(RichOutputBuilder builder) {
         return;
     }
 
@@ -50,10 +49,10 @@ public interface Examinable extends Taggable {
         public final String name;
         public final String contents;
         public final Map<String, String> tagAttributes;
-        public final OutputSequence extraDescription;
+        public final RichOutput extraDescription;
 
         private BasicExaminable(String tagName, String description, String name, String contents,
-                Map<String, String> tagAttributes, OutputSequence extraDescription) {
+                Map<String, String> tagAttributes, RichOutput extraDescription) {
             this.tagName = tagName;
             this.description = description;
             this.name = name;
@@ -62,10 +61,10 @@ public interface Examinable extends Taggable {
             this.extraDescription = extraDescription;
         }
 
-        private static OutputSequence retrieveExtras(final Examinable from) {
-            OutputSequence extras = new OutputSequence();
+        private static RichOutput retrieveExtras(final Examinable from) {
+            RichOutputBuilder extras = new RichOutputBuilder();
             from.produceExtraDescription(extras);
-            return extras;
+            return extras.build();
         }
 
         private BasicExaminable(final Examinable from) {
@@ -98,20 +97,16 @@ public interface Examinable extends Taggable {
             return tagAttributes;
         }
 
-        public OutputSequence getExtraDescription() {
+        public RichOutput getExtraDescription() {
             return extraDescription;
         }
 
         @Override
-        public void produceExtraDescription(OutputBuilder builder) {
+        public void produceExtraDescription(RichOutputBuilder builder) {
             if (builder == null) {
                 return;
             }
-            for (final OutputSequenceElement thing : this.extraDescription) {
-                if (thing != null) {
-                    builder.appendOutputBuilderElement(OutputSequenceElement.copy(thing), null, null);
-                }
-            }
+            builder.appendRichOutput(extraDescription, null, null);
         }
 
         @Override

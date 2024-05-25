@@ -16,7 +16,7 @@ import java.util.logging.Level;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
-import com.lhf.OutputBuilder;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.Taggable;
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
@@ -578,7 +578,7 @@ public interface ICreature extends InventoryOwner, EquipmentOwner, Comparable<IC
     }
 
     @Override
-    default void produceExtraDescription(OutputBuilder builder) {
+    default void produceExtraDescription(RichOutputBuilder builder) {
         if (builder == null) {
             return;
         }

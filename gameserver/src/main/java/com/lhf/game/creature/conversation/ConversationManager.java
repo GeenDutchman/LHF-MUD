@@ -37,10 +37,29 @@ public class ConversationManager {
 
     public Boolean convoTreeToFile(ConversationTree tree) {
         Gson gson = GsonBuilderFactory.start().prettyPrinting().conversation().build();
-        String rightWritePath = this.path.replaceAll("target(.)classes", "src$1main$1resources");
-        this.logger.log(Level.INFO, "Writing to: " + rightWritePath);
-        try (JsonWriter jWriter = gson.newJsonWriter(
-                new FileWriter(rightWritePath.toString() + tree.getTreeName() + ".json"))) {
+
+        this.logger.log(Level.INFO, "Writing to: " + this.path + tree.getTreeName());
+        try (JsonWriter jWriter = gson.newJsonWriter(new FileWriter(this.path + tree.getTreeName() + ".json"))) {
+            gson.toJson(tree, ConversationTree.class, jWriter);
+        } catch (JsonIOException | IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        String rightWritePath = this.path.replaceAll("target(.)test-classes", "src$1main$1resources");
+        this.logger.log(Level.INFO, "Also Writing to: " + rightWritePath);
+        try (JsonWriter jWriter = gson
+                .newJsonWriter(new FileWriter(rightWritePath.toString() + tree.getTreeName() + ".json"))) {
+            gson.toJson(tree, ConversationTree.class, jWriter);
+        } catch (JsonIOException | IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        rightWritePath = this.path.replaceAll("target(.)test-classes", "src$1test$1java");
+        this.logger.log(Level.INFO, "Thirdly Writing to: " + rightWritePath);
+        try (JsonWriter jWriter = gson
+                .newJsonWriter(new FileWriter(rightWritePath.toString() + tree.getTreeName() + ".json"))) {
             gson.toJson(tree, ConversationTree.class, jWriter);
         } catch (JsonIOException | IOException e) {
             e.printStackTrace();
@@ -56,6 +75,19 @@ public class ConversationManager {
         JsonReader jReader = new JsonReader(new FileReader(convoFile));
         ConversationTree tree = gson.fromJson(jReader, ConversationTree.class);
         tree.initBookmarks();
+        return tree;
+    }
+
+    public Boolean convoTreeBuilderToFile(ConversationTree.Builder tree) {
+        return this.convoTreeToFile(tree.build());
+    }
+
+    public ConversationTree.Builder convoTreeBuilderFromFile(String name) throws FileNotFoundException {
+        Gson gson = GsonBuilderFactory.start().prettyPrinting().conversation().build();
+        String convoFile = this.path.toString() + name + ".json";
+        this.logger.log(Level.INFO, "Opening file: " + convoFile);
+        JsonReader jReader = new JsonReader(new FileReader(convoFile));
+        ConversationTree.Builder tree = gson.fromJson(jReader, ConversationTree.Builder.class);
         return tree;
     }
 }

@@ -16,13 +16,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
 import com.google.common.truth.Truth8;
-import com.lhf.OutputBuilder.OutputSequence;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.Taggable;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationTree;
-import com.lhf.game.creature.conversation.ConversationTreeNode;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.events.BadTargetSelectedEvent;
@@ -60,13 +59,13 @@ public class BasicAITest {
         Mockito.when(speaker.getClientID()).thenReturn(clientID);
 
         String body = "I have been addressed";
-        ConversationTree tree = new ConversationTree(new ConversationTreeNode(body));
+        ConversationTree tree = new ConversationTree.Builder().setStartBody(body).build();
 
         listener.getNPC().setConvoTree(tree);
 
         SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker)
-                .setMessage(new OutputSequence().appendString("hello", null, null)).setHearer(listener.getNPC())
-                .Build();
+                .setMessage(new RichOutputBuilder().appendString("hello", null, null).build())
+                .setHearer(listener.getNPC()).Build();
 
         sendMsgAndWait(sm, listener);
 

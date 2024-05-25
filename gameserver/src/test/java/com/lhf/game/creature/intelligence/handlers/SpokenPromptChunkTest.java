@@ -3,10 +3,9 @@ package com.lhf.game.creature.intelligence.handlers;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import com.lhf.OutputBuilder.OutputSequence;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationTree;
-import com.lhf.game.creature.conversation.ConversationTreeNode;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.messages.events.SpeakingEvent;
 
@@ -17,16 +16,15 @@ public class SpokenPromptChunkTest {
         AIComBundle listener = new AIComBundle(NonPlayerCharacter.getNPCBuilder().addAIHandler(chunk));
 
         String body = "I have been addressed";
-        ConversationTreeNode node = new ConversationTreeNode(body);
         String sayMessage = "wakarimasen";
-        node.addPrompt("SAY " + sayMessage);
-        ConversationTree tree = new ConversationTree(node);
+        ConversationTree tree = new ConversationTree.Builder().setStartBody(body)
+                .editStartNode(start -> start.addPrompt("SAY " + sayMessage)).build();
         listener.getNPC().setConvoTree(tree);
 
         AIComBundle speaker = new AIComBundle();
         SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker.getNPC())
-                .setMessage(new OutputSequence().appendString("hello", null, null)).setHearer(listener.getNPC())
-                .Build();
+                .setMessage(new RichOutputBuilder().appendString("hello", null, null).build())
+                .setHearer(listener.getNPC()).Build();
         AIComBundle.eventAccepter.accept(listener.getNPC(), sm);
 
         Mockito.verify(listener.sssb, Mockito.timeout(1000 * 10)).send(sm);
@@ -46,7 +44,7 @@ public class SpokenPromptChunkTest {
 
         String prompt = "NONOBJECT";
         SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker.getNPC())
-                .setMessage(new OutputSequence().appendString("PROMPT SEE", null, null).appendString(prompt))
+                .setMessage(new RichOutputBuilder().appendString("PROMPT SEE", null, null).appendString(prompt).build())
                 .setHearer(listener.getNPC()).Build();
         AIComBundle.eventAccepter.accept(listener.getNPC(), sm);
 
@@ -63,7 +61,7 @@ public class SpokenPromptChunkTest {
 
         String prompt = "NONOBJECT";
         SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker.getNPC())
-                .setMessage(new OutputSequence().appendString("PROMPT SEE", null, null).appendString(prompt))
+                .setMessage(new RichOutputBuilder().appendString("PROMPT SEE", null, null).appendString(prompt).build())
                 .setHearer(listener.getNPC()).Build();
         AIComBundle.eventAccepter.accept(listener.getNPC(), sm);
 

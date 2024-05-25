@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.OutputBuilder;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
@@ -107,7 +107,7 @@ public class Trap extends InteractObject implements GameEventProcessor {
                 if (nodeGenerator == null) {
                     return;
                 }
-                OutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                RichOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
                 description.appendTaggable(creature);
                 description.appendString("failed (");
                 description.appendTaggable(roll);
@@ -123,7 +123,7 @@ public class Trap extends InteractObject implements GameEventProcessor {
                     if (nodeGenerator == null) {
                         return;
                     }
-                    OutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                    RichOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
                     description.appendTaggable(this);
                     description.appendString("is not repeatable and thus cannot be interacted with.");
                 });
@@ -133,7 +133,7 @@ public class Trap extends InteractObject implements GameEventProcessor {
                     if (nodeGenerator == null) {
                         return;
                     }
-                    OutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                    RichOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
                     description.appendTaggable(creature);
                     description.appendString("successfully (");
                     description.appendTaggable(roll);
@@ -201,7 +201,7 @@ public class Trap extends InteractObject implements GameEventProcessor {
                                     if (nodeGenerator == null) {
                                         return;
                                     }
-                                    OutputBuilder description = nodeGenerator
+                                    RichOutputBuilder description = nodeGenerator
                                             .produceSubBuilder("InteractionDescription");
                                     description.appendChild(creature);
                                     description.appendChild("dodged (");

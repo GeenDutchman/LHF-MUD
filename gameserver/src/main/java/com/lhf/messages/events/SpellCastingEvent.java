@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import com.lhf.OutputBuilder;
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.Taggable;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.magic.SpellEntry;
@@ -38,7 +38,7 @@ public class SpellCastingEvent extends GameEvent {
             this.suffix = suffix;
         }
 
-        public void buildOutput(OutputBuilder builder, ICreature caster, Collection<Taggable> targets) {
+        public void buildOutput(RichOutputBuilder builder, ICreature caster, Collection<Taggable> targets) {
             if (builder == null || caster == null || targets == null || targets.isEmpty()) {
                 return;
             }
@@ -204,7 +204,7 @@ public class SpellCastingEvent extends GameEvent {
     }
 
     @Override
-    public void buildOutput(OutputBuilder builder) {
+    public void buildOutput(RichOutputBuilder builder) {
         if (builder == null) {
             return;
         }

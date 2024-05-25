@@ -23,7 +23,6 @@ import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.map.Area.AreaBuilder;
 import com.lhf.game.map.Area.AreaBuilder.AreaBuilderID;
-import com.lhf.game.map.Atlas.AtlasMappingItem;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.GameEventProcessor;
@@ -134,7 +133,8 @@ public class Dungeon implements Land {
         }
 
         public String toMermaid(boolean fence) {
-            return "DungeonBuilder\r\n" + this.atlas.toMermaid(fence);
+            return "DungeonBuilder\r\n" + this.atlas.toStateDiagramMermaid("    ", fence, true, id -> id.toString(),
+                    dir -> dir.toString(), null, null);
         }
 
         @Override
@@ -266,11 +266,11 @@ public class Dungeon implements Land {
     }
 
     public boolean addCreature(ICreature creature, UUID roomUUID) {
-        AtlasMappingItem<Area, UUID> areaInfo = this.atlas.getAtlasMappingItem(roomUUID);
-        if (areaInfo != null && areaInfo.getAtlasMember() != null) {
-            areaInfo.getAtlasMember().announce(CreatureSpawnedEvent.getBuilder().setCreature(creature).Build());
+        Area area = this.atlas.getAtlasMemberOrNull(roomUUID);
+        if (area != null) {
+            area.announce(CreatureSpawnedEvent.getBuilder().setCreature(creature).Build());
             creature.setSuccessor(this);
-            return areaInfo.getAtlasMember().addCreature(creature);
+            return area.addCreature(creature);
         }
         return false;
     }
@@ -449,7 +449,8 @@ public class Dungeon implements Land {
     }
 
     public String toMermaid(boolean fence) {
-        return this.getName() + "\r\n" + this.atlas.toMermaid(fence);
+        return this.getName() + "\r\n" + this.atlas.toStateDiagramMermaid("    ", fence, true, id -> id.toString(),
+                dir -> dir.toString(), null, null);
     }
 
     @Override
