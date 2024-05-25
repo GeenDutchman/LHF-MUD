@@ -1,7 +1,7 @@
 {
   "treeName": "gary",
   "start": {
-    "nodeID": "d9721854-47fc-4e57-a142-358e2a9e54c6",
+    "nodeID": "0d9612ab-df7a-4013-a1a7-4c0a695bfb74",
     "bodySequence": {
       "sequenceName": "NPCConversation",
       "elements": [
@@ -13,11 +13,11 @@
     "prompts": []
   },
   "conversationAtlas": {
-    "uuid": "62056fbd-a81d-4e30-ace3-bd0be35cee3d",
+    "uuid": "0f02920b-3d44-4a23-b05a-516e58afda44",
     "mapping": {
-      "d9721854-47fc-4e57-a142-358e2a9e54c6": {
+      "0d9612ab-df7a-4013-a1a7-4c0a695bfb74": {
         "atlasMember": {
-          "nodeID": "d9721854-47fc-4e57-a142-358e2a9e54c6",
+          "nodeID": "0d9612ab-df7a-4013-a1a7-4c0a695bfb74",
           "bodySequence": {
             "sequenceName": "NPCConversation",
             "elements": [
@@ -35,7 +35,7 @@
               "flags": 2,
               "example": "ok"
             },
-            "targetId": "cd4fcf30-4c1a-40bb-8267-592c7faa6e30",
+            "targetId": "43f42279-5a07-4a43-b39b-63eb79eea6f1",
             "predicate": {
               "blacklist": {}
             }
@@ -43,9 +43,9 @@
         ],
         "backLinks": []
       },
-      "cd4fcf30-4c1a-40bb-8267-592c7faa6e30": {
+      "43f42279-5a07-4a43-b39b-63eb79eea6f1": {
         "atlasMember": {
-          "nodeID": "cd4fcf30-4c1a-40bb-8267-592c7faa6e30",
+          "nodeID": "43f42279-5a07-4a43-b39b-63eb79eea6f1",
           "bodySequence": {
             "sequenceName": "NPCConversation",
             "elements": [
@@ -63,7 +63,7 @@
               "flags": 2,
               "example": "FIGHTER"
             },
-            "targetId": "89f2ca44-f3bc-4986-9006-5ae945b88b9f",
+            "targetId": "42786af9-69a3-4441-82b9-5f24e198437f",
             "predicate": {
               "blacklist": {}
             }
@@ -74,7 +74,7 @@
               "flags": 2,
               "example": "HEALER"
             },
-            "targetId": "14670afe-33d4-455c-b371-023a6363e8aa",
+            "targetId": "4c8f64e7-c416-46df-baf8-11ce280c1168",
             "predicate": {
               "blacklist": {}
             }
@@ -85,22 +85,22 @@
               "flags": 2,
               "example": "MAGE"
             },
-            "targetId": "4efc9d19-a886-45f0-9a81-b873b8866d20",
+            "targetId": "f6afd676-a492-49b2-8c1f-a1f31530fbe2",
             "predicate": {
               "blacklist": {}
             }
           }
         ],
         "backLinks": [
-          "d9721854-47fc-4e57-a142-358e2a9e54c6",
-          "89f2ca44-f3bc-4986-9006-5ae945b88b9f",
-          "4efc9d19-a886-45f0-9a81-b873b8866d20",
-          "14670afe-33d4-455c-b371-023a6363e8aa"
+          "0d9612ab-df7a-4013-a1a7-4c0a695bfb74",
+          "42786af9-69a3-4441-82b9-5f24e198437f",
+          "f6afd676-a492-49b2-8c1f-a1f31530fbe2",
+          "4c8f64e7-c416-46df-baf8-11ce280c1168"
         ]
       },
-      "89f2ca44-f3bc-4986-9006-5ae945b88b9f": {
+      "42786af9-69a3-4441-82b9-5f24e198437f": {
         "atlasMember": {
-          "nodeID": "89f2ca44-f3bc-4986-9006-5ae945b88b9f",
+          "nodeID": "42786af9-69a3-4441-82b9-5f24e198437f",
           "bodySequence": {
             "sequenceName": "NPCConversation",
             "elements": [
@@ -126,7 +126,7 @@
               "flags": 2,
               "example": "I\u0027m unsure"
             },
-            "targetId": "cd4fcf30-4c1a-40bb-8267-592c7faa6e30",
+            "targetId": "43f42279-5a07-4a43-b39b-63eb79eea6f1",
             "predicate": {
               "blacklist": {}
             }
@@ -137,19 +137,19 @@
               "flags": 2,
               "example": "I\u0027m ready"
             },
-            "targetId": "fefffd5b-2641-4d2a-b5ff-4ccafdd69177",
+            "targetId": "b606126f-6c48-41c9-be45-991f4444e6e5",
             "predicate": {
               "blacklist": {}
             }
           }
         ],
         "backLinks": [
-          "cd4fcf30-4c1a-40bb-8267-592c7faa6e30"
+          "43f42279-5a07-4a43-b39b-63eb79eea6f1"
         ]
       },
-      "4efc9d19-a886-45f0-9a81-b873b8866d20": {
+      "f6afd676-a492-49b2-8c1f-a1f31530fbe2": {
         "atlasMember": {
-          "nodeID": "4efc9d19-a886-45f0-9a81-b873b8866d20",
+          "nodeID": "f6afd676-a492-49b2-8c1f-a1f31530fbe2",
           "bodySequence": {
             "sequenceName": "NPCConversation",
             "elements": [
@@ -175,7 +175,7 @@
               "flags": 2,
               "example": "I\u0027m unsure"
             },
-            "targetId": "cd4fcf30-4c1a-40bb-8267-592c7faa6e30",
+            "targetId": "43f42279-5a07-4a43-b39b-63eb79eea6f1",
             "predicate": {
               "blacklist": {}
             }
@@ -186,19 +186,19 @@
               "flags": 2,
               "example": "I\u0027m ready"
             },
-            "targetId": "fefffd5b-2641-4d2a-b5ff-4ccafdd69177",
+            "targetId": "b606126f-6c48-41c9-be45-991f4444e6e5",
             "predicate": {
               "blacklist": {}
             }
           }
         ],
         "backLinks": [
-          "cd4fcf30-4c1a-40bb-8267-592c7faa6e30"
+          "43f42279-5a07-4a43-b39b-63eb79eea6f1"
         ]
       },
-      "14670afe-33d4-455c-b371-023a6363e8aa": {
+      "4c8f64e7-c416-46df-baf8-11ce280c1168": {
         "atlasMember": {
-          "nodeID": "14670afe-33d4-455c-b371-023a6363e8aa",
+          "nodeID": "4c8f64e7-c416-46df-baf8-11ce280c1168",
           "bodySequence": {
             "sequenceName": "NPCConversation",
             "elements": [
@@ -224,7 +224,7 @@
               "flags": 2,
               "example": "I\u0027m unsure"
             },
-            "targetId": "cd4fcf30-4c1a-40bb-8267-592c7faa6e30",
+            "targetId": "43f42279-5a07-4a43-b39b-63eb79eea6f1",
             "predicate": {
               "blacklist": {}
             }
@@ -235,19 +235,19 @@
               "flags": 2,
               "example": "I\u0027m ready"
             },
-            "targetId": "fefffd5b-2641-4d2a-b5ff-4ccafdd69177",
+            "targetId": "b606126f-6c48-41c9-be45-991f4444e6e5",
             "predicate": {
               "blacklist": {}
             }
           }
         ],
         "backLinks": [
-          "cd4fcf30-4c1a-40bb-8267-592c7faa6e30"
+          "43f42279-5a07-4a43-b39b-63eb79eea6f1"
         ]
       },
-      "fefffd5b-2641-4d2a-b5ff-4ccafdd69177": {
+      "b606126f-6c48-41c9-be45-991f4444e6e5": {
         "atlasMember": {
-          "nodeID": "fefffd5b-2641-4d2a-b5ff-4ccafdd69177",
+          "nodeID": "b606126f-6c48-41c9-be45-991f4444e6e5",
           "bodySequence": {
             "sequenceName": "NPCConversation",
             "elements": [
@@ -277,9 +277,9 @@
         },
         "links": [],
         "backLinks": [
-          "89f2ca44-f3bc-4986-9006-5ae945b88b9f",
-          "4efc9d19-a886-45f0-9a81-b873b8866d20",
-          "14670afe-33d4-455c-b371-023a6363e8aa"
+          "42786af9-69a3-4441-82b9-5f24e198437f",
+          "f6afd676-a492-49b2-8c1f-a1f31530fbe2",
+          "4c8f64e7-c416-46df-baf8-11ce280c1168"
         ]
       }
     }

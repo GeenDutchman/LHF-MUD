@@ -549,7 +549,7 @@ public class ConversationTreeTest {
 
         @Test
         @Order(5)
-        // @EnabledIf("isRewriteNeeded")
+        @EnabledIf("isRewriteNeeded")
         void writeGary() {
 
             ConversationTree.Builder builder = StaticConversationTreeProducer.produceGary();
