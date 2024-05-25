@@ -432,7 +432,7 @@ public class ConversationTree implements Serializable {
                 sb.append("\r\n");
             }
 
-            mermaid = mermaid.replace(spacing + "[*] --> ", sb.toString());
+            mermaid = mermaid.replace(spacing + "[*] --> " + startID, sb.toString());
             return mermaid;
         }
 
@@ -640,7 +640,7 @@ public class ConversationTree implements Serializable {
             sb.append("\r\n");
         }
 
-        mermaid = mermaid.replace(spacing + "[*] --> ", sb.toString());
+        mermaid = mermaid.replace(spacing + "[*] --> " + startID, sb.toString());
         return mermaid;
     }
 
