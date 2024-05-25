@@ -1078,7 +1078,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         return sb.toString();
     }
 
-    public final String toStateDiagramMermaid(boolean fence, boolean includeStart,
+    public final String toStateDiagramMermaid(String indent, boolean fence, boolean includeStart,
             Function<AtlasMemberID, String> idDisplay, Function<AtlasLinkType, String> linkDisplay,
             Function<AtlasTraversalTestType, String> traversalDisplay,
             Function<AtlasMemberType, String> memberNoteGenerator) {
@@ -1089,11 +1089,11 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         }
         sb.append("stateDiagram-v2\r\n");
 
-        final String spacing = "    ";
+        final String spacing = indent != null ? indent : "    ";
         if (includeStart) {
             final AtlasMemberType first = this.getFirstMember();
             if (first != null) {
-                linkBuilder.append(spacing).append("    [*] --> ")
+                linkBuilder.append(spacing).append("[*] --> ")
                         .append((idDisplay != null ? idDisplay.apply(this.getIDForMemberType(first))
                                 : this.getIDForMemberType(first)).toString().replace("-", ""))
                         .append("\r\n");
@@ -1137,11 +1137,11 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             if (memberNoteGenerator != null) {
                 final String note = memberNoteGenerator.apply(member);
                 if (note != null && !note.isBlank()) {
-                    sb.append("   note right of ").append(id).append("\r\n");
+                    sb.append(spacing).append("note right of ").append(id).append("\r\n");
                     for (String part : note.split("\\r?\\n")) {
                         sb.append(spacing + spacing).append(part).append("\r\n");
                     }
-                    sb.append("   end note\r\n");
+                    sb.append(spacing).append("end note\r\n");
                 }
             }
 

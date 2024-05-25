@@ -392,7 +392,8 @@ public class ConversationTree implements Serializable {
         }
 
         public String toMermaidStateDiagram(boolean fence) {
-            String mermaid = this.conversationAtlas.toStateDiagramMermaid(fence, true, uuid -> uuid.toString(),
+            final String spacing = "    ";
+            String mermaid = this.conversationAtlas.toStateDiagramMermaid(spacing, fence, true, uuid -> uuid.toString(),
                     pattern -> pattern != null ? pattern.getRegex().toString() : "linked", predicate -> {
                         if (predicate == null) {
                             return "";
@@ -418,7 +419,7 @@ public class ConversationTree implements Serializable {
 
             final String startID = this.start.getNodeID().toString().replace("-", "");
             for (Entry<ConversationPattern, ConversationPredicate.Builder> greetBranch : this.greetings.entrySet()) {
-                sb.append("    [*] --> ").append(startID);
+                sb.append(spacing).append("[*] --> ").append(startID);
                 sb.append(" : ").append(greetBranch.getKey().getExample()).append(" ")
                         .append(greetBranch.getKey().getRegex().toString());
                 final ConversationPredicate.Builder predicate = greetBranch.getValue();
@@ -431,7 +432,7 @@ public class ConversationTree implements Serializable {
                 sb.append("\r\n");
             }
 
-            mermaid = mermaid.replace("    [*] --> ", sb.toString());
+            mermaid = mermaid.replace(spacing + "[*] --> ", sb.toString());
             return mermaid;
         }
 
@@ -599,7 +600,8 @@ public class ConversationTree implements Serializable {
     }
 
     public String toMermaidStateDiagram(boolean fence) {
-        String mermaid = this.conversationAtlas.toStateDiagramMermaid(fence, true, uuid -> uuid.toString(),
+        final String spacing = "    ";
+        String mermaid = this.conversationAtlas.toStateDiagramMermaid(spacing, fence, true, uuid -> uuid.toString(),
                 pattern -> pattern != null ? pattern.getRegex().toString() : "linked", predicate -> {
                     if (predicate == null) {
                         return "";
@@ -625,7 +627,7 @@ public class ConversationTree implements Serializable {
 
         final String startID = this.start.getNodeID().toString().replace("-", "");
         for (Entry<ConversationPattern, ConversationPredicate> greetBranch : this.greetings.entrySet()) {
-            sb.append("    [*] --> ").append(startID);
+            sb.append(spacing).append("[*] --> ").append(startID);
             sb.append(" : ").append(greetBranch.getKey().getExample()).append(" ")
                     .append(greetBranch.getKey().getRegex().toString());
             final ConversationPredicate predicate = greetBranch.getValue();
@@ -638,7 +640,7 @@ public class ConversationTree implements Serializable {
             sb.append("\r\n");
         }
 
-        mermaid = mermaid.replace("    [*] --> ", sb.toString());
+        mermaid = mermaid.replace(spacing + "[*] --> ", sb.toString());
         return mermaid;
     }
 
