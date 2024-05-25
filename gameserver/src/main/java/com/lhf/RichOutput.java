@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.StringJoiner;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -119,11 +120,18 @@ public final class RichOutput implements Serializable {
 
         @Override
         public String toString() {
-            StringBuilder builder = new StringBuilder();
-            builder.append("OutputElement [charSequence=").append(charSequence).append(", taggable=").append(taggable)
-                    .append(", examinable=").append(examinable).append(", Output=").append(output)
-                    .append(", metaSignal=").append(metaSignal).append("]");
-            return builder.toString();
+            StringJoiner sj = new StringJoiner(", ", "OutputElement [", "]");
+            if (charSequence != null)
+                sj.add("charSequence=" + charSequence.toString());
+            if (taggable != null)
+                sj.add("taggable=" + taggable.toString());
+            if (examinable != null)
+                sj.add("examinable=" + examinable.toString());
+            if (output != null)
+                sj.add("Output=" + output.toString());
+            if (metaSignal != null)
+                sj.add("metaSignal=" + metaSignal.toString());
+            return sj.toString();
         }
 
         public String printString() {
@@ -344,11 +352,18 @@ public final class RichOutput implements Serializable {
 
             @Override
             public String toString() {
-                StringBuilder builder = new StringBuilder();
-                builder.append("BuilderElement [charSequence=").append(charSequence).append(", taggable=")
-                        .append(taggable).append(", examinable=").append(examinable).append(", output=").append(output)
-                        .append(", metaSignal=").append(metaSignal).append("]");
-                return builder.toString();
+                StringJoiner sj = new StringJoiner(", ", "BuilderElement [", "]");
+                if (charSequence != null)
+                    sj.add("charSequence=" + charSequence.toString());
+                if (taggable != null)
+                    sj.add("taggable=" + taggable.toString());
+                if (examinable != null)
+                    sj.add("examinable=" + examinable.toString());
+                if (output != null)
+                    sj.add("output=" + output.toString());
+                if (metaSignal != null)
+                    sj.add("metaSignal=" + metaSignal.toString());
+                return sj.toString();
             }
 
             // public String printString() {
