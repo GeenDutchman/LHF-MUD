@@ -10,6 +10,7 @@ import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.RoomEnteredEvent;
 import com.lhf.messages.in.SayMessage;
+import com.lhf.server.client.CommandInvoker;
 
 public class SpeakOnOtherEntry extends AIHandler {
     protected String greeting;
@@ -37,9 +38,9 @@ public class SpeakOnOtherEntry extends AIHandler {
     public void handle(BasicAI bai, GameEvent event) {
         if (GameEventType.ROOM_ENTERED.equals(event.getXmlEventType())) {
             RoomEnteredEvent reom = (RoomEnteredEvent) event;
-            if (reom.getNewbie() != null) {
-                ConversationTransformer transformer = ConversationTransformer.ofTalkerAndListener(bai.getNpc(),
-                        reom.getNewbie());
+            CommandInvoker newbie = reom.getNewbie();
+            if (newbie != null) {
+                ConversationTransformer transformer = ConversationTransformer.ofTalkerAndListener(bai.getNpc(), newbie);
                 ConversationTreeNodeResult sayit = null;
                 if (this.greeting != null) {
                     sayit = ConversationTreeNodeResult.fromString(transformer, this.greeting, null, null);
@@ -51,7 +52,7 @@ public class SpeakOnOtherEntry extends AIHandler {
                             () -> String.format("Using fallback \"Hello There!\" for AI %s", bai.toString()));
                     sayit = ConversationTreeNodeResult.fromString(transformer, "Hello There!", null, null);
                 }
-                SayMessage say = SayMessage.fromOutputBuilder(sayit.getBody(), reom.getNewbie().getName());
+                SayMessage say = SayMessage.fromOutputBuilder(sayit.getBody(), newbie.getName());
                 bai.applyChain(null, say);
             }
         }

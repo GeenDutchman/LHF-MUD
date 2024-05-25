@@ -545,10 +545,10 @@ public class ConversationTreeTest {
                             .appendMetadata(ConversationContextKey.TALKER_NAME.name()).appendString("as", " ", " ")
                             .appendMetadata("CREATE_VOCATION"));
 
-            ConversationTree.Builder builder = new ConversationTree.Builder(start).setTreeName("gary")
+            ConversationTree.Builder builder = new ConversationTree.Builder(start).setTreeName("gary").clearGreetings()
                     .addGreeting(new ConversationPattern(
-                            "This is some lore, but to make a character you need to say \"hi\" to me!", "\\bhi\\b",
-                            Pattern.CASE_INSENSITIVE))
+                            "This is some lore, but to make a character you need to say \"hi\" to me!",
+                            "\\bhi|hi to me\\b", Pattern.CASE_INSENSITIVE))
                     .addDefaultRepeatWords();
             builder.addNode(start.getNodeID(),
                     new ConversationPattern("ok", "\\b(ok|okay)\\b", Pattern.CASE_INSENSITIVE), selection);

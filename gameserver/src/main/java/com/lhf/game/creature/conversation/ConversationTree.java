@@ -307,6 +307,13 @@ public class ConversationTree implements Serializable {
             return this;
         }
 
+        public Builder clearGreetings() {
+            if (this.greetings != null) {
+                this.greetings.clear();
+            }
+            return this;
+        }
+
         public synchronized String getTreeName() {
             if (treeName == null) {
                 this.treeName = UUID.randomUUID().toString();
@@ -339,9 +346,9 @@ public class ConversationTree implements Serializable {
                     entry -> entry.getValue().build(), (a, b) -> b, () -> new TreeMap<>()));
         }
 
-        public Builder setGreetings(SortedMap<ConversationPattern, ConversationPredicate> greetings) {
-            this.greetings = greetings != null
-                    ? greetings.entrySet().stream().collect(Collectors.toMap(entry -> entry.getKey(),
+        public Builder setGreetings(SortedMap<ConversationPattern, ConversationPredicate> freshGreetings) {
+            this.greetings = freshGreetings != null
+                    ? freshGreetings.entrySet().stream().collect(Collectors.toMap(entry -> entry.getKey(),
                             entry -> ConversationPredicate.getBuilder().addRules(entry.getValue().getBlacklist()),
                             (a, b) -> b, () -> new TreeMap<ConversationPattern, ConversationPredicate.Builder>()))
                     : new TreeMap<>();
