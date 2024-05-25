@@ -52,7 +52,6 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
     protected CreatureFaction faction;
     protected VocationName vocation;
     protected Integer vocationLevel;
-    // protected String statblockName; // TODO: turn this into buildinfoname
 
     protected CreatureBuildInfo() {
         this.className = this.getClass().getName();
@@ -125,8 +124,7 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
     }
 
     public CreatureBuildInfo setAttributeBlock(Integer strength, Integer dexterity, Integer constitution,
-            Integer intelligence,
-            Integer wisdom, Integer charisma) {
+            Integer intelligence, Integer wisdom, Integer charisma) {
         this.attributeBlock = new AttributeBlock(strength, dexterity, constitution, intelligence, wisdom, charisma);
         return this;
     }
@@ -174,8 +172,7 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
     }
 
     public CreatureBuildInfo setProficiencies(EnumSet<EquipmentTypes> types) {
-        this.proficiencies = types != null ? EnumSet.copyOf(types)
-                : EnumSet.noneOf(EquipmentTypes.class);
+        this.proficiencies = types != null ? EnumSet.copyOf(types) : EnumSet.noneOf(EquipmentTypes.class);
         return this;
     }
 
@@ -344,8 +341,7 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
         if (deltas == null) {
             return this;
         }
-        final MultiRollResult damages = effect
-                .getApplicationDamageResult((mrr) -> this.adjustDamageByFlavor(mrr));
+        final MultiRollResult damages = effect.getApplicationDamageResult((mrr) -> this.adjustDamageByFlavor(mrr));
         return this.processEffectDelta(effect, deltas, damages);
     }
 
@@ -357,8 +353,7 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
         if (deltas == null) {
             return this;
         }
-        final MultiRollResult damages = effect
-                .getRemovalDamageResult((mrr) -> this.adjustDamageByFlavor(mrr));
+        final MultiRollResult damages = effect.getRemovalDamageResult((mrr) -> this.adjustDamageByFlavor(mrr));
         return this.processEffectDelta(effect, deltas, damages);
     }
 
@@ -442,8 +437,7 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
         return this;
     }
 
-    public CreatureBuildInfo setDamageFlavorReactions(
-            EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> other) {
+    public CreatureBuildInfo setDamageFlavorReactions(EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> other) {
         if (other == null) {
             this.damageFlavorReactions = new EnumMap<>(DamgeFlavorReaction.class);
             this.defaultFlavorReactions();

@@ -15,7 +15,6 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
-import com.google.common.truth.Truth8;
 import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.Taggable;
 import com.lhf.game.battle.Attack;
@@ -88,7 +87,7 @@ public class BasicAITest {
                 .Build();
         sendMsgAndWait(adm, victim);
 
-        Truth8.assertThat(victim.getNPC().getHarmMemories().getLastAttackerName()).isEmpty();
+        Truth.assertThat(victim.getNPC().getHarmMemories().getLastAttackerName()).isEmpty();
 
         victim.getNPC().addSubArea(SubAreaSort.BATTLE); // turn it on!
 
@@ -135,7 +134,7 @@ public class BasicAITest {
         BadTargetSelectedEvent btsm = BadTargetSelectedEvent.getBuilder().setBde(BadTargetOption.UNCLEAR)
                 .setBadTarget("bloohoo jane").setPossibleTargets(stuff).Build();
         sendMsgAndWait(btsm, searcher);
-        Truth8.assertThat(searcher.getNPC().getHarmMemories().getLastAttackerName()).isEmpty();
+        Truth.assertThat(searcher.getNPC().getHarmMemories().getLastAttackerName()).isEmpty();
     }
 
 }
