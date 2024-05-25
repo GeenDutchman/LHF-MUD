@@ -3,6 +3,7 @@ package com.lhf.game.creature.intelligence.handlers;
 import java.util.logging.Level;
 
 import com.lhf.game.creature.conversation.ConversationTransformer;
+import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNodeResult;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
@@ -44,8 +45,9 @@ public class SpeakOnOtherEntry extends AIHandler {
                 ConversationTreeNodeResult sayit = null;
                 if (this.greeting != null) {
                     sayit = ConversationTreeNodeResult.fromString(transformer, this.greeting, null, null);
-                } else if (bai.getNpc().getConvoTree() != null) {
-                    sayit = bai.getNpc().getConvoTree().getAGreeting(transformer);
+                } else {
+                    ConversationTree tree = bai.getNpc().getConvoTree();
+                    sayit = tree != null ? tree.getAGreeting(transformer) : null;
                 }
                 if (sayit == null) {
                     this.logger.log(Level.WARNING,
