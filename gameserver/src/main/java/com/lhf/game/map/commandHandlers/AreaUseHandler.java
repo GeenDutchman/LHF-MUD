@@ -64,7 +64,14 @@ public class AreaUseHandler implements AreaCommandHandler {
         Optional<Usable> maybeItem = visitor.getUsable();
         if (maybeItem.isEmpty()) {
             ctx.receive(ItemUsedEvent.getBuilder().setSubType(UseOutMessageOption.NO_USES)
-                    .setItemUser(ctx.getCreature()).Build());
+                    .setItemUser(ctx.getCreature()).addMessage(String
+                            .format("Because an exact match for '%s' was not found.\r\n", useMessage.getUsefulItem()))
+                    .editMessage(builder -> {
+                        if (builder == null) {
+                            return;
+                        }
+                        builder.appendRichOutput(ctx.getCreature().printInventory());
+                    }).Build());
             return ctx.handled();
         }
         Usable usable = maybeItem.get();

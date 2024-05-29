@@ -1,6 +1,10 @@
 package com.lhf.messages.events;
 
 import com.lhf.RichOutput.RichOutputBuilder;
+
+import java.util.function.Consumer;
+
+import com.lhf.RichOutput;
 import com.lhf.Taggable;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.Usable;
@@ -15,14 +19,14 @@ public class ItemUsedEvent extends GameEvent {
     private final ICreature itemUser;
     private final Usable usable;
     private final Taggable target;
-    private final String message;
+    private final RichOutput message;
 
     public static class Builder extends GameEvent.Builder<Builder> {
         private UseOutMessageOption subType;
         private ICreature itemUser;
         private Usable usable;
         private Taggable target;
-        private String message;
+        private RichOutputBuilder message;
 
         protected Builder() {
             super(GameEventType.USE);
@@ -64,12 +68,42 @@ public class ItemUsedEvent extends GameEvent {
             return this;
         }
 
-        public String getMessage() {
+        public RichOutputBuilder getMessageBuilder() {
+            if (this.message == null) {
+                this.message = new RichOutputBuilder();
+            }
             return message;
         }
 
+        public RichOutput getMessage() {
+            return this.message != null ? this.message.build() : null;
+        }
+
+        public Builder setMessage(RichOutputBuilder messageBuilder) {
+            this.message = messageBuilder;
+            return this;
+        }
+
         public Builder setMessage(String message) {
-            this.message = message;
+            this.message = new RichOutputBuilder().appendChild(message);
+            return this;
+        }
+
+        public Builder addMessage(String message) {
+            this.getMessageBuilder().appendString(message);
+            return this;
+        }
+
+        /**
+         * Allow for the inline building of the message
+         * 
+         * @param messageEditor
+         * @return
+         */
+        public Builder editMessage(Consumer<RichOutputBuilder> messageEditor) {
+            if (messageEditor != null) {
+                messageEditor.accept(this.getMessageBuilder());
+            }
             return this;
         }
 
@@ -114,7 +148,7 @@ public class ItemUsedEvent extends GameEvent {
         return target;
     }
 
-    public String getMessage() {
+    public RichOutput getMessage() {
         return message;
     }
 
@@ -125,64 +159,64 @@ public class ItemUsedEvent extends GameEvent {
         }
         if (this.subType == null) {
             this.addressCreature(builder, itemUser);
-            builder.appendString(" used this ");
+            builder.appendString("used this");
             if (this.usable != null) {
                 builder.appendTaggable(this.usable);
             } else {
                 builder.appendString("item");
             }
             if (this.target != null) {
-                builder.appendString(" on ");
+                builder.appendString("on");
                 builder.appendTaggable(this.target);
             }
             builder.appendString(".", null, null);
         } else {
             switch (this.subType) {
             case NO_USES:
-                builder.appendString("You cannot use this ");
+                builder.appendString("You cannot use this");
                 if (this.usable != null) {
                     builder.appendTaggable(this.usable);
                 } else {
                     builder.appendString("item");
                 }
-                builder.appendString(" like that!");
+                builder.appendString("like that!");
                 break;
             case USED_UP:
-                builder.appendString("This ");
+                builder.appendString("This");
                 if (this.usable != null) {
                     builder.appendTaggable(this.usable);
                 } else {
                     builder.appendString("item");
                 }
-                builder.appendString(" has been used up.");
+                builder.appendString("has been used up.");
                 break;
             case REQUIRE_EQUIPPED:
-                builder.appendString("YOu need to have this ");
+                builder.appendString("You need to have this");
                 if (this.usable != null) {
                     builder.appendTaggable(this.usable);
                 } else {
                     builder.appendString("item");
                 }
-                builder.appendString(" equipped in order to use it!");
+                builder.appendString("equipped in order to use it!");
                 break;
             case OK:
             default:
                 this.addressCreature(builder, itemUser);
-                builder.appendString(" used this ");
+                builder.appendString("used this");
                 if (this.usable != null) {
                     builder.appendTaggable(this.usable);
                 } else {
                     builder.appendString("item");
                 }
                 if (this.target != null) {
-                    builder.appendString(" on ");
+                    builder.appendString("on");
                     builder.appendTaggable(this.target);
                 }
                 builder.appendString(".", null, null);
             }
         }
-        if (this.message != null && !this.message.isBlank()) {
-            builder.appendString(this.message);
+        if (this.message != null) {
+            builder.appendRichOutput(message);
         }
     }
 

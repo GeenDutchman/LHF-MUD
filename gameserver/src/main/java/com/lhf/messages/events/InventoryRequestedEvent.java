@@ -1,5 +1,6 @@
 package com.lhf.messages.events;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -30,7 +31,7 @@ public class InventoryRequestedEvent extends GameEvent {
         }
 
         public Builder setItems(Collection<Takeable> items) {
-            this.items = items != null ? items : Collections.emptyList();
+            this.items = items != null ? new ArrayList<>(items) : Collections.emptyList();
             return this;
         }
 
@@ -39,7 +40,7 @@ public class InventoryRequestedEvent extends GameEvent {
         }
 
         public Builder setEquipment(Map<EquipmentSlots, Equipable> equipment) {
-            this.equipment = equipment != null ? equipment : new EnumMap<>(EquipmentSlots.class);
+            this.equipment = equipment != null ? new EnumMap<>(equipment) : new EnumMap<>(EquipmentSlots.class);
             return this;
         }
 
@@ -84,7 +85,7 @@ public class InventoryRequestedEvent extends GameEvent {
             return;
         }
 
-        builder.appendString("INVENTORY", " ", "\r\n");
+        builder.appendString("INVENTORY", " ", null);
 
         if ((this.items == null || this.items.isEmpty()) && (this.equipment == null || this.equipment.isEmpty())) {
             builder.appendString("You have nothing in your inventory.");
@@ -92,7 +93,7 @@ public class InventoryRequestedEvent extends GameEvent {
         }
 
         if (this.items != null && !this.items.isEmpty()) {
-            RichOutputBuilder inventory = builder.produceSubBuilder("Inventory");
+            RichOutputBuilder inventory = builder.produceSubBuilder("Stored");
             inventory.appendTaggables(this.items);
         }
 
@@ -100,11 +101,11 @@ public class InventoryRequestedEvent extends GameEvent {
             RichOutputBuilder equipped = builder.produceSubBuilder("Equipped");
             for (EquipmentSlots slot : EquipmentSlots.values()) {
                 Equipable item = this.equipment.get(slot);
-                equipped.appendTaggable(slot, "\r\n", ":");
+                equipped.appendTaggable(slot, null, ":");
                 if (item != null) {
-                    equipped.appendTaggable(item);
+                    equipped.appendTaggable(item, " ", "\r\n");
                 } else {
-                    equipped.appendString("empty");
+                    equipped.appendString("empty", " ", "\r\n");
                 }
             }
         } else {

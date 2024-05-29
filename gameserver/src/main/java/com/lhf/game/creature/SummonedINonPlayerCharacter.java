@@ -15,6 +15,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
+import com.lhf.RichOutput;
 import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo.SummonData;
@@ -87,12 +88,12 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
-    public String printInventory() {
+    public RichOutput printInventory() {
         if (this.checkSummonIsAlive()) {
             return super.printInventory();
         }
         this.log(Level.WARNING, "This summon is dead, and cannot perform 'printInventory()'");
-        return "";
+        return RichOutput.getBuilder().build();
     }
 
     @Override

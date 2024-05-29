@@ -103,7 +103,7 @@ public class ConversationTreeNodeResult {
             if (current == null) {
                 continue;
             }
-            RichOutput sub = current.getOutputBuilder();
+            RichOutput sub = current.getOutput();
             if (sub != null) {
                 bodyResult.appendRichOutput(
                         ConversationTreeNodeResult.transformOutputBuilder(transformer, sub, branchPatterns), null,

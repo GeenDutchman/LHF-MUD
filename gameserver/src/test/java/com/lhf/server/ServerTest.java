@@ -30,6 +30,7 @@ import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.MessageMatcher;
 import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.GameEventSubject;
 import com.lhf.messages.events.UserLeftEvent;
 import com.lhf.messages.events.WelcomeEvent;
 import com.lhf.server.client.Client;
@@ -51,23 +52,22 @@ public class ServerTest {
             server.startClient(this.client);
         }
 
-        public String create(String name, String vocation, Boolean expectUnique) {
+        public GameEvent create(String name, String vocation, Boolean expectUnique) {
             String command = "create " + name + " with " + name + (vocation != null ? " as " + vocation : "");
-            String result = this.handleCommand(command,
+            GameEvent gameEvent = this.handleCommand(command,
                     expectUnique ? GameEventType.SEE : GameEventType.DUPLICATE_USER);
-            GameEvent gameEvent = this.outCaptor.getValue();
             if (expectUnique && gameEvent != null && gameEvent.getXmlEventType() != GameEventType.DUPLICATE_USER
                     && gameEvent.getXmlEventType() != GameEventType.BAD_MESSAGE) {
                 this.name = name;
             }
-            return result;
+            return gameEvent;
         }
 
-        public String create(String name) {
+        public GameEvent create(String name) {
             return this.create(name, "fighter", true);
         }
 
-        public String handleCommand(String command, GameEventType outMessageType) {
+        public GameEvent handleCommand(String command, GameEventType outMessageType) {
             this.print(command, true);
             this.outCaptor = ArgumentCaptor.forClass(GameEvent.class);
             Reply reply = this.client.ProcessString(command);
@@ -77,15 +77,14 @@ public class ServerTest {
                     .that(reply.isHandled()).isTrue();
             GameEvent gameEvent = outCaptor.getValue();
             Truth.assertThat(gameEvent).isNotNull();
-            String response = gameEvent.toString();
             if (outMessageType != null) {
-                Truth.assertWithMessage("Message is: %s", response).that(gameEvent.getXmlEventType())
+                Truth.assertWithMessage("Message is: %s", gameEvent).that(gameEvent.getXmlEventType())
                         .isEqualTo(outMessageType);
             }
-            return response;
+            return gameEvent;
         }
 
-        public String handleCommand(String command) {
+        public GameEvent handleCommand(String command) {
             return this.handleCommand(command, null);
         }
 
@@ -131,15 +130,14 @@ public class ServerTest {
 
     @Test
     void testFreshExit() {
-        String message = this.comm.handleCommand("exit");
-        Truth.assertThat(message).ignoringCase().contains("goodbye");
+        GameEventSubject.assertThat(this.comm.handleCommand("exit")).asString().ignoringCase().contains("goodbye");
         Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(UserLeftEvent.class));
     }
 
     @Test
     void testExitFinality() {
-        String message = this.comm.handleCommand("exit", GameEventType.USER_LEFT);
-        Truth.assertThat(message).ignoringCase().contains("goodbye");
+        GameEvent message = this.comm.handleCommand("exit", GameEventType.USER_LEFT);
+        GameEventSubject.assertThat(message).asString().ignoringCase().contains("goodbye");
         this.comm.handleCommand("see", GameEventType.BAD_MESSAGE);
         Assertions.assertThrows(NullPointerException.class, () -> {
             this.comm.handleCommand("create Tester with Tester");
@@ -149,9 +147,9 @@ public class ServerTest {
     @Test
     void testCharacterCreation() {
         Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(WelcomeEvent.class));
-        String message = this.comm.create("Tester");
-        Truth.assertThat(message).ignoringCase().contains("room");
-        Truth.assertThat(message).contains(this.comm.name);
+        GameEvent message = this.comm.create("Tester");
+        GameEventSubject.assertThat(message).ignoringCase().contains("room");
+        GameEventSubject.assertThat(message).contains(this.comm.name);
     }
 
     @Test
@@ -174,35 +172,35 @@ public class ServerTest {
         this.comm.handleCommand("say ready to gary lovejax");
         Mockito.verify(this.comm.sssb, Mockito.timeout(waitMillis))
                 .send(Mockito.argThat(new MessageMatcher(GameEventType.SEE)));
-        String room1 = this.comm.handleCommand("see");
-        Truth.assertThat(room1).contains("east");
+        GameEvent room1 = this.comm.handleCommand("see");
+        GameEventSubject.assertThat(room1).contains("east");
     }
 
     @Test
     void testCreatedExit() {
         this.comm.create("Tester");
-        String message = this.comm.handleCommand("exit");
-        Truth.assertThat(message).ignoringCase().contains("goodbye");
+        GameEvent message = this.comm.handleCommand("exit");
+        GameEventSubject.assertThat(message).ignoringCase().contains("goodbye");
     }
 
     @Test
     void testLook() {
         this.comm.create("Tester");
-        String room = this.comm.handleCommand("see");
-        Truth.assertThat(room).contains("room");
+        GameEvent room = this.comm.handleCommand("see");
+        GameEventSubject.assertThat(room).contains("room");
     }
 
     @Test
     void testGo() {
         this.comm.create("Tester");
-        String room1 = this.comm.handleCommand("see", GameEventType.SEE);
-        Truth.assertThat(room1).contains("east");
-        String room2 = this.comm.handleCommand("go east", GameEventType.SEE);
-        Truth.assertThat(room2).contains("hall");
-        Truth.assertThat(room1).isNotEqualTo(room2);
-        String origRoom = this.comm.handleCommand("go west", GameEventType.SEE);
-        Truth.assertThat(room2).isNotEqualTo(origRoom);
-        Truth.assertThat(room1).isEqualTo(origRoom);
+        GameEvent room1 = this.comm.handleCommand("see", GameEventType.SEE);
+        GameEventSubject.assertThat(room1).contains("east");
+        GameEvent room2 = this.comm.handleCommand("go east", GameEventType.SEE);
+        GameEventSubject.assertThat(room2).contains("hall");
+        GameEventSubject.assertThat(room1).isNotEqualTo(room2);
+        GameEvent origRoom = this.comm.handleCommand("go west", GameEventType.SEE);
+        GameEventSubject.assertThat(room2).asString().isNotEqualTo(origRoom.printString());
+        GameEventSubject.assertThat(room1).asString().isEqualTo(origRoom.printString());
     }
 
     @Test
@@ -222,21 +220,21 @@ public class ServerTest {
         dude1.create("dude1");
         ServerClientComBundle dude2 = new ServerClientComBundle(this.server);
         dude2.create("dude2");
-        String findEm = this.comm.handleCommand("players", GameEventType.LIST_PLAYERS);
-        Truth.assertThat(findEm).contains(this.comm.name);
-        Truth.assertThat(findEm).contains(dude1.name);
-        Truth.assertThat(findEm).contains(dude2.name);
+        GameEvent findEm = this.comm.handleCommand("players", GameEventType.LIST_PLAYERS);
+        GameEventSubject.assertThat(findEm).contains(this.comm.name);
+        GameEventSubject.assertThat(findEm).contains(dude1.name);
+        GameEventSubject.assertThat(findEm).contains(dude2.name);
         dude2.handleCommand("go east", GameEventType.SEE);
         findEm = this.comm.handleCommand("players", GameEventType.LIST_PLAYERS);
-        Truth.assertThat(findEm).contains(this.comm.name);
-        Truth.assertThat(findEm).contains(dude1.name);
-        Truth.assertThat(findEm).contains(dude2.name);
+        GameEventSubject.assertThat(findEm).contains(this.comm.name);
+        GameEventSubject.assertThat(findEm).contains(dude1.name);
+        GameEventSubject.assertThat(findEm).contains(dude2.name);
         dude2.handleCommand("exit", GameEventType.USER_LEFT);
         Mockito.verify(this.comm.sssb, Mockito.timeout(1000).atLeastOnce()).send(Mockito.any(UserLeftEvent.class));
         findEm = this.comm.handleCommand("players", GameEventType.LIST_PLAYERS);
-        Truth.assertThat(findEm).contains(this.comm.name);
-        Truth.assertThat(findEm).contains(dude1.name);
-        Truth.assertThat(findEm).doesNotContain(dude2.name);
+        GameEventSubject.assertThat(findEm).contains(this.comm.name);
+        GameEventSubject.assertThat(findEm).contains(dude1.name);
+        GameEventSubject.assertThat(findEm).doesNotContain(dude2.name);
     }
 
     @Nested
@@ -254,10 +252,10 @@ public class ServerTest {
             listener1.create("Listener1");
             this.listener2 = new ServerClientComBundle(ServerTest.this.server);
             listener2.create("Listener2");
-            String room = ServerTest.this.comm.handleCommand("see", GameEventType.SEE);
-            Truth.assertThat(room).contains(ServerTest.this.comm.name);
-            Truth.assertThat(room).contains(listener1.name);
-            Truth.assertThat(room).contains(listener2.name);
+            GameEvent room = ServerTest.this.comm.handleCommand("see", GameEventType.SEE);
+            GameEventSubject.assertThat(room).contains(ServerTest.this.comm.name);
+            GameEventSubject.assertThat(room).contains(listener1.name);
+            GameEventSubject.assertThat(room).contains(listener2.name);
         }
 
         @Test
@@ -340,29 +338,34 @@ public class ServerTest {
 
         // twin1.create(creatureName);
         // String room2 = twin1.handleCommand("go east");
-        // Truth.assertThat(room2).contains(this.comm.name);
-        // Truth.assertThat(room2.indexOf(twin1.name)).isEqualTo(room2.lastIndexOf(twin1.name));
+        // GameEventSubject.assertThat(room2).contains(this.comm.name);
+        // GameEventSubject.assertThat(room2.indexOf(twin1.name)).isEqualTo(room2.lastIndexOf(twin1.name));
 
     }
 
     @Test
     void testAttackMonster() {
         this.comm.create("AttackTester");
-        String extract = this.comm.handleCommand("go east", GameEventType.SEE);
-        Truth.assertThat(extract).ignoringCase().contains("Monsters that you can see:");
+        GameEvent event = this.comm.handleCommand("go east", GameEventType.SEE);
+        GameEventSubject.assertThat(event).ignoringCase().contains("Monsters that you can see:");
+        String extract = event.printString();
         int monsters_list_index = extract.indexOf("Monsters that you can see:");
-        int creature_index = extract.indexOf("**", monsters_list_index);
+        int creature_index = extract.indexOf("**monster-", monsters_list_index);
         int endcreature_index = extract.indexOf("**", creature_index + 1);
-        extract = extract.substring(creature_index + "**".length(), endcreature_index);
+        extract = extract.substring(creature_index + "**monster-".length(), endcreature_index);
         System.out.println(extract);
-        String room = this.comm.handleCommand("see", GameEventType.SEE);
+        Truth.assertThat(extract).isNotNull();
+        Truth.assertThat(extract).isNotEmpty();
+        Truth.assertThat(extract.isBlank()).isFalse();
+        GameEvent room = this.comm.handleCommand("see", GameEventType.SEE);
         ArgumentMatcher<GameEvent> battleTurn = new MessageMatcher(GameEventType.BATTLE_ROUND,
                 "should enter an action to take for the round");
         ArgumentMatcher<GameEvent> battleTurnAccepted = new MessageMatcher(GameEventType.BATTLE_ROUND,
                 "action has been submitted for the round");
         ArgumentMatcher<GameEvent> fightOver = new MessageMatcher(GameEventType.FIGHT_OVER);
         ArgumentMatcher<GameEvent> reincarnated = new MessageMatcher(GameEventType.REINCARNATION);
-        for (int i = 1; i < 15 && room.contains("<monster>" + extract + "</monster>"); i++) {
+        int i = 1;
+        for (i = 1; i < 15 && room.printString().contains("**monster-" + extract + "**"); i++) {
             this.comm.handleCommand("attack " + extract);
             Mockito.verify(this.comm.sssb, Mockito.timeout(500).atLeast(i)).send(Mockito.argThat(battleTurnAccepted));
 
@@ -374,22 +377,59 @@ public class ServerTest {
             room = this.comm.handleCommand("see");
 
         }
-        Truth.assertThat(room).doesNotContain("<monster>" + extract + "</monster>");
+        Truth.assertWithMessage("Expected more than one round.  The room looks like so: %s", room.printString()).that(i)
+                .isGreaterThan(1);
+        GameEventSubject.assertThat(room).asXML().doesNotContain("<monster>" + extract + "</monster>");
+    }
+
+    @Test
+    void testUsePotionInBattle() {
+        this.comm.create("AttackTester");
+        GameEvent event = this.comm.handleCommand("go east", GameEventType.SEE);
+        this.comm.handleCommand("equip Shield"); // try to prolong the battle
+        this.comm.handleCommand("equip Leather Armor");
+        this.comm.handleCommand("inventory");
+        GameEventSubject.assertThat(event).ignoringCase().contains("Monsters that you can see:");
+        String extract = event.printString();
+        int monsters_list_index = extract.indexOf("Monsters that you can see:");
+        int creature_index = extract.indexOf("**monster-", monsters_list_index);
+        int endcreature_index = extract.indexOf("**", creature_index + 1);
+        extract = extract.substring(creature_index + "**monster-".length(), endcreature_index);
+        System.out.println(extract);
+        Truth.assertThat(extract).isNotNull();
+        Truth.assertThat(extract).isNotEmpty();
+        Truth.assertThat(extract.isBlank()).isFalse();
+        ArgumentMatcher<GameEvent> battleTurn = new MessageMatcher(GameEventType.BATTLE_ROUND,
+                "should enter an action to take for the round");
+        ArgumentMatcher<GameEvent> battleTurnAccepted = new MessageMatcher(GameEventType.BATTLE_ROUND,
+                "action has been submitted for the round");
+
+        this.comm.handleCommand("attack " + extract);
+        Mockito.verify(this.comm.sssb, Mockito.timeout(500).atLeast(1)).send(Mockito.argThat(battleTurnAccepted));
+        Mockito.verify(this.comm.sssb, Mockito.timeout(SubArea.DEFAULT_MILLISECONDS + 500).atLeast(1))
+                .send(Mockito.argThat(battleTurn));
+        this.comm.handleCommand("use Regular Potion of Healing");
+        Mockito.verify(this.comm.sssb, Mockito.timeout(50000))
+                .send(Mockito.argThat(new MessageMatcher(GameEventType.USE, List.of("used this"), null, null, true)));
+        Mockito.verify(this.comm.sssb, Mockito.timeout(500).atLeast(2)).send(Mockito.argThat(battleTurnAccepted));
+
     }
 
     @Test
     void testEquipment() {
         this.comm.create("Tester");
-        String status1 = this.comm.handleCommand("status");
-        String inventory1 = this.comm.handleCommand("inventory");
-        Truth.assertThat(inventory1).contains("Shield");
-        Truth.assertThat(inventory1).contains("nothing equipped");
+        final GameEvent status1 = this.comm.handleCommand("status");
+        final GameEvent inventory1 = this.comm.handleCommand("inventory");
+        GameEventSubject.assertThat(inventory1).contains("Shield");
+        GameEventSubject.assertThat(inventory1).contains("nothing equipped");
         this.comm.handleCommand("equip shield");
-        Truth.assertThat(this.comm.handleCommand("inventory")).isNotEqualTo(inventory1);
-        Truth.assertThat(this.comm.handleCommand("status")).isNotEqualTo(status1);
+        final GameEvent inventory2 = this.comm.handleCommand("inventory");
+        GameEventSubject.assertThat(inventory2).asString().isNotEqualTo(inventory1.printString());
+        GameEventSubject.assertThat(this.comm.handleCommand("status")).asString().isNotEqualTo(status1.printString());
         this.comm.handleCommand("unequip shield");
-        Truth.assertThat(this.comm.handleCommand("inventory")).isEqualTo(inventory1);
-        Truth.assertThat(this.comm.handleCommand("status")).isEqualTo(status1);
+        GameEventSubject.assertThat(this.comm.handleCommand("inventory")).asString()
+                .isEqualTo(inventory1.printString());
+        GameEventSubject.assertThat(this.comm.handleCommand("status")).asString().isEqualTo(status1.printString());
     }
 
     @Test
@@ -397,8 +437,8 @@ public class ServerTest {
         final int waitMillis = 500;
         this.comm.create("Tester");
         this.comm.handleCommand("go east");
-        String status = this.comm.handleCommand("status");
-        String inventory = this.comm.handleCommand("inventory");
+        GameEvent status = this.comm.handleCommand("status");
+        GameEvent inventory = this.comm.handleCommand("inventory");
 
         // divest ourselves of everything, just in case
         this.comm.handleCommand("unequip armor");
@@ -453,9 +493,9 @@ public class ServerTest {
         System.out.println("Exited attack loop");
         Mockito.verify(this.comm.sssb, Mockito.timeout(waitMillis))
                 .send(Mockito.argThat(new MessageMatcher(GameEventType.REINCARNATION)));
-        Truth.assertThat(attacker.handleCommand("SEE")).doesNotContainMatch("<.+>Tester<.+>");
-        Truth.assertThat(this.comm.handleCommand("inventory")).isEqualTo(inventory);
-        Truth.assertThat(this.comm.handleCommand("status")).isEqualTo(status);
+        GameEventSubject.assertThat(attacker.handleCommand("SEE")).asString().doesNotContainMatch("<.+>Tester<.+>");
+        GameEventSubject.assertThat(this.comm.handleCommand("inventory")).asString().isEqualTo(inventory.printString());
+        GameEventSubject.assertThat(this.comm.handleCommand("status")).asString().isEqualTo(status.printString());
     }
 
     @Test
@@ -487,22 +527,22 @@ public class ServerTest {
         ServerClientComBundle caster = new ServerClientComBundle(this.server);
         caster.create("Caster", "MAGE", true);
 
-        String spellResult = this.comm.handleCommand("cast zarmamoo"); // Thaumaturgy
+        GameEvent spellResult = this.comm.handleCommand("cast zarmamoo"); // Thaumaturgy
         // because we know it's thaumaturgy
-        // Truth.assertThat(spellResult).contains(this.comm.name);
-        Truth.assertThat(spellResult).ignoringCase().contains("was not handled");
+        // GameEventSubject.assertThat(spellResult).contains(this.comm.name);
+        GameEventSubject.assertThat(spellResult).ignoringCase().contains("was not handled");
         // Truth.assertThat(victim.read()).contains(this.comm.name);
 
         spellResult = this.comm.handleCommand("cast Astra Horeb at " + victim.name); // attack spell
-        // Truth.assertThat(spellResult).ignoringCase().contains("fight");
-        Truth.assertThat(spellResult).ignoringCase().contains("was not handled");
+        // GameEventSubject.assertThat(spellResult).ignoringCase().contains("fight");
+        GameEventSubject.assertThat(spellResult).ignoringCase().contains("was not handled");
 
         spellResult = caster.handleCommand("cast zarmamoo");
-        if (!spellResult.contains("should have done something")) {
-            Truth.assertThat(spellResult).ignoringCase().contains("used");
-            Truth.assertThat(spellResult).ignoringCase().contains("Thaumaturgy");
+        if (!spellResult.printString().contains("should have done something")) {
+            GameEventSubject.assertThat(spellResult).ignoringCase().contains("used");
+            GameEventSubject.assertThat(spellResult).ignoringCase().contains("Thaumaturgy");
         } else {
-            Truth.assertThat(spellResult).ignoringCase().doesNotContain("Thaumaturgy");
+            GameEventSubject.assertThat(spellResult).ignoringCase().doesNotContain("Thaumaturgy");
         }
 
     }
