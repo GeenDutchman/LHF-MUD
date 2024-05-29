@@ -5,6 +5,7 @@ import java.io.Writer;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -17,6 +18,7 @@ import javax.xml.transform.TransformerException;
 import org.w3c.dom.Document;
 
 import com.lhf.RichOutput;
+import com.lhf.RichOutput.PrintingInstructions;
 import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
@@ -184,14 +186,19 @@ public abstract class GameEvent implements Comparable<GameEvent> {
         return null;
     }
 
+    public final RichOutput getRichOutput() {
+        RichOutputBuilder builder = new RichOutputBuilder();
+        this.buildOutput(builder);
+        if (this.outputCallback != null) {
+            this.outputCallback.accept(builder);
+        }
+        return builder.build();
+    }
+
     // Called to render as a human-readable string
     public String printString() {
-        RichOutputBuilder stringOut = new RichOutputBuilder();
-        this.buildOutput(stringOut);
-        if (this.outputCallback != null) {
-            this.outputCallback.accept(stringOut);
-        }
-        return stringOut.build().printString();
+        return this.getRichOutput().printString(
+                Set.of(PrintingInstructions.BUILDER_NAME, PrintingInstructions.TAGS, PrintingInstructions.INDENTED));
     }
 
     @Override

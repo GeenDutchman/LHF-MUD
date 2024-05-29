@@ -12,6 +12,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
+import com.lhf.RichOutput;
 import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.battle.Attack;
@@ -162,8 +163,13 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public String printInventory() {
+    public RichOutput printInventory() {
         return wrapped.printInventory();
+    }
+
+    @Override
+    public String printInventoryAsString() {
+        return wrapped.printInventoryAsString();
     }
 
     @Override

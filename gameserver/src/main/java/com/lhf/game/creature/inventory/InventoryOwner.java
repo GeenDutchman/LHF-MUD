@@ -4,13 +4,16 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Optional;
 
+import com.lhf.RichOutput;
 import com.lhf.game.ItemContainer;
 import com.lhf.game.item.IItem;
 
 public interface InventoryOwner extends ItemContainer {
     Inventory getInventory();
 
-    String printInventory();
+    RichOutput printInventory();
+
+    String printInventoryAsString();
 
     String getName();
 

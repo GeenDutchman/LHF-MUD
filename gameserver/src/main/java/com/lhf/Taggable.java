@@ -57,7 +57,7 @@ public interface Taggable {
         private BasicTaggable(final String tagName, final String contents, final Map<String, String> tagAttributes) {
             this.tagName = tagName;
             this.contents = contents;
-            this.tagAttributes = Collections.unmodifiableMap(tagAttributes);
+            this.tagAttributes = tagAttributes != null ? Collections.unmodifiableMap(tagAttributes) : Map.of();
         }
 
         @Override

@@ -14,6 +14,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.lhf.RichOutput;
 import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
@@ -413,8 +414,13 @@ public abstract class Creature implements ICreature {
     }
 
     @Override
-    public String printInventory() {
-        return this.getInventory().getInventoryOutMessage(this.getEquipmentSlots()).toString();
+    public RichOutput printInventory() {
+        return this.getInventory().getInventoryOutMessage(this.getEquipmentSlots()).getRichOutput();
+    }
+
+    @Override
+    public String printInventoryAsString() {
+        return this.printInventory().printString();
     }
 
     @Override
