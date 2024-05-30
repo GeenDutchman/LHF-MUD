@@ -185,6 +185,10 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         }
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public Bed(Builder builder, Area area) {
         super(builder.name, "It's a bed.");
         this.gameEventProcessorID = new GameEventProcessorID();
