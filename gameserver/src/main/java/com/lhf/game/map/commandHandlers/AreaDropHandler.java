@@ -84,9 +84,14 @@ public class AreaDropHandler implements AreaCommandHandler {
                 continue;
             }
             IItem takeable = maybeTakeable.get();
-            container.addItem(takeable);
-            ctx.receive(dOutMessage.setDropType(DropType.SUCCESS).setItem(takeable).setDestination(container.getName())
-                    .Build());
+            if (container.addItem(takeable)) {
+                ctx.receive(dOutMessage.setDropType(DropType.SUCCESS).setItem(takeable)
+                        .setDestination(container.getName()).Build());
+            } else {
+                ctx.getCreature().addItem(takeable); // if we can't re-add it, too bad, so sad
+                ctx.receive(dOutMessage.setDropType(DropType.BAD_CONTAINER).setItem(takeable)
+                        .setDestination(container.getName()));
+            }
         }
         return ctx.handled();
 

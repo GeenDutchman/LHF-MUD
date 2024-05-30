@@ -11,6 +11,7 @@ import java.util.Map.Entry;
 import java.util.NavigableSet;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -63,7 +64,8 @@ public class InstancedArea implements Area {
         private InstancedAreaBuilder() {
             this.className = this.getClass().getName();
             this.id = new AreaBuilderID();
-            this.subordinate = RoomBuilder.getInstance().setName("Your Room");
+            this.subordinate = RoomBuilder.getInstance().setName("Your Room")
+                    .addForbiddenCommandType(AMessageType.DROP);
             this.limit = 1;
         }
 
@@ -87,7 +89,8 @@ public class InstancedArea implements Area {
 
         public Room.RoomBuilder getSubordinate() {
             if (this.subordinate == null) {
-                this.subordinate = RoomBuilder.getInstance().setName("Your Room");
+                this.subordinate = RoomBuilder.getInstance().setName("Your Room")
+                        .addForbiddenCommandType(AMessageType.DROP);
             }
             return this.subordinate;
         }
@@ -105,6 +108,26 @@ public class InstancedArea implements Area {
         public InstancedAreaBuilder addItem(AItem item) {
             this.getSubordinate().addItem(item);
             return this;
+        }
+
+        public InstancedAreaBuilder addForbiddenCommandType(AMessageType type) {
+            this.getSubordinate().addForbiddenCommandType(type);
+            return this;
+        }
+
+        public InstancedAreaBuilder clearForbiddenCommandTypes() {
+            this.getSubordinate().clearForbiddenCommandTypes();
+            return this;
+        }
+
+        public InstancedAreaBuilder doNotForbidCommandType(AMessageType type) {
+            this.getSubordinate().doNotForbidCommandType(type);
+            return this;
+        }
+
+        @Override
+        public Set<AMessageType> getForbiddenCommandTypes() {
+            return this.getSubordinate().getForbiddenCommandTypes();
         }
 
         /**

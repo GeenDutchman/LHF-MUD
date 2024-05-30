@@ -88,6 +88,26 @@ public class BattleManager extends SubArea {
             return delegate.getSubAreaSort();
         }
 
+        public Builder addForbiddenCommandType(AMessageType type) {
+            delegate.addForbiddenCommandType(type);
+            return this;
+        }
+
+        public Builder clearForbiddenCommandTypes() {
+            delegate.clearForbiddenCommandTypes();
+            return this;
+        }
+
+        public Builder doNotForbidCommandType(AMessageType type) {
+            delegate.doNotForbidCommandType(type);
+            return this;
+        }
+
+        @Override
+        public Set<AMessageType> getForbiddenCommandTypes() {
+            return this.delegate.getForbiddenCommandTypes();
+        }
+
         public SubAreaCasting isAllowCasting() {
             return delegate.isAllowCasting();
         }

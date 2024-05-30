@@ -127,6 +127,26 @@ public class DMRoom extends Room {
             return this;
         }
 
+        public DMRoomBuilder addForbiddenCommandType(AMessageType type) {
+            this.delegate = delegate.addForbiddenCommandType(type);
+            return this;
+        }
+
+        public DMRoomBuilder clearForbiddenCommandTypes() {
+            this.delegate = delegate.clearForbiddenCommandTypes();
+            return this;
+        }
+
+        public DMRoomBuilder doNotForbidCommandType(AMessageType type) {
+            this.delegate = delegate.doNotForbidCommandType(type);
+            return this;
+        }
+
+        @Override
+        public Set<AMessageType> getForbiddenCommandTypes() {
+            return this.delegate.getForbiddenCommandTypes();
+        }
+
         public List<Land.LandBuilder> getLandBuilders() {
             return Collections.unmodifiableList(this.landBuilders);
         }
@@ -308,6 +328,7 @@ public class DMRoom extends Room {
         this.lands = new ArrayList<>();
         this.users = new HashSet<>();
         this.commands = this.buildCommands();
+        this.commands.keySet().removeAll(builder.getForbiddenCommandTypes());
     }
 
     public boolean addLand(@NotNull Land land) {
