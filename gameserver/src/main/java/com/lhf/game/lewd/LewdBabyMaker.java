@@ -27,6 +27,7 @@ import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.map.Area;
 import com.lhf.game.map.AreaVisitor;
 import com.lhf.game.map.DMRoom;
+import com.lhf.game.map.InstancedArea;
 import com.lhf.game.map.Room;
 import com.lhf.server.client.user.User;
 
@@ -62,6 +63,14 @@ public class LewdBabyMaker extends LewdProduct {
                     Corpse body = new Corpse(name);
                     area.addItem(body);
                 }
+            }
+
+            @Override
+            public void visit(InstancedArea instancedArea) {
+                if (instancedArea == null) {
+                    return;
+                }
+                this.addCorpses(instancedArea);
             }
 
             private void buildCreatures(final Area area, final Collection<INonPlayerCharacterBuildInfo> toBuild,
@@ -150,8 +159,7 @@ public class LewdBabyMaker extends LewdProduct {
                     final User user = room.removeUser(name);
                     if (user == null) {
                         Corpse body = new Corpse(
-                                name == null || name.length() <= 0 ? NameGenerator.Generate(null)
-                                        : name);
+                                name == null || name.length() <= 0 ? NameGenerator.Generate(null) : name);
                         room.addItem(body);
                         continue;
                     }

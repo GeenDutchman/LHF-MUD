@@ -127,6 +127,8 @@ public interface Area extends ItemContainer, CreatureContainer, CommandChainHand
 
         public abstract Collection<ISubAreaBuildInfo> getSubAreasToBuild();
 
+        public abstract Set<AMessageType> getForbiddenCommandTypes();
+
         public default Area quickBuild(CommandChainHandler successor, Land land, AIRunner aiRunner) {
             return this.build(successor, land, aiRunner, null, true);
         }

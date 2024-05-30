@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -86,6 +87,7 @@ public class Room implements Area {
         private List<IItem> items;
         private Set<INonPlayerCharacterBuildInfo> npcsToBuild;
         private Set<ISubAreaBuildInfo> subAreasToBuild;
+        private Set<AMessageType> forbiddenCommandTypes;
 
         private RoomBuilder() {
             this.className = this.getClass().getName();
@@ -96,6 +98,7 @@ public class Room implements Area {
             this.items = new ArrayList<>();
             this.npcsToBuild = new HashSet<>();
             this.subAreasToBuild = new HashSet<>();
+            this.forbiddenCommandTypes = EnumSet.noneOf(AMessageType.class);
         }
 
         public static RoomBuilder getInstance() {
@@ -155,6 +158,38 @@ public class Room implements Area {
         @Override
         public Collection<ISubAreaBuildInfo> getSubAreasToBuild() {
             return this.subAreasToBuild;
+        }
+
+        public RoomBuilder addForbiddenCommandType(AMessageType type) {
+            if (type != null && !AMessageType.EXIT.equals(type)) {
+                if (forbiddenCommandTypes == null) {
+                    forbiddenCommandTypes = EnumSet.noneOf(AMessageType.class);
+                }
+                forbiddenCommandTypes.add(type);
+            }
+            return this;
+        }
+
+        public RoomBuilder clearForbiddenCommandTypes() {
+            if (this.forbiddenCommandTypes != null) {
+                this.forbiddenCommandTypes.clear();
+            }
+            return this;
+        }
+
+        public RoomBuilder doNotForbidCommandType(AMessageType type) {
+            if (this.forbiddenCommandTypes != null) {
+                this.forbiddenCommandTypes.remove(type);
+            }
+            return this;
+        }
+
+        @Override
+        public Set<AMessageType> getForbiddenCommandTypes() {
+            if (this.forbiddenCommandTypes == null) {
+                this.forbiddenCommandTypes = EnumSet.noneOf(AMessageType.class);
+            }
+            return this.forbiddenCommandTypes;
         }
 
         @Override
@@ -264,6 +299,7 @@ public class Room implements Area {
         this.effects = new TreeSet<>();
         this.subAreas = new TreeSet<>();
         this.commands = this.buildCommands();
+        this.commands.keySet().removeAll(builder.getForbiddenCommandTypes());
     }
 
     protected Map<AMessageType, CommandHandler> buildCommands() {

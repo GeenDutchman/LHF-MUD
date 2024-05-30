@@ -277,6 +277,8 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
 
         public abstract SubAreaSort getSubAreaSort();
 
+        public abstract Set<AMessageType> getForbiddenCommandTypes();
+
         public abstract SubAreaCasting isAllowCasting();
 
         public abstract int getWaitMilliseconds();
@@ -299,6 +301,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         private Set<CreatureFilterQuery> creatureQueries;
         private boolean queryOnBuild;
         private String loggingLevel;
+        private EnumSet<AMessageType> forbiddenCommandTypes;
 
         public SubAreaBuilder(SubAreaSort sort) {
             this.id = new SubAreaBuilderID();
@@ -309,6 +312,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
             this.queryOnBuild = true;
             this.allowCasting = SubAreaCasting.NO_CASTING;
             this.loggingLevel = null;
+            this.forbiddenCommandTypes = EnumSet.noneOf(AMessageType.class);
         }
 
         @Override
@@ -320,8 +324,48 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
             return this.sort;
         }
 
+        public SubAreaBuilder addForbiddenCommandType(AMessageType type) {
+            if (type != null && !AMessageType.EXIT.equals(type)) {
+                if (forbiddenCommandTypes == null) {
+                    forbiddenCommandTypes = EnumSet.noneOf(AMessageType.class);
+                }
+                forbiddenCommandTypes.add(type);
+                if (AMessageType.CAST.equals(type)) {
+                    this.allowCasting = SubAreaCasting.NO_CASTING;
+                }
+            }
+            return this;
+        }
+
+        public SubAreaBuilder clearForbiddenCommandTypes() {
+            if (this.forbiddenCommandTypes != null) {
+                this.forbiddenCommandTypes.clear();
+            }
+            return this;
+        }
+
+        public SubAreaBuilder doNotForbidCommandType(AMessageType type) {
+            if (this.forbiddenCommandTypes != null) {
+                this.forbiddenCommandTypes.remove(type);
+            }
+            return this;
+        }
+
+        @Override
+        public Set<AMessageType> getForbiddenCommandTypes() {
+            if (this.forbiddenCommandTypes == null) {
+                this.forbiddenCommandTypes = EnumSet.noneOf(AMessageType.class);
+            }
+            return this.forbiddenCommandTypes;
+        }
+
         public SubAreaBuilder setAllowCasting(SubAreaCasting allowCasting) {
             this.allowCasting = allowCasting != null ? allowCasting : SubAreaCasting.NO_CASTING;
+            if (SubAreaCasting.NO_CASTING.equals(this.allowCasting)) {
+                this.addForbiddenCommandType(AMessageType.CAST);
+            } else {
+                this.doNotForbidCommandType(AMessageType.CAST);
+            }
             return this;
         }
 
@@ -416,7 +460,6 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         this.roundDurationMilliseconds = builder.getWaitMilliseconds();
         this.allowCasting = builder.isAllowCasting();
         this.cmds = this.buildCommands();
-        this.cmds.computeIfAbsent(AMessageType.EXIT, key -> new SubAreaExitHandler());
         this.cmds.computeIfAbsent(AMessageType.SPELLBOOK, key -> new SubAreaSpellbookHandler());
         switch (this.allowCasting) {
         case FLUSH_CASTING:
@@ -431,6 +474,8 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
             break;
 
         }
+        this.cmds.keySet().removeAll(builder.getForbiddenCommandTypes());
+        this.cmds.computeIfAbsent(AMessageType.EXIT, key -> new SubAreaExitHandler());
         this.actionPools = Collections.synchronizedNavigableMap(new TreeMap<>());
         this.roundThread = new AtomicReference<>(null);
         if (builder.isQueryOnBuild()) {
