@@ -1,5 +1,8 @@
 package com.lhf.game.map;
 
+import static com.lhf.game.map.AreaSubject.assertThat;
+import static com.google.common.truth.Truth.assertThat;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -57,17 +60,15 @@ public class InstancedAreaTest {
         Mockito.when(player3.getAcceptHook()).thenReturn(
                 event -> System.out.println(String.format("Player %s: %s", player3.getName(), event.toString())));
 
-        Truth.assertWithMessage("Area is such: '%s'", area).that(area.addCreature(player1)).isTrue();
-        Truth.assertWithMessage("Area is such: '%s'", area).that(area.addCreature(player2)).isTrue();
-        Truth.assertWithMessage("Area is such: '%s'", area).that(area.addCreature(player3)).isTrue();
-        Truth.assertWithMessage("Area is such: '%s'", area).that(area.getRooms()).hasSize(3);
-        Truth.assertWithMessage("Area is such: '%s'", area).that(area.getCreatures()).containsExactly(player1, player2,
-                player3);
+        assertThat(area).asCreatureContainer().creatureIsAdded(player1);
+        assertThat(area).asCreatureContainer().creatureIsAdded(player2);
+        assertThat(area).asCreatureContainer().creatureIsAdded(player3);
+        assertThat(area.getRooms()).hasSize(3);
+        assertThat(area).asCreatureContainer().creatures().containsExactly(player1, player2, player3);
 
         for (final Room room : area.getRooms()) {
-            Truth.assertWithMessage("Sub area is such: %s", room).that(room.getCreatures()).hasSize(1);
-            Truth.assertWithMessage("Sub area is such: %s", room).that(room.getCreatures()).containsAnyOf(player1,
-                    player2, player3);
+            assertThat(room).asCreatureContainer().creatures().hasSize(1);
+            assertThat(room).asCreatureContainer().creatures().containsAnyOf(player1, player2, player3);
         }
     }
 
@@ -116,15 +117,15 @@ public class InstancedAreaTest {
         Mockito.when(player3.getAcceptHook()).thenReturn(
                 event -> System.out.println(String.format("Player %s: %s", player3.getName(), event.toString())));
 
-        Truth.assertWithMessage("Area is such: '%s'", area).that(area.addCreature(player1)).isTrue();
-        Truth.assertWithMessage("Area is such: '%s'", area).that(area.addCreature(player2)).isTrue();
-        Truth.assertWithMessage("Area is such: '%s'", area).that(area.addCreature(player3)).isTrue();
-        Truth.assertWithMessage("Area is such: '%s'", area).that(area.getRooms()).hasSize(3);
-        Truth.assertWithMessage("Area is such: '%s'", area).that(area.getCreatures()).containsExactly(player1, player2,
-                player3);
+        assertThat(area).asCreatureContainer().creatureIsAdded(player1);
+        assertThat(area).asCreatureContainer().creatureIsAdded(player2);
+        assertThat(area).asCreatureContainer().creatureIsAdded(player3);
+        assertThat(area.getRooms()).hasSize(3);
+        assertThat(area).asCreatureContainer().creatures().containsExactly(player1, player2, player3);
 
-        Truth.assertWithMessage("Area is such: '%s'", area).that(area.removeCreature(player3)).isTrue();
-        Truth.assertWithMessage("Area is such: '%s'", area).that(area.getRooms()).hasSize(2);
-        Truth.assertWithMessage("Area is such: '%s'", area).that(area.getCreatures()).doesNotContain(player3);
+        assertThat(area).asCreatureContainer().creatureIsRemoved(player3);
+        assertThat(area.getRooms()).hasSize(2);
+        assertThat(area).asCreatureContainer().creatures().doesNotContain(player3);
+
     }
 }

@@ -1,13 +1,14 @@
 package com.lhf.game;
 
+import java.util.Objects;
+
 import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.IterableSubject;
-import com.google.common.truth.Subject;
 import com.google.common.truth.Truth;
 import com.lhf.game.CreatureContainer.CreatureFilterQuery;
 import com.lhf.game.creature.ICreature;
 
-public class CreatureContainerSubject extends Subject {
+public class CreatureContainerSubject extends IterableSubject {
     public static Factory<CreatureContainerSubject, CreatureContainer> creatureContainers() {
         return CreatureContainerSubject::new;
     }
@@ -19,7 +20,7 @@ public class CreatureContainerSubject extends Subject {
     private final CreatureContainer actual;
 
     protected CreatureContainerSubject(FailureMetadata metadata, CreatureContainer actual) {
-        super(metadata, actual);
+        super(metadata, actual != null ? actual.getCreatures() : null);
         this.actual = actual;
     }
 
@@ -37,6 +38,11 @@ public class CreatureContainerSubject extends Subject {
         this.creatures().doesNotContain(c);
     }
 
+    public void creatureIsRemoved(ICreature c) {
+        check("removeCreature(%s)", c).that(actual.removeCreature(c)).isTrue();
+        this.creatures().doesNotContain(c);
+    }
+
     public IterableSubject filteredCreatures(CreatureFilterQuery query) {
         return check("filterCreatures(%s)", query).that(actual.filterCreatures(query));
     }
@@ -47,5 +53,24 @@ public class CreatureContainerSubject extends Subject {
 
     public void hasCreature(ICreature c) {
         this.creatures().contains(c);
+    }
+
+    public void doesNotHaveCreature(ICreature c) {
+        this.creatures().doesNotContain(c);
+    }
+
+    @Override
+    public void isEqualTo(Object expected) {
+        @SuppressWarnings("UndefinedEquals") // method contract requires testing iterables for equality
+        boolean equal = Objects.equals(actual, expected);
+        if (equal) {
+            return;
+        }
+
+        if (expected instanceof CreatureContainer expectedCC) {
+            containsExactlyElementsIn(expectedCC.getCreatures());
+        } else {
+            super.isEqualTo(expected);
+        }
     }
 }
