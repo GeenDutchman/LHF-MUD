@@ -348,6 +348,7 @@ public class InstancedArea implements Area {
             removed |= room.removeCreature(creature);
             if (room.getCreatures().isEmpty()) {
                 iterator.remove();
+                this.removeItemsFromArea(room);
             }
         }
         return removed;
@@ -368,6 +369,7 @@ public class InstancedArea implements Area {
             removed |= room.removeCreature(c, dir);
             if (room.getCreatures().isEmpty()) {
                 iterator.remove();
+                this.removeItemsFromArea(room);
             }
         }
         return removed;
@@ -416,6 +418,7 @@ public class InstancedArea implements Area {
             removed |= room.onCreatureDeath(creature);
             if (room.getCreatures().isEmpty()) {
                 iterator.remove();
+                this.removeItemsFromArea(room);
             }
         }
         return removed;
@@ -499,6 +502,26 @@ public class InstancedArea implements Area {
         this.rooms.values().stream().filter(room -> room != null)
                 .forEach(room -> removed.compareAndExchange(false, room.removeItem(item)));
         return removed.get();
+    }
+
+    private void removeItemsFromArea(Area area) {
+        if (area == null) {
+            return;
+        }
+        ItemVisitor remover = new ItemNoOpVisitor() {
+            @Override
+            public void visit(InteractObject interactObject) {
+                if (interactObject != null) {
+                    interactObject.setArea(null); // ensure no circular references remain
+                }
+                super.visit(interactObject);
+            }
+        };
+        Iterator<? extends IItem> items = area.itemIterator();
+        while (items.hasNext()) {
+            remover.accept(items.next());
+            items.remove(); // just forget the item, whatever it is
+        }
     }
 
     @Override
