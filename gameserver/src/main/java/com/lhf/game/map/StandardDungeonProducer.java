@@ -227,7 +227,7 @@ public final class StandardDungeonProducer {
         lobby.addItem(new InteractObject("Card Reader",
                 "For \"security\". Weird for it to be broken in a newer building though....", true));
 
-        // TODO: door out
+        // TODO: door out see #183
 
         builder.connectRoom(bedroomBuilder, Directions.EAST, commonRoom);
         builder.connectRoom(commonRoom, Directions.EAST, hallway);
