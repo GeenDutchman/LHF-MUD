@@ -218,7 +218,7 @@ public final class StandardDungeonProducer {
         commonRoom.addItem(new Item("Table",
                 "On this table you see a map of rooms in a vaguely familiar layout. There's also various figurines and tokens scattered everywhere, including one that looks like the statue in the corner of the room."));
 
-        // TODO: add Room Assistant
+        // TODO: #186 add Room Assistant
 
         final Room.RoomBuilder hallway = Room.RoomBuilder.getInstance().setName("Hallway").setDescription(
                 "Here in the hallway you can see doors leading into various dorm suites, one of which is your own.");
