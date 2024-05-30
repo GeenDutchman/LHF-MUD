@@ -1,14 +1,13 @@
 package com.lhf.game.map;
 
-import static com.lhf.game.map.AreaSubject.assertThat;
 import static com.google.common.truth.Truth.assertThat;
+import static com.lhf.game.map.AreaSubject.assertThat;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.truth.Truth;
 import com.lhf.game.creature.CreatureVisitor;
 import com.lhf.game.creature.Player;
 import com.lhf.messages.GameEventProcessor.GameEventProcessorID;
