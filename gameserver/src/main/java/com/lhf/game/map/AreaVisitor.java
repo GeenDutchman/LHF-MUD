@@ -7,6 +7,8 @@ public interface AreaVisitor extends Consumer<Area> {
 
     public void visit(DMRoom room);
 
+    public void visit(InstancedArea instancedArea);
+
     @Override
     default void accept(Area arg0) {
         if (arg0 != null) {
