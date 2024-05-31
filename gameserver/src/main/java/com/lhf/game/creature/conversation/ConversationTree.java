@@ -23,6 +23,7 @@ import com.lhf.RichOutput;
 import com.lhf.RichOutput.PrintingInstructions;
 import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.Atlas;
+import com.lhf.game.AtlasTrawlerBuilder;
 import com.lhf.game.Atlas.AtlasTraversalException;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContext;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
@@ -319,6 +320,18 @@ public class ConversationTree implements Serializable {
 
         public Set<ConversationTreeNode.Builder> getNodes() {
             return this.conversationAtlas.getAtlasMembers();
+        }
+
+        public Builder trawlBuildTree(
+                Consumer<AtlasTrawlerBuilder<ConversationTreeNode.Builder, UUID, ConversationPattern, ConversationPredicate>> trawlerConsumer) {
+            if (this.conversationAtlas != null && trawlerConsumer != null) {
+                AtlasTrawlerBuilder<ConversationTreeNode.Builder, UUID, ConversationPattern, ConversationPredicate> trawler = this.conversationAtlas
+                        .getTrawlerBuilder();
+                if (trawler != null) {
+                    trawlerConsumer.accept(trawler);
+                }
+            }
+            return this;
         }
 
         public ConversationAtlas buildNodes() {

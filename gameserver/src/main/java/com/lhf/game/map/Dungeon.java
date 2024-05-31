@@ -15,6 +15,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.lhf.game.AtlasTrawlerBuilder;
 import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
@@ -130,6 +131,18 @@ public class Dungeon implements Land {
         @Override
         public AreaBuilderAtlas getAtlas() {
             return this.atlas;
+        }
+
+        public DungeonBuilder trawlBuildDungeon(
+                Consumer<AtlasTrawlerBuilder<AreaBuilder, AreaBuilderID, Directions, Doorway>> trawlerConsumer) {
+            if (this.atlas != null && trawlerConsumer != null) {
+                AtlasTrawlerBuilder<AreaBuilder, AreaBuilderID, Directions, Doorway> trawler = this.atlas
+                        .getTrawlerBuilder();
+                if (trawler != null) {
+                    trawlerConsumer.accept(trawler);
+                }
+            }
+            return this;
         }
 
         public String toMermaid(boolean fence) {
