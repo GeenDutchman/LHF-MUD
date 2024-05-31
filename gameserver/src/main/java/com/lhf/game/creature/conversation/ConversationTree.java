@@ -23,6 +23,9 @@ import com.lhf.RichOutput;
 import com.lhf.RichOutput.PrintingInstructions;
 import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.Atlas;
+import com.lhf.game.AtlasTrawlerBuilder;
+import com.lhf.game.Atlas.AtlasException;
+import com.lhf.game.Atlas.AtlasMemberException;
 import com.lhf.game.Atlas.AtlasTraversalException;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContext;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
@@ -62,11 +65,14 @@ public class ConversationTree implements Serializable {
     private final String notRecognized;
     private final boolean tagkeywords;
 
-    private ConversationTree(@NotNull Builder builder) {
+    private ConversationTree(@NotNull Builder builder, ConversationAtlas builtNodes) {
+        if (builder == null || builtNodes == null) {
+            throw new IllegalArgumentException("Cannot make tree with null builder or null atlas");
+        }
         this.treeName = builder.getTreeName();
         this.start = builder.getStart().build();
         this.bookmarks = new TreeMap<>();
-        this.conversationAtlas = builder.buildNodes();
+        this.conversationAtlas = builtNodes;
         this.greetings = Collections.unmodifiableSortedMap(new TreeMap<>(builder.getBuiltGreetings()));
         this.repeatWords = Collections.unmodifiableSortedSet(new TreeSet<>(builder.getRepeatWords()));
         this.endOfConvo = builder.getEndOfConvo();
@@ -127,8 +133,9 @@ public class ConversationTree implements Serializable {
             this(ConversationTreeNode.Builder.ofString(starting));
         }
 
-        public ConversationTree build() {
-            return new ConversationTree(this);
+        public ConversationTree build() throws AtlasException {
+            final ConversationAtlas builtAtlas = this.buildNodes();
+            return new ConversationTree(this, builtAtlas);
         }
 
         public static Builder fromTree(ConversationTree tree) {
@@ -139,8 +146,14 @@ public class ConversationTree implements Serializable {
             builder.setTreeName(tree.getTreeName()).setEndOfConvo(tree.getEndOfConvo())
                     .setNotRecognized(tree.getNotRecognized()).setGreetings(tree.greetings)
                     .setRepeatWords(tree.repeatWords).setTagkeywords(tree.tagkeywords);
-            tree.conversationAtlas.translate(builder.conversationAtlas, node -> new ConversationTreeNode.Builder(node),
-                    Function.identity(), ConversationPredicate::copyFrom);
+            try {
+                tree.conversationAtlas.translate(builder.conversationAtlas,
+                        node -> new ConversationTreeNode.Builder(node), Function.identity(),
+                        ConversationPredicate::copyFrom);
+            } catch (AtlasException e) {
+                // wrap it and send it on
+                throw new IllegalStateException(String.format("Error reverting tree '%s' to builder", tree), e);
+            }
 
             return builder;
         }
@@ -188,7 +201,8 @@ public class ConversationTree implements Serializable {
         }
 
         public Builder addNode(UUID fromNodeBuilder, ConversationPattern pathToNode,
-                ConversationTreeNode.Builder nextNode, Consumer<ConversationPredicate.Builder> branchEditor) {
+                ConversationTreeNode.Builder nextNode, Consumer<ConversationPredicate.Builder> branchEditor)
+                throws AtlasMemberException {
             if (nextNode == null) {
                 return this;
             }
@@ -207,12 +221,12 @@ public class ConversationTree implements Serializable {
         }
 
         public Builder addNode(UUID fromNodeBuilder, ConversationPattern pathToNode,
-                ConversationTreeNode.Builder nextNode) {
+                ConversationTreeNode.Builder nextNode) throws AtlasMemberException {
             return this.addNode(fromNodeBuilder, pathToNode, nextNode, null);
         }
 
         public Builder addNode(UUID fromNodeBuilder, ConversationPattern pathToNode, String nextNode,
-                Consumer<ConversationPredicate.Builder> branchEditor) {
+                Consumer<ConversationPredicate.Builder> branchEditor) throws AtlasMemberException {
             if (nextNode == null) {
                 return this;
             }
@@ -220,7 +234,8 @@ public class ConversationTree implements Serializable {
                     branchEditor);
         }
 
-        public Builder addNode(UUID fromNodeBuilder, ConversationPattern pathToNode, String nextNode) {
+        public Builder addNode(UUID fromNodeBuilder, ConversationPattern pathToNode, String nextNode)
+                throws AtlasMemberException {
             return this.addNode(fromNodeBuilder, pathToNode, nextNode, null);
         }
 
@@ -321,7 +336,19 @@ public class ConversationTree implements Serializable {
             return this.conversationAtlas.getAtlasMembers();
         }
 
-        public ConversationAtlas buildNodes() {
+        public Builder trawlBuildTree(
+                Consumer<AtlasTrawlerBuilder<ConversationTreeNode.Builder, UUID, ConversationPattern, ConversationPredicate>> trawlerConsumer) {
+            if (this.conversationAtlas != null && trawlerConsumer != null) {
+                AtlasTrawlerBuilder<ConversationTreeNode.Builder, UUID, ConversationPattern, ConversationPredicate> trawler = this.conversationAtlas
+                        .getTrawlerBuilder();
+                if (trawler != null) {
+                    trawlerConsumer.accept(trawler);
+                }
+            }
+            return this;
+        }
+
+        public ConversationAtlas buildNodes() throws AtlasException {
             ConversationAtlas translated = new ConversationAtlas();
             this.conversationAtlas.translate(translated, builder -> builder.build(), pattern -> pattern,
                     predicate -> ConversationPredicate.copyFrom(predicate));

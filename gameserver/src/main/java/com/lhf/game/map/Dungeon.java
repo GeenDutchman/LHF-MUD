@@ -15,6 +15,9 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.lhf.game.Atlas.AtlasException;
+import com.lhf.game.Atlas.AtlasMemberException;
+import com.lhf.game.AtlasTrawlerBuilder;
 import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
@@ -78,7 +81,8 @@ public class Dungeon implements Land {
             return this;
         }
 
-        public DungeonBuilder connectRoom(AreaBuilder first, Directions toSecond, AreaBuilder second, Doorway type) {
+        public DungeonBuilder connectRoom(AreaBuilder first, Directions toSecond, AreaBuilder second, Doorway type)
+                throws AtlasMemberException {
             if (this.atlas == null || this.startingRoom == null) {
                 throw new IllegalStateException("Cannot connect a room without first specifying a starting room!");
             }
@@ -86,11 +90,13 @@ public class Dungeon implements Land {
             return this;
         }
 
-        public DungeonBuilder connectRoom(AreaBuilder first, Directions toSecond, AreaBuilder second) {
+        public DungeonBuilder connectRoom(AreaBuilder first, Directions toSecond, AreaBuilder second)
+                throws AtlasMemberException {
             return this.connectRoom(first, toSecond, second, new Doorway());
         }
 
-        public DungeonBuilder connectRoomOneWay(AreaBuilder first, Directions toSecond, AreaBuilder second) {
+        public DungeonBuilder connectRoomOneWay(AreaBuilder first, Directions toSecond, AreaBuilder second)
+                throws AtlasMemberException {
             if (this.atlas == null || this.startingRoom == null) {
                 throw new IllegalStateException("Cannot connect a room without first specifying a starting room!");
             }
@@ -99,17 +105,23 @@ public class Dungeon implements Land {
         }
 
         @Override
-        public Dungeon quickBuild(CommandChainHandler successor, AIRunner aiRunner) {
+        public Dungeon quickBuild(CommandChainHandler successor, AIRunner aiRunner) throws AtlasException {
             return build(successor, aiRunner, null, true);
         }
 
         @Override
         public Dungeon build(CommandChainHandler successor, AIRunner aiRunner, ConversationManager conversationManager,
-                boolean fallbackNoConversation) {
+                boolean fallbackNoConversation) throws AtlasException {
             this.logger.entering(this.getClass().getName(), "build()");
             return Dungeon.fromBuilder(this, () -> successor, () -> (dungeon) -> {
-                Map<AreaBuilderID, UUID> translation = this.translateAtlas(dungeon, aiRunner, conversationManager,
-                        fallbackNoConversation);
+                Map<AreaBuilderID, UUID> translation = null;
+                try {
+                    translation = this.translateAtlas(dungeon, aiRunner, conversationManager, fallbackNoConversation);
+                } catch (AtlasException e) {
+                    final String errDesc = String.format("Cannot build Areas in dugeon by dungeonbuilder '%s'", this);
+                    this.logger.log(Level.SEVERE, errDesc, e);
+                    throw new IllegalStateException(errDesc, e); // can only throw unchecked exceptions from lambdas
+                }
                 if (translation != null && this.startingRoom != null) {
                     AreaBuilderID builderID = this.startingRoom.getAreaBuilderID();
                     dungeon.setStartingAreaUUID(translation.get(builderID));
@@ -130,6 +142,18 @@ public class Dungeon implements Land {
         @Override
         public AreaBuilderAtlas getAtlas() {
             return this.atlas;
+        }
+
+        public DungeonBuilder trawlBuildDungeon(
+                Consumer<AtlasTrawlerBuilder<AreaBuilder, AreaBuilderID, Directions, Doorway>> trawlerConsumer) {
+            if (this.atlas != null && trawlerConsumer != null) {
+                AtlasTrawlerBuilder<AreaBuilder, AreaBuilderID, Directions, Doorway> trawler = this.atlas
+                        .getTrawlerBuilder();
+                if (trawler != null) {
+                    trawlerConsumer.accept(trawler);
+                }
+            }
+            return this;
         }
 
         public String toMermaid(boolean fence) {
@@ -348,7 +372,7 @@ public class Dungeon implements Land {
         try {
             this.atlas.connect(existing, toExistingRoom.opposite(), toAdd, type);
             return true;
-        } catch (IllegalArgumentException | IllegalStateException e) {
+        } catch (IllegalArgumentException | IllegalStateException | AtlasMemberException e) {
             this.log(Level.WARNING, e.toString());
             return false;
         }
@@ -358,7 +382,7 @@ public class Dungeon implements Land {
         try {
             this.atlas.connectOneWay(existing, toExistingRoom, secretRoom, new OneWayDoorway(toExistingRoom));
             return true;
-        } catch (IllegalArgumentException | IllegalStateException e) {
+        } catch (IllegalArgumentException | IllegalStateException | AtlasMemberException e) {
             this.log(Level.WARNING, e.toString());
             return false;
         }

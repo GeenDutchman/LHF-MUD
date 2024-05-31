@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.google.common.truth.Truth;
 import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.Taggable;
+import com.lhf.game.Atlas.AtlasException;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.INonPlayerCharacter;
@@ -49,7 +50,7 @@ public class BasicAITest {
     }
 
     @Test
-    void testBasicConversation() {
+    void testBasicConversation() throws AtlasException {
         AIComBundle listener = new AIComBundle();
         INonPlayerCharacter speaker = Mockito.mock(INonPlayerCharacter.class);
         Mockito.when(speaker.getSimpleContent()).thenReturn("Joe Speaker");

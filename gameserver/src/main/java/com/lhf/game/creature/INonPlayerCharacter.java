@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
+import com.lhf.game.Atlas.AtlasException;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.TickType;
@@ -293,9 +294,9 @@ public interface INonPlayerCharacter extends ICreature {
         public String getConversationFileName();
 
         public ConversationTree loadConversationTree(ConversationManager conversationManager)
-                throws FileNotFoundException;
+                throws FileNotFoundException, AtlasException;
 
-        public ConversationTree getConversationTree();
+        public ConversationTree getConversationTree() throws AtlasException;
 
         public default boolean usesNoDefaultAIHandlers() {
             return false;
@@ -361,7 +362,12 @@ public interface INonPlayerCharacter extends ICreature {
             if (buildInfo != null) {
                 this.copyFromICreatureBuildInfo(buildInfo);
                 this.setConversationFileName(buildInfo.getConversationFileName());
-                ConversationTree otherTree = buildInfo.getConversationTree();
+                ConversationTree otherTree = null;
+                try {
+                    otherTree = buildInfo.getConversationTree();
+                } catch (AtlasException e) {
+                    e.printStackTrace();
+                }
                 if (otherTree != null) {
                     this.setConversationTree(otherTree);
                 }
@@ -417,7 +423,7 @@ public interface INonPlayerCharacter extends ICreature {
         }
 
         public ConversationTree loadConversationTree(ConversationManager conversationManager)
-                throws FileNotFoundException {
+                throws FileNotFoundException, AtlasException {
             String filename = this.getConversationFileName();
             if (this.conversationTree == null && filename != null) {
                 if (conversationManager == null) {
@@ -428,7 +434,7 @@ public interface INonPlayerCharacter extends ICreature {
             return this.conversationTree.build();
         }
 
-        public ConversationTree getConversationTree() {
+        public ConversationTree getConversationTree() throws AtlasException {
             return conversationTree != null ? conversationTree.build() : null;
         }
 

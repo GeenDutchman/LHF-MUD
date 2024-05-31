@@ -26,7 +26,8 @@ import java.util.stream.Collectors;
 public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<AtlasMemberID>, AtlasLinkType extends Comparable<AtlasLinkType>, AtlasTraversalTestType extends Comparable<AtlasTraversalTestType>>
         implements Comparable<Atlas<AtlasMemberType, AtlasMemberID, AtlasLinkType, AtlasTraversalTestType>> {
 
-    public static class AtlasException extends Exception {
+    public static sealed class AtlasException extends Exception
+            permits AtlasMemberException, AtlasLinkException, AtlasTraversalException {
         public AtlasException(String message) {
             super(message);
         }
@@ -40,7 +41,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         }
     }
 
-    public static class AtlasMemberException extends AtlasException {
+    public final static class AtlasMemberException extends AtlasException {
         final String memberID;
 
         public AtlasMemberException(String id) {
@@ -58,7 +59,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         }
     }
 
-    public static class AtlasLinkException extends AtlasException {
+    public final static class AtlasLinkException extends AtlasException {
         final String source;
         final String through;
         final String destination;
@@ -338,6 +339,10 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         this.mapping = new LinkedHashMap<>(); // keep insertion order
     }
 
+    public AtlasTrawlerBuilder<AtlasMemberType, AtlasMemberID, AtlasLinkType, AtlasTraversalTestType> getTrawlerBuilder() {
+        return AtlasTrawlerBuilder.trawl(this);
+    }
+
     public synchronized int size() {
         return this.mapping.size();
     }
@@ -358,7 +363,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
     }
 
     public final synchronized void connectOneWay(final AtlasMemberType first, final AtlasLinkType toSecond,
-            final AtlasMemberType second, AtlasTraversalTestType predicate) {
+            final AtlasMemberType second, AtlasTraversalTestType predicate) throws AtlasMemberException {
         synchronized (this.mapping) {
             if (first == null) {
                 throw new IllegalArgumentException("The 'first' argument must not be null!");
@@ -373,9 +378,11 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             final AtlasMemberID firstID = this.getIDForMemberType(first);
             final AtlasMemberID secondID = this.getIDForMemberType(second);
             if (firstID == null) {
-                throw new IllegalStateException(String.format("Cannot retrieve member ID for %s", first));
+                throw new AtlasMemberException(null,
+                        new IllegalStateException(String.format("Cannot retrieve member ID for %s", first)));
             } else if (secondID == null) {
-                throw new IllegalStateException(String.format("Cannot retrieve member ID for %s", second));
+                throw new AtlasMemberException(null,
+                        new IllegalStateException(String.format("Cannot retrieve member ID for %s", second)));
             }
 
             AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> firstMappingItem = this
@@ -383,8 +390,11 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> secondMappingItem = this
                     .getAtlasMappingItem(secondID);
             if (firstMappingItem == null && secondMappingItem == null) {
-                throw new IllegalStateException(String
-                        .format("One or both of the following MUST already exist in the Atlas! %s %s", first, second));
+                throw new AtlasMemberException(firstID.toString(),
+                        new AtlasMemberException(secondID.toString(),
+                                new IllegalStateException(String.format(
+                                        "One or both of the following MUST already exist in the Atlas! %s %s", first,
+                                        second))));
             } else if (firstMappingItem == null) {
                 firstMappingItem = this.emplaceMember(first);
             } else if (secondMappingItem == null) {
@@ -414,7 +424,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
     public final synchronized void connectTwoWay(final AtlasMemberType first, final AtlasLinkType firstToSecond,
             final AtlasMemberType second, final AtlasTraversalTestType predicate,
             Function<AtlasLinkType, AtlasLinkType> linkReverser,
-            Function<AtlasTraversalTestType, AtlasTraversalTestType> predicateReverser) {
+            Function<AtlasTraversalTestType, AtlasTraversalTestType> predicateReverser) throws AtlasMemberException {
         if (firstToSecond == null) {
             throw new IllegalArgumentException("The provided link to the second must not be null!");
         }
@@ -432,7 +442,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
     }
 
     public final synchronized void connect(AtlasMemberType first, AtlasLinkType toSecond, AtlasMemberType second,
-            AtlasTraversalTestType predicate) {
+            AtlasTraversalTestType predicate) throws AtlasMemberException {
         synchronized (this.mapping) {
             this.connectTwoWay(first, toSecond, second, predicate, this::translateLinkToOpposite,
                     this::reverseTraversalTest);
@@ -988,7 +998,8 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             Atlas<TranslateMemberType, TranslateID, TranslateLinkType, TranslateTraversalTestType> translation,
             Function<AtlasMemberType, TranslateMemberType> memberTransformer,
             Function<AtlasLinkType, TranslateLinkType> linkTransformer,
-            Function<AtlasTraversalTestType, TranslateTraversalTestType> traversalTestTransformer) {
+            Function<AtlasTraversalTestType, TranslateTraversalTestType> traversalTestTransformer)
+            throws AtlasException {
 
         if (translation == null) {
             throw new NullPointerException("Cannot translate to a null atlas!");
@@ -1030,8 +1041,14 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                 final AtlasLinkType link = tester.getLink();
                 final TranslateMemberType accrossTranslation = translatedTarget.getAtlasMember();
                 final AtlasTraversalTestType predicate = tester.getPredicate();
-                translation.connectOneWay(translatedMember.getAtlasMember(), linkTransformer.apply(link),
-                        accrossTranslation, traversalTestTransformer.apply(predicate));
+                try {
+                    translation.connectOneWay(translatedMember.getAtlasMember(), linkTransformer.apply(link),
+                            accrossTranslation, traversalTestTransformer.apply(predicate));
+                } catch (AtlasMemberException e) {
+                    throw new AtlasException(String.format(
+                            "Cannot complete the translation linking of this Atlas '%s', especially between this member '%s' and the translation '%s'",
+                            this, member, translatedMember), e);
+                }
             }
         }
 
@@ -1042,7 +1059,8 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             Supplier<Atlas<TranslateMemberType, TranslateID, TranslateLinkType, TranslateTraversalTestType>> starter,
             Function<AtlasMemberType, TranslateMemberType> memberTransformer,
             Function<AtlasLinkType, TranslateLinkType> linkTransformer,
-            Function<AtlasTraversalTestType, TranslateTraversalTestType> traversalTestTransformer) {
+            Function<AtlasTraversalTestType, TranslateTraversalTestType> traversalTestTransformer)
+            throws AtlasException {
         if (starter == null) {
             throw new IllegalArgumentException("Must provide an Atlas supplier for translation!");
         }

@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import com.lhf.game.Atlas.AtlasException;
 import com.lhf.game.creature.INonPlayerCharacter.INPCBuildInfo;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.conversation.ConversationManager;
@@ -90,11 +91,12 @@ public final class MonsterBuildInfo implements INonPlayerCharacterBuildInfo {
         return this;
     }
 
-    public ConversationTree loadConversationTree(ConversationManager conversationManager) throws FileNotFoundException {
+    public ConversationTree loadConversationTree(ConversationManager conversationManager)
+            throws FileNotFoundException, AtlasException {
         return iNPCBuilder.loadConversationTree(conversationManager);
     }
 
-    public ConversationTree getConversationTree() {
+    public ConversationTree getConversationTree() throws AtlasException {
         return iNPCBuilder.getConversationTree();
     }
 

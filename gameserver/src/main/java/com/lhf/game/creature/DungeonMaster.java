@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import com.lhf.game.Atlas.AtlasException;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.intelligence.AIHandler;
@@ -89,11 +90,11 @@ public class DungeonMaster extends NonPlayerCharacter {
         }
 
         public ConversationTree loadConversationTree(ConversationManager conversationManager)
-                throws FileNotFoundException {
+                throws FileNotFoundException, AtlasException {
             return iNPCBuilder.loadConversationTree(conversationManager);
         }
 
-        public ConversationTree getConversationTree() {
+        public ConversationTree getConversationTree() throws AtlasException {
             return iNPCBuilder.getConversationTree();
         }
 

@@ -23,6 +23,8 @@ import com.google.common.truth.Truth;
 import com.google.gson.Gson;
 import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.RichOutput.RichOutputElement;
+import com.lhf.game.Atlas.AtlasException;
+import com.lhf.game.Atlas.AtlasMemberException;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
@@ -44,7 +46,7 @@ public class ConversationTreeTest {
     }
 
     @Test
-    void testIgnoreUngreeted() {
+    void testIgnoreUngreeted() throws AtlasException {
         Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
 
         ConversationTree tree = new ConversationTree.Builder().setStartBody(basicEmpty).build();
@@ -53,7 +55,7 @@ public class ConversationTreeTest {
     }
 
     @Test
-    void testOneTrackConversation() {
+    void testOneTrackConversation() throws AtlasMemberException, AtlasException {
         Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
         Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
         Mockito.when(this.talker.getTagName()).thenReturn("npc");
@@ -71,7 +73,7 @@ public class ConversationTreeTest {
     }
 
     @Test
-    void testTwoTrackConversation() {
+    void testTwoTrackConversation() throws AtlasMemberException, AtlasException {
         Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
         Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
         Mockito.when(this.talker.getTagName()).thenReturn("npc");
@@ -96,7 +98,7 @@ public class ConversationTreeTest {
     }
 
     @Test
-    void testConvoRollover() {
+    void testConvoRollover() throws AtlasMemberException, AtlasException {
         Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
         Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
         Mockito.when(this.talker.getTagName()).thenReturn("npc");
@@ -129,7 +131,7 @@ public class ConversationTreeTest {
     }
 
     @Test
-    void testRememberSpot() {
+    void testRememberSpot() throws AtlasMemberException, AtlasException {
         Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
         Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
         Mockito.when(this.talker.getTagName()).thenReturn("npc");
@@ -162,7 +164,7 @@ public class ConversationTreeTest {
     }
 
     @Test
-    void testRepeatNode() {
+    void testRepeatNode() throws AtlasMemberException, AtlasException {
         Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
         Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
         Mockito.when(this.talker.getTagName()).thenReturn("npc");
@@ -186,7 +188,7 @@ public class ConversationTreeTest {
     }
 
     @Test
-    void testHightlightNext() {
+    void testHightlightNext() throws AtlasMemberException, AtlasException {
         Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
         Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
         Mockito.when(this.talker.getTagName()).thenReturn("npc");
@@ -208,7 +210,7 @@ public class ConversationTreeTest {
     }
 
     @Test
-    void testGreetBack() {
+    void testGreetBack() throws AtlasException {
         Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
         Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
         Mockito.when(this.talker.getTagName()).thenReturn("npc");
@@ -224,7 +226,7 @@ public class ConversationTreeTest {
     }
 
     @Test
-    void testForbidBranch() {
+    void testForbidBranch() throws AtlasMemberException, AtlasException {
         Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
         Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
         Mockito.when(this.talker.getTagName()).thenReturn("npc");
@@ -291,7 +293,7 @@ public class ConversationTreeTest {
     }
 
     @Test
-    void testDualTriggerForbiddance() {
+    void testDualTriggerForbiddance() throws AtlasMemberException, AtlasException {
         Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
         Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
         Mockito.when(this.talker.getTagName()).thenReturn("npc");
@@ -345,7 +347,7 @@ public class ConversationTreeTest {
     }
 
     @Test
-    void testSerialization() {
+    void testSerialization() throws AtlasMemberException, AtlasException {
         RichOutputBuilder builder = new RichOutputBuilder(ConversationTreeNode.NPC_CONVERSATION_TAG)
                 .appendChild("I greet you back")
                 .appendRichOutputElement(
@@ -383,7 +385,7 @@ public class ConversationTreeTest {
     }
 
     @Test
-    void testMermaid() {
+    void testMermaid() throws AtlasException {
         RichOutputBuilder builder = new RichOutputBuilder(ConversationTreeNode.NPC_CONVERSATION_TAG)
                 .appendChild("I greet you back")
                 .appendRichOutputElement(
@@ -423,7 +425,7 @@ public class ConversationTreeTest {
     }
 
     @Test
-    void copyTest() {
+    void copyTest() throws AtlasException {
         ConversationTree.Builder builder = StaticConversationTreeProducer.produceGary();
         final String builderMermaid = builder.toMermaidStateDiagram(false);
         // System.out.println("builder");
@@ -516,7 +518,7 @@ public class ConversationTreeTest {
         @Test
         @Order(2)
         @EnabledIf("isRewriteNeeded")
-        void writeNonVerbalDefault() {
+        void writeNonVerbalDefault() throws AtlasException {
             ConversationTree.Builder builder = StaticConversationTreeProducer.produceNonVerbalDefault();
 
             ConversationTree built = builder.build();
@@ -527,7 +529,7 @@ public class ConversationTreeTest {
         @Test
         @Order(3)
         @EnabledIf("isRewriteNeeded")
-        void writeVerbalDefault() {
+        void writeVerbalDefault() throws AtlasException {
             ConversationTree.Builder builder = StaticConversationTreeProducer.produceVerbalDefault();
 
             ConversationTree built = builder.build();
@@ -538,7 +540,7 @@ public class ConversationTreeTest {
         @Test
         @Order(4)
         @EnabledIf("isRewriteNeeded")
-        void writeAggravated() {
+        void writeAggravated() throws AtlasException {
             ConversationTree.Builder builder = StaticConversationTreeProducer.produceAggravated();
 
             ConversationTree built = builder.build();
@@ -550,7 +552,7 @@ public class ConversationTreeTest {
         @Test
         @Order(5)
         @EnabledIf("isRewriteNeeded")
-        void writeGary() {
+        void writeGary() throws AtlasException {
 
             ConversationTree.Builder builder = StaticConversationTreeProducer.produceGary();
 

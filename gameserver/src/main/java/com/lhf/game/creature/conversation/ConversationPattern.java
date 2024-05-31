@@ -9,7 +9,17 @@ public class ConversationPattern implements Serializable, Comparable<Conversatio
     private final Pattern regex;
     private final String example;
 
-    public ConversationPattern(String example, String regex) {
+    public static ConversationPattern insensitive(String example, String regex) {
+        ConversationPattern pattern = null;
+        try {
+            pattern = new ConversationPattern(example, regex, Pattern.CASE_INSENSITIVE);
+            return pattern;
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    protected ConversationPattern(String example, String regex) {
         this.regex = Pattern.compile(regex);
         this.example = example;
         this.checkExample();

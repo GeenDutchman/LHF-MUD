@@ -17,6 +17,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.lhf.game.Atlas.AtlasException;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.Game;
@@ -182,7 +183,7 @@ public class DMRoom extends Room {
         }
 
         private List<Land> buildLands(AIRunner aiRunner, DMRoom dmRoom, Game game,
-                ConversationManager conversationManager, boolean fallbackNoConversation) {
+                ConversationManager conversationManager, boolean fallbackNoConversation) throws AtlasException {
             List<Land.LandBuilder> toBuild = this.getLandBuilders();
             if (toBuild == null) {
                 return List.of();
@@ -209,8 +210,14 @@ public class DMRoom extends Room {
                     room.addSubArea(subAreaBuilder);
                 }
             }, () -> (dmRoom) -> {
-                final List<Land> landsBuilt = this.buildLands(aiRunner, dmRoom, null, conversationManager,
-                        fallbackNoConversation);
+                List<Land> landsBuilt;
+                try {
+                    landsBuilt = this.buildLands(aiRunner, dmRoom, null, conversationManager, fallbackNoConversation);
+                } catch (AtlasException e) {
+                    final String errDesc = String.format("Cannot build lands for DMRoom with builder '%s'", this);
+                    this.logger.log(Level.SEVERE, errDesc, e);
+                    throw new IllegalStateException(errDesc, e);
+                }
                 for (Land toAdd : landsBuilt) {
                     dmRoom.addLand(toAdd);
                 }

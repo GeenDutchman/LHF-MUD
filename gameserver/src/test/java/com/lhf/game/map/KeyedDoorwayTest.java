@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import com.google.common.truth.Truth;
+import com.lhf.game.Atlas.AtlasException;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.item.concrete.LockKey;
 import com.lhf.game.map.Dungeon.DungeonBuilder;
@@ -15,7 +16,7 @@ import com.lhf.messages.MessageMatcher;
 
 public class KeyedDoorwayTest {
     @Test
-    void testCanTraverse() {
+    void testCanTraverse() throws AtlasException {
         DungeonBuilder builder = DungeonBuilder.newInstance();
         RoomBuilder roomABuilder = RoomBuilder.getInstance().setName("roomA");
         RoomBuilder roomBBuilder = RoomBuilder.getInstance().setName("roomB");
