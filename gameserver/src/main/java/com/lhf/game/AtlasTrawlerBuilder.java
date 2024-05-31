@@ -80,7 +80,7 @@ public class AtlasTrawlerBuilder<Member, ID extends Comparable<ID>, Link extends
     }
 
     public AtlasTrawlerBuilder<Member, ID, Link, Traversal> addMemberOneWay(Link link, Traversal traversal,
-            Member nextMember) throws IllegalArgumentException, IllegalStateException {
+            Member nextMember) throws IllegalArgumentException, AtlasMemberException {
         this.checkInitialized();
         this.atlas.connectOneWay(this.currentNode, link, nextMember, traversal);
         this.trace.addLast(this.currentNode);
@@ -88,8 +88,15 @@ public class AtlasTrawlerBuilder<Member, ID extends Comparable<ID>, Link extends
         return this;
     }
 
+    public AtlasTrawlerBuilder<Member, ID, Link, Traversal> addOnewayToExistingMember(Link link, Traversal traversal,
+            ID existant) throws AtlasMemberException {
+        this.checkInitialized();
+        Member destination = this.atlas.getAtlasMemberOrThrow(existant);
+        return this.addMemberOneWay(link, traversal, destination);
+    }
+
     public AtlasTrawlerBuilder<Member, ID, Link, Traversal> addMemberTwoWay(Link link, Traversal traversal,
-            Member nextMember) throws IllegalArgumentException, IllegalStateException {
+            Member nextMember) throws IllegalArgumentException, AtlasMemberException {
         this.checkInitialized();
         this.atlas.connect(this.currentNode, link, nextMember, traversal);
         this.trace.addLast(this.currentNode);
@@ -97,14 +104,29 @@ public class AtlasTrawlerBuilder<Member, ID extends Comparable<ID>, Link extends
         return this;
     }
 
+    public AtlasTrawlerBuilder<Member, ID, Link, Traversal> addTwoWayToExistingMember(Link link, Traversal traversal,
+            ID existant) throws AtlasMemberException {
+        this.checkInitialized();
+        Member destination = this.atlas.getAtlasMemberOrThrow(existant);
+        return this.addMemberTwoWay(link, traversal, destination);
+    }
+
     public AtlasTrawlerBuilder<Member, ID, Link, Traversal> addMemberTwoWay(Link link, Traversal traversal,
             Member nextMember, Function<Link, Link> linkReverser, Function<Traversal, Traversal> traversalReverser)
-            throws IllegalArgumentException, IllegalStateException {
+            throws IllegalArgumentException, AtlasMemberException {
         this.checkInitialized();
         this.atlas.connectTwoWay(this.currentNode, link, nextMember, traversal, linkReverser, traversalReverser);
         this.trace.addLast(this.currentNode);
         this.currentNode = nextMember;
         return this;
+    }
+
+    public AtlasTrawlerBuilder<Member, ID, Link, Traversal> addTwoWayToExistingMember(Link link, Traversal traversal,
+            ID existant, Function<Link, Link> linkReverser, Function<Traversal, Traversal> traversalReverser)
+            throws IllegalArgumentException, IllegalStateException, AtlasMemberException {
+        this.checkInitialized();
+        Member destination = this.atlas.getAtlasMemberOrThrow(existant);
+        return this.addMemberTwoWay(link, traversal, destination, linkReverser, traversalReverser);
     }
 
     public AtlasTrawlerBuilder<Member, ID, Link, Traversal> plainAddMember(Member member) {
