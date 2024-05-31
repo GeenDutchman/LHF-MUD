@@ -65,11 +65,14 @@ public class ConversationTree implements Serializable {
     private final String notRecognized;
     private final boolean tagkeywords;
 
-    private ConversationTree(@NotNull Builder builder) throws AtlasException {
+    private ConversationTree(@NotNull Builder builder, ConversationAtlas builtNodes) {
+        if (builder == null || builtNodes == null) {
+            throw new IllegalArgumentException("Cannot make tree with null builder or null atlas");
+        }
         this.treeName = builder.getTreeName();
         this.start = builder.getStart().build();
         this.bookmarks = new TreeMap<>();
-        this.conversationAtlas = builder.buildNodes();
+        this.conversationAtlas = builtNodes;
         this.greetings = Collections.unmodifiableSortedMap(new TreeMap<>(builder.getBuiltGreetings()));
         this.repeatWords = Collections.unmodifiableSortedSet(new TreeSet<>(builder.getRepeatWords()));
         this.endOfConvo = builder.getEndOfConvo();
@@ -131,7 +134,8 @@ public class ConversationTree implements Serializable {
         }
 
         public ConversationTree build() throws AtlasException {
-            return new ConversationTree(this);
+            final ConversationAtlas builtAtlas = this.buildNodes();
+            return new ConversationTree(this, builtAtlas);
         }
 
         public static Builder fromTree(ConversationTree tree) {

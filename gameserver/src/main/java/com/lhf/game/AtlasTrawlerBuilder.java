@@ -31,7 +31,7 @@ public class AtlasTrawlerBuilder<Member, ID extends Comparable<ID>, Link extends
         this.atlas = myatlas;
     }
 
-    private void checkInitialized() throws IllegalStateException {
+    public void checkInitialized() throws IllegalStateException {
         if (this.atlas == null) {
             throw new NullPointerException("Atlas is null");
         }

@@ -214,8 +214,9 @@ public class DMRoom extends Room {
                 try {
                     landsBuilt = this.buildLands(aiRunner, dmRoom, null, conversationManager, fallbackNoConversation);
                 } catch (AtlasException e) {
-                    this.logger.log(Level.SEVERE, "Cannot build lands in DMRoom", e);
-                    throw new IllegalStateException("Cannot build lands for DMRoom", e);
+                    final String errDesc = String.format("Cannot build lands for DMRoom with builder '%s'", this);
+                    this.logger.log(Level.SEVERE, errDesc, e);
+                    throw new IllegalStateException(errDesc, e);
                 }
                 for (Land toAdd : landsBuilt) {
                     dmRoom.addLand(toAdd);

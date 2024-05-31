@@ -87,15 +87,8 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
         this.buildPlayer(buildInfo);
     }
 
-    private ConversationTree loadConversationTree(INonPlayerCharacterBuildInfo buildInfo) {
-        ConversationTree tree;
-        try {
-            tree = buildInfo.getConversationTree();
-        } catch (AtlasException e) {
-            final String errDescription = String.format("Error retrieving conversation for builder '%s'", buildInfo);
-            this.logger.log(Level.WARNING, errDescription, e);
-            throw new IllegalStateException(errDescription, e);
-        }
+    private ConversationTree loadConversationTree(INonPlayerCharacterBuildInfo buildInfo) throws AtlasException {
+        ConversationTree tree = buildInfo.getConversationTree();
         final String treeName = buildInfo.getConversationFileName();
         if (tree == null && treeName != null && this.conversationManager != null) {
             try {
@@ -113,12 +106,6 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
                     this.logger.log(Level.SEVERE, errorDescription + ", raising error");
                     throw new IllegalStateException(errorDescription, e);
                 }
-            } catch (AtlasException e) {
-                final String errDescription = String.format(
-                        "Error building conversation for builder '%s', treename '%s', returning null", buildInfo,
-                        treeName);
-                this.logger.log(Level.WARNING, errDescription, e);
-                throw new IllegalStateException(errDescription, e);
             }
         }
         return tree;
@@ -129,7 +116,14 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
             this.logger.log(Level.INFO, "Null MonsterBuildInfo provided, skipping...");
             return null;
         }
-        final ConversationTree tree = this.loadConversationTree(buildInfo);
+        ConversationTree tree = null;
+        try {
+            tree = this.loadConversationTree(buildInfo);
+        } catch (AtlasException e) {
+            final String errorDescription = String.format("Cannot load tree for Monster '%s'", buildInfo);
+            this.logger.log(Level.SEVERE, errorDescription, e);
+            throw new IllegalStateException(errorDescription, e);
+        }
         final BasicAI brain = this.brainProducer.apply(buildInfo);
         Monster monster = new Monster(buildInfo, brain, successor, tree);
         brain.setNPC(monster);
@@ -142,7 +136,14 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
             this.logger.log(Level.INFO, "Null MonsterBuildInfo provided, skipping...");
             return null;
         }
-        final ConversationTree tree = this.loadConversationTree(buildInfo);
+        ConversationTree tree = null;
+        try {
+            tree = this.loadConversationTree(buildInfo);
+        } catch (AtlasException e) {
+            final String errorDescription = String
+                    .format("Cannot load tree for Summoned Monster '%s', they will be mute", buildInfo);
+            this.logger.log(Level.WARNING, errorDescription, e);
+        }
         final BasicAI brain = this.brainProducer.apply(buildInfo);
         Monster monster = new Monster(buildInfo, brain, successor, tree);
         brain.setNPC(monster);
@@ -161,7 +162,14 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
             this.logger.log(Level.INFO, "Null INPCBuildInfo provided, skipping...");
             return null;
         }
-        final ConversationTree tree = this.loadConversationTree(buildInfo);
+        ConversationTree tree = null;
+        try {
+            tree = this.loadConversationTree(buildInfo);
+        } catch (AtlasException e) {
+            final String errorDescription = String.format("Cannot load tree for NonPlayerCharacter '%s'", buildInfo);
+            this.logger.log(Level.SEVERE, errorDescription, e);
+            throw new IllegalStateException(errorDescription, e);
+        }
         final BasicAI brain = this.brainProducer.apply(buildInfo);
         NonPlayerCharacter npc = new NonPlayerCharacter(buildInfo, brain, successor, tree);
         brain.setNPC(npc);
@@ -174,7 +182,14 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
             this.logger.log(Level.INFO, "Null INPCBuildInfo provided, skipping...");
             return null;
         }
-        final ConversationTree tree = this.loadConversationTree(buildInfo);
+        ConversationTree tree = null;
+        try {
+            tree = this.loadConversationTree(buildInfo);
+        } catch (AtlasException e) {
+            final String errorDescription = String.format("Cannot load tree for Summoned NPC '%s', they will be mute",
+                    buildInfo);
+            this.logger.log(Level.WARNING, errorDescription, e);
+        }
         final BasicAI brain = this.brainProducer.apply(buildInfo);
         NonPlayerCharacter npc = new NonPlayerCharacter(buildInfo, brain, successor, tree);
         brain.setNPC(npc);
@@ -193,7 +208,14 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
             this.logger.log(Level.INFO, "Null DungeonMasterBuildInfo provided, skipping...");
             return null;
         }
-        final ConversationTree tree = this.loadConversationTree(buildInfo);
+        ConversationTree tree = null;
+        try {
+            tree = this.loadConversationTree(buildInfo);
+        } catch (AtlasException e) {
+            final String errorDescription = String.format("Cannot load tree for Dungeon Master '%s'", buildInfo);
+            this.logger.log(Level.SEVERE, errorDescription, e);
+            throw new IllegalStateException(errorDescription, e);
+        }
         final BasicAI brain = this.brainProducer.apply(buildInfo);
         DungeonMaster dm = new DungeonMaster(buildInfo, brain, successor, tree);
         brain.setNPC(dm);

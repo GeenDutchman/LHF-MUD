@@ -118,8 +118,9 @@ public class Dungeon implements Land {
                 try {
                     translation = this.translateAtlas(dungeon, aiRunner, conversationManager, fallbackNoConversation);
                 } catch (AtlasException e) {
-                    this.logger.log(Level.SEVERE, "Cannot build Areas in dungeon", e);
-                    throw new IllegalStateException("Cannot build Areas in dungeon", e);
+                    final String errDesc = String.format("Cannot build Areas in dugeon by dungeonbuilder '%s'", this);
+                    this.logger.log(Level.SEVERE, errDesc, e);
+                    throw new IllegalStateException(errDesc, e); // can only throw unchecked exceptions from lambdas
                 }
                 if (translation != null && this.startingRoom != null) {
                     AreaBuilderID builderID = this.startingRoom.getAreaBuilderID();

@@ -26,7 +26,8 @@ import java.util.stream.Collectors;
 public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<AtlasMemberID>, AtlasLinkType extends Comparable<AtlasLinkType>, AtlasTraversalTestType extends Comparable<AtlasTraversalTestType>>
         implements Comparable<Atlas<AtlasMemberType, AtlasMemberID, AtlasLinkType, AtlasTraversalTestType>> {
 
-    public static class AtlasException extends Exception {
+    public static sealed class AtlasException extends Exception
+            permits AtlasMemberException, AtlasLinkException, AtlasTraversalException {
         public AtlasException(String message) {
             super(message);
         }
@@ -40,7 +41,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         }
     }
 
-    public static class AtlasMemberException extends AtlasException {
+    public final static class AtlasMemberException extends AtlasException {
         final String memberID;
 
         public AtlasMemberException(String id) {
@@ -58,7 +59,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         }
     }
 
-    public static class AtlasLinkException extends AtlasException {
+    public final static class AtlasLinkException extends AtlasException {
         final String source;
         final String through;
         final String destination;

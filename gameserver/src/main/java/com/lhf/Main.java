@@ -25,14 +25,22 @@ public class Main {
             Server server = new SocketServer(3001);
             server.start();
         } catch (IOException e) {
+            logger.log(Level.SEVERE, "Caught exception:", e);
             e.printStackTrace();
         } catch (JsonIOException e) {
+            logger.log(Level.SEVERE, "Caught exception:", e);
             e.printStackTrace();
         } catch (JsonSyntaxException e) {
+            logger.log(Level.SEVERE, "Caught exception:", e);
             e.printStackTrace();
         } catch (AtlasMemberException e) {
+            logger.log(Level.SEVERE, "Caught exception:", e);
             e.printStackTrace();
         } catch (AtlasException e) {
+            logger.log(Level.SEVERE, "Caught exception:", e);
+            e.printStackTrace();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Caught exception:", e);
             e.printStackTrace();
         }
     }
