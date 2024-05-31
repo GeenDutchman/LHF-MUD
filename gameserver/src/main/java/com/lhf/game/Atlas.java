@@ -338,6 +338,10 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         this.mapping = new LinkedHashMap<>(); // keep insertion order
     }
 
+    public AtlasTrawlerBuilder<AtlasMemberType, AtlasMemberID, AtlasLinkType, AtlasTraversalTestType> getTrawlerBuilder() {
+        return AtlasTrawlerBuilder.trawl(this);
+    }
+
     public synchronized int size() {
         return this.mapping.size();
     }
