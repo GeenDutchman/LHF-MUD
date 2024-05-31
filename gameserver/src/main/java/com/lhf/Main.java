@@ -6,6 +6,10 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
+import com.lhf.game.Atlas.AtlasException;
+import com.lhf.game.Atlas.AtlasMemberException;
 import com.lhf.server.Server;
 import com.lhf.server.SocketServer;
 
@@ -21,6 +25,14 @@ public class Main {
             Server server = new SocketServer(3001);
             server.start();
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JsonIOException e) {
+            e.printStackTrace();
+        } catch (JsonSyntaxException e) {
+            e.printStackTrace();
+        } catch (AtlasMemberException e) {
+            e.printStackTrace();
+        } catch (AtlasException e) {
             e.printStackTrace();
         }
     }

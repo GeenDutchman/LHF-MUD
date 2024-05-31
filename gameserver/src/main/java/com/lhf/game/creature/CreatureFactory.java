@@ -5,6 +5,7 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.lhf.game.Atlas.AtlasException;
 import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.creature.DungeonMaster.DungeonMasterBuildInfo;
 import com.lhf.game.creature.INonPlayerCharacter.INPCBuildInfo;
@@ -87,7 +88,14 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
     }
 
     private ConversationTree loadConversationTree(INonPlayerCharacterBuildInfo buildInfo) {
-        ConversationTree tree = buildInfo.getConversationTree();
+        ConversationTree tree;
+        try {
+            tree = buildInfo.getConversationTree();
+        } catch (AtlasException e) {
+            final String errDescription = String.format("Error retrieving conversation for builder '%s'", buildInfo);
+            this.logger.log(Level.WARNING, errDescription, e);
+            throw new IllegalStateException(errDescription, e);
+        }
         final String treeName = buildInfo.getConversationFileName();
         if (tree == null && treeName != null && this.conversationManager != null) {
             try {
@@ -105,6 +113,12 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
                     this.logger.log(Level.SEVERE, errorDescription + ", raising error");
                     throw new IllegalStateException(errorDescription, e);
                 }
+            } catch (AtlasException e) {
+                final String errDescription = String.format(
+                        "Error building conversation for builder '%s', treename '%s', returning null", buildInfo,
+                        treeName);
+                this.logger.log(Level.WARNING, errDescription, e);
+                throw new IllegalStateException(errDescription, e);
             }
         }
         return tree;

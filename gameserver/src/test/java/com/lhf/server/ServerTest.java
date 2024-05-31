@@ -19,6 +19,9 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
+import com.lhf.game.Atlas.AtlasException;
 import com.lhf.game.Game.GameBuilder;
 import com.lhf.game.creature.BuildInfoManager;
 import com.lhf.game.creature.conversation.ConversationManager;
@@ -106,7 +109,7 @@ public class ServerTest {
     ClientManager clientManager;
 
     @BeforeEach
-    public void initEach() {
+    public void initEach() throws JsonIOException, JsonSyntaxException, AtlasException {
         try {
             this.userManager = new UserManager();
             this.clientManager = new ClientManager();

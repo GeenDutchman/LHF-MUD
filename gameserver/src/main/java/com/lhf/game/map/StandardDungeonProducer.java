@@ -3,18 +3,26 @@ package com.lhf.game.map;
 import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.logging.Level;
+import java.util.UUID;
 
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import com.lhf.RichOutput.RichOutputBuilder;
+import com.lhf.game.Atlas.AtlasMemberException;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.BuildInfoManager;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.CreatureEffectSource.Deltas;
+import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.MonsterBuildInfo;
 import com.lhf.game.creature.NameGenerator;
+import com.lhf.game.creature.NonPlayerCharacter;
+import com.lhf.game.creature.conversation.ConversationPattern;
+import com.lhf.game.creature.conversation.ConversationPredicate;
+import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
+import com.lhf.game.creature.conversation.ConversationTree;
+import com.lhf.game.creature.conversation.ConversationTreeNode;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DiceDC;
 import com.lhf.game.dice.DieType;
@@ -43,7 +51,7 @@ import com.lhf.game.serialization.GsonBuilderFactory;
 
 public final class StandardDungeonProducer {
     public static DungeonBuilder buildStaticDungeonBuilder(BuildInfoManager statblockLoader)
-            throws JsonIOException, JsonSyntaxException, IOException {
+            throws JsonIOException, JsonSyntaxException, IOException, AtlasMemberException {
         DungeonBuilder builder = DungeonBuilder.newInstance();
 
         GsonBuilderFactory gsonFactory = GsonBuilderFactory.start().creatureInfoBuilders();
@@ -180,7 +188,7 @@ public final class StandardDungeonProducer {
         return builder;
     }
 
-    public static DungeonBuilder buildBHDormitory(BuildInfoManager statblockLoader) {
+    public static DungeonBuilder buildBHDormitory(BuildInfoManager statblockLoader) throws AtlasMemberException {
         final DungeonBuilder builder = DungeonBuilder.newInstance().setName("Buster Hanesworth Dormitory");
 
         final InstancedArea.InstancedAreaBuilder bedroomBuilder = InstancedArea.getBuilder().setName("Your Room")
@@ -227,7 +235,40 @@ public final class StandardDungeonProducer {
         lobby.addItem(new InteractObject("Card Reader",
                 "For \"security\". Weird for it to be broken in a newer building though....", true));
 
-        // TODO: door out see #183
+        final ConversationTreeNode.Builder raStart = new ConversationTreeNode.Builder()
+                .setBodySequence(new RichOutputBuilder().appendString("That was some party last night, wasn't it")
+                        .appendMetadata(ConversationContextKey.TALKER_NAME.name()).appendString("?"));
+        final ConversationTree.Builder roomAssisantTree = new ConversationTree.Builder(raStart)
+                .setTreeName("Garrie Hillsink").trawlBuildTree(trawler -> {
+                    if (trawler == null) {
+                        return;
+                    }
+                    try {
+                        trawler.addMemberOneWay(ConversationPattern.insensitive("What party?", "\\bwhat|party\\b"),
+                                new ConversationPredicate(null), ConversationTreeNode.Builder.ofString(
+                                        "Last night we had this huge party, don't you remember?  We played a cool table-top game!"));
+                        trawler.addMemberOneWay(ConversationPattern.insensitive("I don't remember", "\\bremember\\b)?"),
+                                new ConversationPredicate(null), ConversationTreeNode.Builder.ofString(
+                                        "You were pretty wild in the game last night, it would make sense that you don't really remember."));
+                        trawler.addMemberOneWay(ConversationPattern.insensitive("What game?", "\\bgame\\b"),
+                                new ConversationPredicate(null), ConversationTreeNode.Builder
+                                        .ofString("The game \"Kwixotic Kests of Ibaif!\"  And speaking of quests...."));
+                        UUID bookmark = trawler.getMemberID();
+                        trawler.back().back();
+                        trawler.addOnewayToExistingMember(ConversationPattern.insensitive("What game?", "\\bgame\\b"),
+                                new ConversationPredicate(null), bookmark);
+                    } catch (IllegalArgumentException e) {
+                        e.printStackTrace();
+                        throw e;
+                    } catch (AtlasMemberException e) {
+                        e.printStackTrace();
+                        throw new RuntimeException(e); // wrap it
+                    }
+                });
+
+        final INonPlayerCharacterBuildInfo roomAssistant = NonPlayerCharacter.getNPCBuilder().setName("Garrie Hillsink")
+                .setConversationTree(roomAssisantTree);
+        commonRoom.addNPCBuilder(roomAssistant);
 
         builder.connectRoom(bedroomBuilder, Directions.EAST, commonRoom);
         builder.connectRoom(commonRoom, Directions.EAST, hallway);

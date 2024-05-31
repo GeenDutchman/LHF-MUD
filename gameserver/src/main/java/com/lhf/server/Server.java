@@ -13,7 +13,11 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.google.gson.JsonIOException;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonSyntaxException;
+import com.lhf.game.Atlas.AtlasException;
+import com.lhf.game.Atlas.AtlasMemberException;
 import com.lhf.game.Game;
 import com.lhf.game.Game.GameBuilder;
 import com.lhf.game.creature.Player;
@@ -48,7 +52,7 @@ public class Server implements ServerInterface, ConnectionListener {
     protected Set<UserListener> userListeners;
     protected Map<AMessageType, CommandHandler> acceptedCommands;
 
-    public Server() throws IOException {
+    public Server() throws IOException, JsonIOException, JsonSyntaxException, AtlasMemberException, AtlasException {
         this.gameEventProcessorID = new GameEventProcessorID();
         this.logger = Logger.getLogger(this.getClass().getName());
         this.userManager = new UserManager();
@@ -63,7 +67,7 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     public Server(@NotNull UserManager userManager, @NotNull ClientManager clientManager,
-            @NotNull GameBuilder gameBuilder) throws FileNotFoundException {
+            @NotNull GameBuilder gameBuilder) throws FileNotFoundException, AtlasException {
         this.gameEventProcessorID = new GameEventProcessorID();
         this.logger = Logger.getLogger(this.getClass().getName());
         this.userManager = userManager;

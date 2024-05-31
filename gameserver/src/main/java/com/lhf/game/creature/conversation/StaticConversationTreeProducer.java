@@ -3,11 +3,12 @@ package com.lhf.game.creature.conversation;
 import java.util.regex.Pattern;
 
 import com.lhf.RichOutput.RichOutputBuilder;
+import com.lhf.game.Atlas.AtlasMemberException;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
 
 public final class StaticConversationTreeProducer {
 
-    public final static ConversationTree.Builder produceTestBuilder() {
+    public final static ConversationTree.Builder produceTestBuilder() throws AtlasMemberException {
         ConversationTreeNode.Builder start = ConversationTreeNode.Builder.ofString("Start")
                 .addPrompt(new RichOutputBuilder().appendString("PROMPT ATTACK")
                         .appendMetadata(ConversationContextKey.TALKER_NAME.name()));
@@ -26,7 +27,7 @@ public final class StaticConversationTreeProducer {
         return builder;
     }
 
-    public final static ConversationTree.Builder produceNonVerbalDefault() {
+    public final static ConversationTree.Builder produceNonVerbalDefault() throws AtlasMemberException {
         ConversationTreeNode.Builder Grr = ConversationTreeNode.Builder.ofString("Grr");
         ConversationTreeNode.Builder Hsss = ConversationTreeNode.Builder.ofString("Hsss");
         ConversationTreeNode.Builder Growl = ConversationTreeNode.Builder.ofString("Growl");
@@ -38,7 +39,7 @@ public final class StaticConversationTreeProducer {
         return builder;
     }
 
-    public final static ConversationTree.Builder produceVerbalDefault() {
+    public final static ConversationTree.Builder produceVerbalDefault() throws AtlasMemberException {
         ConversationTreeNode.Builder start = ConversationTreeNode.Builder.ofRichOutputBuilder(new RichOutputBuilder()
                 .appendChild("Hello").appendMetadata(ConversationContextKey.TALKER_TAGGED_NAME.name()));
         ConversationTreeNode.Builder secrets = ConversationTreeNode.Builder
@@ -60,7 +61,7 @@ public final class StaticConversationTreeProducer {
         return builder;
     }
 
-    public final static ConversationTree.Builder produceAggravated() {
+    public final static ConversationTree.Builder produceAggravated() throws AtlasMemberException {
         ConversationTreeNode.Builder start = ConversationTreeNode.Builder.ofString(" ")
                 .addPrompt(new RichOutputBuilder().appendString("PROMPT ATTACK")
                         .appendMetadata(ConversationContextKey.TALKER_NAME.name()));
@@ -75,7 +76,7 @@ public final class StaticConversationTreeProducer {
         return builder;
     }
 
-    public final static ConversationTree.Builder produceGary() {
+    public final static ConversationTree.Builder produceGary() throws AtlasMemberException {
         ConversationTreeNode.Builder start = ConversationTreeNode.Builder
                 .ofString("Intro lore placeholder here. Are you ok to start?");
         ConversationTreeNode.Builder selection = ConversationTreeNode.Builder

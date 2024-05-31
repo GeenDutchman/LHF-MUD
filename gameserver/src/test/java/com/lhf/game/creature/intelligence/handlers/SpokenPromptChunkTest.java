@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import com.lhf.RichOutput.RichOutputBuilder;
+import com.lhf.game.Atlas.AtlasException;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.intelligence.AIComBundle;
@@ -11,7 +12,7 @@ import com.lhf.messages.events.SpeakingEvent;
 
 public class SpokenPromptChunkTest {
     @Test
-    void testPromptSelf() {
+    void testPromptSelf() throws AtlasException {
         SpokenPromptChunk chunk = new SpokenPromptChunk();
         AIComBundle listener = new AIComBundle(NonPlayerCharacter.getNPCBuilder().addAIHandler(chunk));
 

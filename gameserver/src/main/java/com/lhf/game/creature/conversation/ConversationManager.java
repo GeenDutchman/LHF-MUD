@@ -14,6 +14,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import com.lhf.game.Atlas.AtlasException;
 import com.lhf.game.serialization.GsonBuilderFactory;
 
 public class ConversationManager {
@@ -78,7 +79,7 @@ public class ConversationManager {
         return tree;
     }
 
-    public Boolean convoTreeBuilderToFile(ConversationTree.Builder tree) {
+    public Boolean convoTreeBuilderToFile(ConversationTree.Builder tree) throws AtlasException {
         return this.convoTreeToFile(tree.build());
     }
 
