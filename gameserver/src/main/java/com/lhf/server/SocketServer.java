@@ -6,13 +6,18 @@ import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
+import com.lhf.game.Atlas.AtlasException;
+import com.lhf.game.Atlas.AtlasMemberException;
 import com.lhf.server.client.ClientHandle;
 
 public class SocketServer extends Server implements Runnable {
     private int port;
     private ServerSocket socket;
 
-    public SocketServer(int port) throws IOException {
+    public SocketServer(int port)
+            throws IOException, JsonIOException, JsonSyntaxException, AtlasMemberException, AtlasException {
         super();
         this.logger = Logger.getLogger(this.getClass().getName());
         this.port = port;

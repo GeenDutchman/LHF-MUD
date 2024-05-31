@@ -3,23 +3,36 @@ package com.lhf.game.map;
 import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.UUID;
 
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
+import com.lhf.RichOutput.RichOutputBuilder;
+import com.lhf.game.Atlas.AtlasMemberException;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.BuildInfoManager;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.CreatureEffectSource.Deltas;
+import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.MonsterBuildInfo;
 import com.lhf.game.creature.NameGenerator;
+import com.lhf.game.creature.NonPlayerCharacter;
+import com.lhf.game.creature.conversation.ConversationPattern;
+import com.lhf.game.creature.conversation.ConversationPredicate;
+import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
+import com.lhf.game.creature.conversation.ConversationTree;
+import com.lhf.game.creature.conversation.ConversationTreeNode;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DiceDC;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.HealType;
+import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.Trap;
+import com.lhf.game.item.concrete.Bed;
+import com.lhf.game.item.concrete.Book;
 import com.lhf.game.item.concrete.Chest;
 import com.lhf.game.item.concrete.Dispenser;
 import com.lhf.game.item.concrete.HealPotion;
@@ -37,153 +50,228 @@ import com.lhf.game.map.Dungeon.DungeonBuilder;
 import com.lhf.game.serialization.GsonBuilderFactory;
 
 public final class StandardDungeonProducer {
-        public static DungeonBuilder buildStaticDungeonBuilder(BuildInfoManager statblockLoader)
-                        throws JsonIOException, JsonSyntaxException, IOException {
-                DungeonBuilder builder = DungeonBuilder.newInstance();
+    public static DungeonBuilder buildStaticDungeonBuilder(BuildInfoManager statblockLoader)
+            throws JsonIOException, JsonSyntaxException, IOException, AtlasMemberException {
+        DungeonBuilder builder = DungeonBuilder.newInstance();
 
-                GsonBuilderFactory gsonFactory = GsonBuilderFactory.start().creatureInfoBuilders();
+        GsonBuilderFactory gsonFactory = GsonBuilderFactory.start().creatureInfoBuilders();
 
-                MonsterBuildInfo goblin = statblockLoader.monsterBuildInfoFromFile(gsonFactory, "goblin");
-                MonsterBuildInfo bugbear = statblockLoader.monsterBuildInfoFromFile(gsonFactory, "bugbear");
-                MonsterBuildInfo hobgoblin = statblockLoader.monsterBuildInfoFromFile(gsonFactory, "hobgoblin");
+        MonsterBuildInfo goblin = statblockLoader.monsterBuildInfoFromFile(gsonFactory, "goblin");
+        MonsterBuildInfo bugbear = statblockLoader.monsterBuildInfoFromFile(gsonFactory, "bugbear");
+        MonsterBuildInfo hobgoblin = statblockLoader.monsterBuildInfoFromFile(gsonFactory, "hobgoblin");
 
-                BattleManager.Builder battleBuilder = BattleManager.Builder.getInstance();
-                RestArea.Builder restBuilder = RestArea.Builder.getInstance();
+        BattleManager.Builder battleBuilder = BattleManager.Builder.getInstance();
+        RestArea.Builder restBuilder = RestArea.Builder.getInstance();
 
-                // Entry Room RM1
-                Room.RoomBuilder entryRoomBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(restBuilder);
-                entryRoomBuilder.setName("Entry Room").setDescription("This is the entry room.");
+        // Entry Room RM1
+        Room.RoomBuilder entryRoomBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(restBuilder);
+        entryRoomBuilder.setName("Entry Room").setDescription("This is the entry room.");
 
-                // History Hall RM2
-                Room.RoomBuilder historyHallBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder);
-                historyHallBuilder.setName("History Hall").setDescription("This is the history hall.");
-                Item loreNote = new Item("ominous lore",
-                                "You read the page and it says 'This page intentionally left blank.'");
-                historyHallBuilder.addItem(loreNote);
+        // History Hall RM2
+        Room.RoomBuilder historyHallBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder);
+        historyHallBuilder.setName("History Hall").setDescription("This is the history hall.");
+        Item loreNote = new Item("ominous lore", "You read the page and it says 'This page intentionally left blank.'");
+        historyHallBuilder.addItem(loreNote);
 
-                RustyDagger dagger = new RustyDagger();
+        RustyDagger dagger = new RustyDagger();
 
-                historyHallBuilder.addItem(dagger);
-                // Test dispenser start - could be used for other items
-                Dispenser dispenser = new Dispenser("note dispenser",
-                                "It looks like a mailbox with a big lever.  Something probably comes out of that slot.");
-                Item generatedNote = new Item("note", "This is a autogenerated note.");
-                dispenser.addItem(generatedNote);
-                // Test dispenser end
-                historyHallBuilder.addItem(dispenser);
+        historyHallBuilder.addItem(dagger);
+        // Test dispenser start - could be used for other items
+        Dispenser dispenser = new Dispenser("note dispenser",
+                "It looks like a mailbox with a big lever.  Something probably comes out of that slot.");
+        Item generatedNote = new Item("note", "This is a autogenerated note.");
+        dispenser.addItem(generatedNote);
+        // Test dispenser end
+        historyHallBuilder.addItem(dispenser);
 
-                // RM3
-                Room.RoomBuilder offeringRoomBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
-                                .setName("Offering Room")
-                                .setDescription("This is the offering room.");
-                KeyedDoorway vaultDoors = new KeyedDoorway(false);
-                Lever vaultLever = new Lever("switch", "A lever on the wall.");
-                vaultLever.setLockable(vaultDoors);
-                offeringRoomBuilder.addItem(vaultLever);
-                // Room offeringRoom = offeringRoomBuilder.build();
+        // RM3
+        Room.RoomBuilder offeringRoomBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
+                .setName("Offering Room").setDescription("This is the offering room.");
+        KeyedDoorway vaultDoors = new KeyedDoorway(false);
+        Lever vaultLever = new Lever("switch", "A lever on the wall.");
+        vaultLever.setLockable(vaultDoors);
+        offeringRoomBuilder.addItem(vaultLever);
+        // Room offeringRoom = offeringRoomBuilder.build();
 
-                // RM4
-                Room.RoomBuilder trappedHallBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
-                                .setName("Trapped Room")
-                                .setDescription("This is the trapped room.");
-                HealPotion h1 = new HealPotion();
-                trappedHallBuilder.addItem(h1);
-                trappedHallBuilder.addItem(new Trap("Spiked Pit",
-                                "A thin layer of carpet over a spiked pit.", true,
-                                new EnumMap<>(Map.of(Attributes.DEX, new DiceDC(12))))
-                                .addEffect(new CreatureEffectSource.Builder("Spike").instantPersistence()
-                                                .setResistance(new EffectResistance(Attributes.DEX, 10, null))
-                                                .setDescription("A spike that pierces you.")
-                                                .setOnApplication(new Deltas()
-                                                                .addDamage(new DamageDice(1, DieType.FOUR,
-                                                                                DamageFlavor.PIERCING)))
-                                                .build()));
+        // RM4
+        Room.RoomBuilder trappedHallBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
+                .setName("Trapped Room").setDescription("This is the trapped room.");
+        HealPotion h1 = new HealPotion();
+        trappedHallBuilder.addItem(h1);
+        trappedHallBuilder.addItem(new Trap("Spiked Pit", "A thin layer of carpet over a spiked pit.", true,
+                new EnumMap<>(Map.of(Attributes.DEX, new DiceDC(12))))
+                        .addEffect(new CreatureEffectSource.Builder("Spike").instantPersistence()
+                                .setResistance(new EffectResistance(Attributes.DEX, 10, null))
+                                .setDescription("A spike that pierces you.")
+                                .setOnApplication(
+                                        new Deltas().addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.PIERCING)))
+                                .build()));
 
-                Room.RoomBuilder secretRoomBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
-                                .setName("Secret Room")
-                                .setDescription("This is the secret room!");
+        Room.RoomBuilder secretRoomBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
+                .setName("Secret Room").setDescription("This is the secret room!");
 
-                MantleOfDeath mantle = new MantleOfDeath();
-                ReaperScythe scythe = new ReaperScythe();
+        MantleOfDeath mantle = new MantleOfDeath();
+        ReaperScythe scythe = new ReaperScythe();
 
-                HealPotion healPotion = new HealPotion();
-                secretRoomBuilder.addItem(healPotion);
-                secretRoomBuilder.addItem(mantle);
-                secretRoomBuilder.addItem(scythe);
-                // Room secretRoom = secretRoomBuilder.build();
+        HealPotion healPotion = new HealPotion();
+        secretRoomBuilder.addItem(healPotion);
+        secretRoomBuilder.addItem(mantle);
+        secretRoomBuilder.addItem(scythe);
+        // Room secretRoom = secretRoomBuilder.build();
 
-                // RM5
-                Room.RoomBuilder statueRoomBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
-                                .setName("Statue Room")
-                                .setDescription("This is the statue room.");
-                Item bossNote = new Item("note from boss",
-                                "The tutorial boss is on vacation right now.");
-                statueRoomBuilder.addItem(bossNote);
+        // RM5
+        Room.RoomBuilder statueRoomBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
+                .setName("Statue Room").setDescription("This is the statue room.");
+        Item bossNote = new Item("note from boss", "The tutorial boss is on vacation right now.");
+        statueRoomBuilder.addItem(bossNote);
 
-                InteractDoor statue = new InteractDoor("golden statue",
-                                "The statue has a start to a riddle, but it looks like it hasn't been finished yet.");
+        InteractDoor statue = new InteractDoor("golden statue",
+                "The statue has a start to a riddle, but it looks like it hasn't been finished yet.");
 
-                statueRoomBuilder.addItem(statue);
-                secretRoomBuilder.addItem(statue);
+        statueRoomBuilder.addItem(statue);
+        secretRoomBuilder.addItem(statue);
 
-                // RM6 The armory
-                Room.RoomBuilder armoryBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
-                                .setName("Armory")
-                                .setDescription("An armory");
-                CarnivorousArmor mimic = new CarnivorousArmor();
-                ChainMail mail = new ChainMail();
-                Whimsystick stick = new Whimsystick();
-                Shortsword shortsword = new Shortsword();
-                HealPotion potion = new HealPotion();
-                armoryBuilder.addItem(mimic);
-                armoryBuilder.addItem(mail);
-                armoryBuilder.addItem(stick);
-                armoryBuilder.addItem(shortsword);
-                armoryBuilder.addItem(potion);
-                // Room armory = armoryBuilder.build();
+        // RM6 The armory
+        Room.RoomBuilder armoryBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
+                .setName("Armory").setDescription("An armory");
+        CarnivorousArmor mimic = new CarnivorousArmor();
+        ChainMail mail = new ChainMail();
+        Whimsystick stick = new Whimsystick();
+        Shortsword shortsword = new Shortsword();
+        HealPotion potion = new HealPotion();
+        armoryBuilder.addItem(mimic);
+        armoryBuilder.addItem(mail);
+        armoryBuilder.addItem(stick);
+        armoryBuilder.addItem(shortsword);
+        armoryBuilder.addItem(potion);
+        // Room armory = armoryBuilder.build();
 
-                // RM7
-                Room.RoomBuilder passage = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
-                                .setName("Passageway")
-                                .setDescription("An old, curvy and dusty passageway");
-                // RM8
-                Room.RoomBuilder treasuryBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
-                                .setName("Vault")
-                                .setDescription("A looted vault room.");
-                HealPotion regular = new HealPotion();
-                HealPotion greater = new HealPotion(HealType.Greater);
-                HealPotion critical = new HealPotion(HealType.Critical);
+        // RM7
+        Room.RoomBuilder passage = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder).setName("Passageway")
+                .setDescription("An old, curvy and dusty passageway");
+        // RM8
+        Room.RoomBuilder treasuryBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
+                .setName("Vault").setDescription("A looted vault room.");
+        HealPotion regular = new HealPotion();
+        HealPotion greater = new HealPotion(HealType.Greater);
+        HealPotion critical = new HealPotion(HealType.Critical);
 
-                treasuryBuilder.addItem(regular);
-                treasuryBuilder.addItem(greater);
-                treasuryBuilder.addItem(critical);
-                for (Chest.ChestDescriptor descriptor : Chest.ChestDescriptor.values()) { // it's "looted", so...
-                        treasuryBuilder.addItem(new Chest(descriptor));
-                }
-                treasuryBuilder.addItem(vaultLever);
-
-                // Monsters
-                historyHallBuilder.addNPCBuilder(
-                                goblin.setName(NameGenerator.Generate("goblin")).useDefaultConversation());
-
-                statueRoomBuilder.addNPCBuilder(bugbear.setName("Boss Bear"));
-
-                offeringRoomBuilder.addNPCBuilder(hobgoblin.setName(NameGenerator.Generate("Right")));
-
-                // Set starting room
-                builder.addStartingRoom(entryRoomBuilder);
-
-                // Path
-                builder.connectRoom(historyHallBuilder, Directions.WEST, entryRoomBuilder);
-                builder.connectRoom(offeringRoomBuilder, Directions.WEST, historyHallBuilder);
-                builder.connectRoom(armoryBuilder, Directions.SOUTH, historyHallBuilder);
-                builder.connectRoom(trappedHallBuilder, Directions.WEST, offeringRoomBuilder);
-                builder.connectRoom(passage, Directions.SOUTH, armoryBuilder);
-                builder.connectRoom(treasuryBuilder, Directions.WEST, passage, vaultDoors);
-                builder.connectRoom(trappedHallBuilder, Directions.NORTH, treasuryBuilder, vaultDoors);
-                builder.connectRoom(statueRoomBuilder, Directions.NORTH, trappedHallBuilder);
-                builder.connectRoomOneWay(secretRoomBuilder, Directions.WEST, statueRoomBuilder);
-
-                return builder;
+        treasuryBuilder.addItem(regular);
+        treasuryBuilder.addItem(greater);
+        treasuryBuilder.addItem(critical);
+        for (Chest.ChestDescriptor descriptor : Chest.ChestDescriptor.values()) { // it's "looted", so...
+            treasuryBuilder.addItem(new Chest(descriptor));
         }
+        treasuryBuilder.addItem(vaultLever);
+
+        // Monsters
+        historyHallBuilder.addNPCBuilder(goblin.setName(NameGenerator.Generate("goblin")).useDefaultConversation());
+
+        statueRoomBuilder.addNPCBuilder(bugbear.setName("Boss Bear"));
+
+        offeringRoomBuilder.addNPCBuilder(hobgoblin.setName(NameGenerator.Generate("Right")));
+
+        // Set starting room
+        builder.addStartingRoom(entryRoomBuilder);
+
+        // Path
+        builder.connectRoom(historyHallBuilder, Directions.WEST, entryRoomBuilder);
+        builder.connectRoom(offeringRoomBuilder, Directions.WEST, historyHallBuilder);
+        builder.connectRoom(armoryBuilder, Directions.SOUTH, historyHallBuilder);
+        builder.connectRoom(trappedHallBuilder, Directions.WEST, offeringRoomBuilder);
+        builder.connectRoom(passage, Directions.SOUTH, armoryBuilder);
+        builder.connectRoom(treasuryBuilder, Directions.WEST, passage, vaultDoors);
+        builder.connectRoom(trappedHallBuilder, Directions.NORTH, treasuryBuilder, vaultDoors);
+        builder.connectRoom(statueRoomBuilder, Directions.NORTH, trappedHallBuilder);
+        builder.connectRoomOneWay(secretRoomBuilder, Directions.WEST, statueRoomBuilder);
+
+        return builder;
+    }
+
+    public static DungeonBuilder buildBHDormitory(BuildInfoManager statblockLoader) throws AtlasMemberException {
+        final DungeonBuilder builder = DungeonBuilder.newInstance().setName("Buster Hanesworth Dormitory");
+
+        final InstancedArea.InstancedAreaBuilder bedroomBuilder = InstancedArea.getBuilder().setName("Your Room")
+                .setDescription("This is your room at the Buster Hanesworth Dormitory.");
+        bedroomBuilder.addItem(Bed.getBuilder().setCapacity(1).setName("Bed").build(null));
+        bedroomBuilder.addItem(new Item("Window",
+                "Through the window you can see the town wall, and then above that a stripe of beach followed by the water of the Umbra Deeps."));
+        bedroomBuilder.addItem(new Item("Mirror", "You look just fine, trust me."));
+        final Book.BookBuilder welcomeBook = Book.getBuilder().setName("Welcome Pamplet")
+                .setDescription("A pamphlet welcoming you to the University")
+                .addPage(new RichOutputBuilder("Welcome to Umbra University!")
+                        .appendString("We welcome you to Umbra University!")
+                        .appendString("While your first semester here does not start quite yet,")
+                        .appendString("please feel free to visit campus and get to know your professors!"));
+        welcomeBook.addPage(new RichOutputBuilder("Professors")
+                .appendString("Our faculty includes such prestigious names such as:\r\n")
+                .appendString(" - Professor Hill: Biology\r\n").appendString(" - Professor Mlaka: Maths\r\n")
+                .appendString(" - Professor Thornwhip: Academic Writing\r\n")
+                .appendString(" - Professor Laroc: Creative Writing\r\n")
+                .appendString(" - Professor Binnis: History\r\n").appendString(" - Professor Shelia: Zeroth Power\r\n")
+                .appendString(" - Professor Splyt: First Power\r\n")
+                .appendString(" - Professor Noddingto: Second Power\r\n")
+                .appendString(" - Professor Nadine: Third Power\r\n")
+                .appendString("And the illustrious Professor Woo: Fourth Power\r\n"));
+        welcomeBook.addPage(
+                "We're pleased to have you join us, and we look forward to seeing what you accomplish!\r\n - Head Master Tabin");
+
+        bedroomBuilder.addItem(welcomeBook.build());
+
+        builder.addStartingRoom(bedroomBuilder);
+
+        final Room.RoomBuilder commonRoom = Room.RoomBuilder.getInstance().setName("Common Room").setDescription(
+                "This is the common room to your dorm suite.  You can see doors leading to other bedrooms. It looks like there had been a party in here recently, pizza and everything. You have some vague memories about slaying goblins.");
+        commonRoom.addItem(new Item("Golden Statue", "This golden statue in the corner looks very familiar...."));
+        commonRoom.addItem(new Item("Table",
+                "On this table you see a map of rooms in a vaguely familiar layout. There's also various figurines and tokens scattered everywhere, including one that looks like the statue in the corner of the room."));
+
+        final Room.RoomBuilder hallway = Room.RoomBuilder.getInstance().setName("Hallway").setDescription(
+                "Here in the hallway you can see doors leading into various dorm suites, one of which is your own.");
+        final Room.RoomBuilder lobby = Room.RoomBuilder.getInstance().setName("Lobby")
+                .setDescription("The lobby has a banner saying \"Welcome New Students\".");
+        lobby.addItem(new InteractObject("Card Reader",
+                "For \"security\". Weird for it to be broken in a newer building though....", true));
+
+        final ConversationTreeNode.Builder raStart = new ConversationTreeNode.Builder()
+                .setBodySequence(new RichOutputBuilder().appendString("That was some party last night, wasn't it")
+                        .appendMetadata(ConversationContextKey.TALKER_NAME.name()).appendString("?"));
+        final ConversationTree.Builder roomAssisantTree = new ConversationTree.Builder(raStart)
+                .setTreeName("Garrie Hillsink").trawlBuildTree(trawler -> {
+                    if (trawler == null) {
+                        return;
+                    }
+                    try {
+                        trawler.addMemberOneWay(ConversationPattern.insensitive("What party?", "\\bwhat|party\\b"),
+                                new ConversationPredicate(null), ConversationTreeNode.Builder.ofString(
+                                        "Last night we had this huge party, don't you remember?  We played a cool table-top game!"));
+                        trawler.addMemberOneWay(ConversationPattern.insensitive("I don't remember", "\\bremember\\b)?"),
+                                new ConversationPredicate(null), ConversationTreeNode.Builder.ofString(
+                                        "You were pretty wild in the game last night, it would make sense that you don't really remember."));
+                        trawler.addMemberOneWay(ConversationPattern.insensitive("What game?", "\\bgame\\b"),
+                                new ConversationPredicate(null), ConversationTreeNode.Builder
+                                        .ofString("The game \"Kwixotic Kests of Ibaif!\"  And speaking of quests...."));
+                        UUID bookmark = trawler.getMemberID();
+                        trawler.back().back();
+                        trawler.addOnewayToExistingMember(ConversationPattern.insensitive("What game?", "\\bgame\\b"),
+                                new ConversationPredicate(null), bookmark);
+                    } catch (IllegalArgumentException e) {
+                        e.printStackTrace();
+                        throw e;
+                    } catch (AtlasMemberException e) {
+                        e.printStackTrace();
+                        throw new RuntimeException(e); // wrap it
+                    }
+                });
+
+        final INonPlayerCharacterBuildInfo roomAssistant = NonPlayerCharacter.getNPCBuilder().setName("Garrie Hillsink")
+                .setConversationTree(roomAssisantTree);
+        commonRoom.addNPCBuilder(roomAssistant);
+
+        builder.connectRoom(bedroomBuilder, Directions.EAST, commonRoom);
+        builder.connectRoom(commonRoom, Directions.EAST, hallway);
+        builder.connectRoom(hallway, Directions.NORTH, lobby);
+
+        return builder;
+    }
 }

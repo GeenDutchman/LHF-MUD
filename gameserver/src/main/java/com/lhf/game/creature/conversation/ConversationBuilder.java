@@ -6,6 +6,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 
+import com.lhf.game.Atlas.AtlasMemberException;
+
 public class ConversationBuilder {
     private Scanner input;
     private ConversationTree.Builder tree = null;
@@ -105,7 +107,7 @@ public class ConversationBuilder {
         }
     }
 
-    private ConversationTreeNode.Builder addNodeToTree(ConversationTreeNode.Builder node) {
+    private ConversationTreeNode.Builder addNodeToTree(ConversationTreeNode.Builder node) throws Exception {
         if (this.tree != null) {
             System.out.println(this.tree.toMermaidStateDiagram(false));
             try {
@@ -113,7 +115,7 @@ public class ConversationBuilder {
                 System.out.println("Now to build out how it will connect");
                 ConversationPattern link = this.buildPattern();
                 this.tree.addNode(prevNode.getNodeID(), link, node);
-            } catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException | AtlasMemberException e) {
                 e.printStackTrace();
                 System.err.println("You cannot select that as a node, exiting subroutine.");
                 throw e;
@@ -129,7 +131,7 @@ public class ConversationBuilder {
         return node;
     }
 
-    public ConversationTreeNode.Builder buildNode(ConversationTreeNode.Builder node) {
+    public ConversationTreeNode.Builder buildNode(ConversationTreeNode.Builder node) throws Exception {
         if (node == null) {
             System.out.println("What do you want in the body of the node?");
             node = ConversationTreeNode.Builder.ofString(this.input.nextLine());
@@ -145,7 +147,7 @@ public class ConversationBuilder {
         return node;
     }
 
-    public ConversationTree.Builder buildTree() {
+    public ConversationTree.Builder buildTree() throws Exception {
         if (this.tree == null) {
             ConversationTreeNode.Builder start = this.buildNode(null);
             if (start != null) {
@@ -165,7 +167,7 @@ public class ConversationBuilder {
         }
     }
 
-    private ConversationTree.Builder nameTree() {
+    private ConversationTree.Builder nameTree() throws Exception {
         System.out.println("Name the tree");
         if (this.tree == null) {
             this.buildTree();
@@ -183,7 +185,7 @@ public class ConversationBuilder {
         return this.tree;
     }
 
-    private ConversationTree writeTree() {
+    private ConversationTree writeTree() throws Exception {
         System.out.println("Write the tree");
         if (this.tree != null) {
             ConversationManager manager = new ConversationManager();

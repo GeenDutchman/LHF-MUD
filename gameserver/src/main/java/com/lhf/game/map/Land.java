@@ -21,6 +21,7 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.Atlas;
+import com.lhf.game.Atlas.AtlasException;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
@@ -168,7 +169,7 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
         public abstract AreaBuilderAtlas getAtlas();
 
         public default Map<AreaBuilderID, UUID> translateAtlas(Land builtLand, AIRunner aiRunner,
-                ConversationManager conversationManager, boolean fallbackNoConversation) {
+                ConversationManager conversationManager, boolean fallbackNoConversation) throws AtlasException {
 
             final Supplier<Atlas<Area, UUID, Directions, Doorway>> starter = () -> builtLand.getAtlas();
 
@@ -188,12 +189,12 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
                     linkTransforer, traversalTransformer);
         }
 
-        public default Land quickBuild(CommandChainHandler successor, AIRunner aiRunner) {
+        public default Land quickBuild(CommandChainHandler successor, AIRunner aiRunner) throws AtlasException {
             return build(successor, aiRunner, null, true);
         }
 
         public abstract Land build(CommandChainHandler successor, AIRunner aiRunner,
-                ConversationManager conversationManager, boolean fallbackNoConversation);
+                ConversationManager conversationManager, boolean fallbackNoConversation) throws AtlasException;
 
     }
 

@@ -15,6 +15,8 @@ import java.util.logging.Logger;
 
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
+import com.lhf.game.Atlas.AtlasException;
+import com.lhf.game.Atlas.AtlasMemberException;
 import com.lhf.game.creature.BuildInfoManager;
 import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.Player;
@@ -113,7 +115,8 @@ public class Game implements UserListener, CommandChainHandler {
             return additionalLands;
         }
 
-        public GameBuilder setDefaults() throws JsonIOException, JsonSyntaxException, IOException {
+        public GameBuilder setDefaults()
+                throws JsonIOException, JsonSyntaxException, IOException, AtlasMemberException {
             this.thirdPower = new ThirdPower(null, null);
             this.aiRunner = new GroupAIRunner(true);
             this.conversationManager = new ConversationManager();
@@ -162,7 +165,7 @@ public class Game implements UserListener, CommandChainHandler {
             return this;
         }
 
-        public Game build(UserManager userManager) throws FileNotFoundException {
+        public Game build(UserManager userManager) throws FileNotFoundException, AtlasException {
             Game game = new Game(this, userManager);
             game.setServer(server);
             if (this.thirdPower != null) {
@@ -172,7 +175,7 @@ public class Game implements UserListener, CommandChainHandler {
         }
     }
 
-    public Game(GameBuilder builder, UserManager userManager) throws FileNotFoundException {
+    public Game(GameBuilder builder, UserManager userManager) throws FileNotFoundException, AtlasException {
         this.gameEventProcessorID = new GameEventProcessorID();
         this.logger = Logger.getLogger(this.getClass().getName());
         this.aiRunner = builder.getAiRunner();
