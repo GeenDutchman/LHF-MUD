@@ -47,59 +47,67 @@ public class AtlasTrawlerBuilder<Member, ID extends Comparable<ID>, Link extends
         }
     }
 
-    public void back() {
+    public AtlasTrawlerBuilder<Member, ID, Link, Traversal> back() {
         this.checkInitialized();
         this.currentNode = this.trace.pollLast();
         if (this.currentNode == null) {
             this.currentNode = this.atlas.getFirstMember();
         }
+        return this;
     }
 
-    public void jumpToRoot() {
+    public AtlasTrawlerBuilder<Member, ID, Link, Traversal> jumpToRoot() {
         this.checkInitialized();
         this.trace.clear();
         this.currentNode = this.atlas.getFirstMember();
+        return this;
     }
 
-    public void jumpToID(ID id) throws AtlasMemberException {
+    public AtlasTrawlerBuilder<Member, ID, Link, Traversal> jumpToID(ID id) throws AtlasMemberException {
         this.checkInitialized();
         Member temp = this.currentNode;
         this.currentNode = this.atlas.getAtlasMemberOrThrow(id);
         this.trace.addLast(temp);
+        return this;
     }
 
-    public void jumpToMember(Member member) throws AtlasMemberException {
+    public AtlasTrawlerBuilder<Member, ID, Link, Traversal> jumpToMember(Member member) throws AtlasMemberException {
         this.checkInitialized();
         Member temp = this.currentNode;
         this.currentNode = this.atlas.getAtlasMemberOrThrow(this.atlas.getIDForMemberType(member));
         this.trace.addLast(temp);
+        return this;
     }
 
-    public void addMemberOneWay(Link link, Traversal traversal, Member nextMember)
-            throws IllegalArgumentException, IllegalStateException {
+    public AtlasTrawlerBuilder<Member, ID, Link, Traversal> addMemberOneWay(Link link, Traversal traversal,
+            Member nextMember) throws IllegalArgumentException, IllegalStateException {
         this.checkInitialized();
         this.atlas.connectOneWay(this.currentNode, link, nextMember, traversal);
         this.trace.addLast(this.currentNode);
         this.currentNode = nextMember;
+        return this;
     }
 
-    public void addMemberTwoWay(Link link, Traversal traversal, Member nextMember)
-            throws IllegalArgumentException, IllegalStateException {
+    public AtlasTrawlerBuilder<Member, ID, Link, Traversal> addMemberTwoWay(Link link, Traversal traversal,
+            Member nextMember) throws IllegalArgumentException, IllegalStateException {
         this.checkInitialized();
         this.atlas.connect(this.currentNode, link, nextMember, traversal);
         this.trace.addLast(this.currentNode);
         this.currentNode = nextMember;
+        return this;
     }
 
-    public void addMemberTwoWay(Link link, Traversal traversal, Member nextMember, Function<Link, Link> linkReverser,
-            Function<Traversal, Traversal> traversalReverser) throws IllegalArgumentException, IllegalStateException {
+    public AtlasTrawlerBuilder<Member, ID, Link, Traversal> addMemberTwoWay(Link link, Traversal traversal,
+            Member nextMember, Function<Link, Link> linkReverser, Function<Traversal, Traversal> traversalReverser)
+            throws IllegalArgumentException, IllegalStateException {
         this.checkInitialized();
         this.atlas.connectTwoWay(this.currentNode, link, nextMember, traversal, linkReverser, traversalReverser);
         this.trace.addLast(this.currentNode);
         this.currentNode = nextMember;
+        return this;
     }
 
-    public void plainAddMember(Member member) {
+    public AtlasTrawlerBuilder<Member, ID, Link, Traversal> plainAddMember(Member member) {
         if (this.atlas == null) {
             throw new NullPointerException("Atlas is null");
         }
@@ -110,24 +118,27 @@ public class AtlasTrawlerBuilder<Member, ID extends Comparable<ID>, Link extends
         }
         this.atlas.addMember(member);
         this.currentNode = member;
+        return this;
     }
 
-    public void traverse(Link throughLink, ContextualTraversalPredicate<Member, Link, Traversal> traversalPredicate)
-            throws AtlasTraversalException {
+    public AtlasTrawlerBuilder<Member, ID, Link, Traversal> traverse(Link throughLink,
+            ContextualTraversalPredicate<Member, Link, Traversal> traversalPredicate) throws AtlasTraversalException {
         this.checkInitialized();
         Member temp = this.currentNode;
         this.currentNode = this.atlas.attemptTraversal(this.atlas.getIDForMemberType(this.currentNode), throughLink,
                 traversalPredicate);
         this.trace.addLast(temp);
+        return this;
     }
 
-    public void traverseAny(Predicate<Link> throughLink,
+    public AtlasTrawlerBuilder<Member, ID, Link, Traversal> traverseAny(Predicate<Link> throughLink,
             ContextualTraversalPredicate<Member, Link, Traversal> traversalPredicate) throws AtlasTraversalException {
         this.checkInitialized();
         Member temp = this.currentNode;
         this.currentNode = this.atlas.attemptAllTraversals(this.atlas.getIDForMemberType(this.currentNode), throughLink,
                 traversalPredicate, true);
         this.trace.addLast(temp);
+        return this;
     }
 
     public final String getStateName() {
