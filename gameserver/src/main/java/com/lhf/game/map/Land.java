@@ -72,6 +72,32 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
             return link.opposite();
         }
 
+        @Override
+        public Atlas<Area, UUID, Directions, Doorway>.AtlasToMermaidWriter generateMermaidWriter(String indent) {
+            return this.new AtlasToMermaidWriter(indent) {
+
+                @Override
+                protected String displayID(UUID id) {
+                    return id != null ? id.toString() : "null";
+                }
+
+                @Override
+                protected String displayLink(Directions link) {
+                    return link != null ? link.toString() : "null";
+                }
+
+                @Override
+                protected String displayTraversalTest(Doorway traversal) {
+                    return "";
+                }
+
+                @Override
+                protected String displayMemberNote(Area member) {
+                    return "";
+                }
+
+            };
+        }
     }
 
     public interface LandBuilder extends Serializable {
@@ -162,6 +188,33 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
                 return link.opposite();
             }
 
+            @Override
+            public Atlas<AreaBuilder, AreaBuilderID, Directions, Doorway>.AtlasToMermaidWriter generateMermaidWriter(
+                    String indent) {
+                return new AtlasToMermaidWriter(indent) {
+
+                    @Override
+                    protected String displayID(AreaBuilderID id) {
+                        return id != null ? id.toString() : "null";
+                    }
+
+                    @Override
+                    protected String displayLink(Directions link) {
+                        return link != null ? link.toString() : "null";
+                    }
+
+                    @Override
+                    protected String displayTraversalTest(Doorway traversal) {
+                        return "";
+                    }
+
+                    @Override
+                    protected String displayMemberNote(AreaBuilder member) {
+                        return "";
+                    }
+
+                };
+            }
         }
 
         public abstract AreaBuilder getStartingAreaBuilder();

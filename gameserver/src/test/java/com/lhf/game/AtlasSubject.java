@@ -1,7 +1,5 @@
 package com.lhf.game;
 
-import java.util.function.Function;
-
 import com.google.common.truth.ComparableSubject;
 import com.google.common.truth.CustomSubjectBuilder;
 import com.google.common.truth.FailureMetadata;
@@ -81,15 +79,8 @@ public class AtlasSubject<AtlasMemberType, AtlasMemberID extends Comparable<Atla
         final String indent = "    ";
         final boolean fence = false;
         final boolean includeStart = true;
-        final Function<AtlasMemberID, String> idDisplay = id -> id != null ? id.toString() : "null";
-        final Function<AtlasLinkType, String> linkDisplay = link -> link != null ? link.toString() : "null";
-        final Function<AtlasTraversalTestType, String> traversalDisplay = test -> test != null ? test.toString()
-                : "null";
-        final Function<AtlasMemberType, String> memberDisplay = member -> member != null ? member.toString() : "null";
-        return check("toStateDiagramMermaid(%s, %s, %s, toString, toString, toString, toString)", indent, fence,
-                includeStart)
-                        .that(actual.toStateDiagramMermaid(indent, fence, includeStart, idDisplay, linkDisplay,
-                                traversalDisplay, memberDisplay));
+        return check("generateMermaidWriter('%s').printStateDiagram(%s, %s)", indent, fence, includeStart)
+                .that(this.actual.generateMermaidWriter(indent).printStateDiagram(fence, includeStart));
     }
 
     public StringSubject asString() {

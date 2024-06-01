@@ -17,7 +17,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -1250,83 +1249,105 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         return sb.toString();
     }
 
-    public final String toStateDiagramMermaid(String indent, boolean fence, boolean includeStart,
-            Function<AtlasMemberID, String> idDisplay, Function<AtlasLinkType, String> linkDisplay,
-            Function<AtlasTraversalTestType, String> traversalDisplay,
-            Function<AtlasMemberType, String> memberNoteGenerator) {
-        StringBuilder sb = new StringBuilder();
-        StringBuilder linkBuilder = new StringBuilder();
-        if (fence) {
-            sb.append("```mermaid\r\n");
-        }
-        sb.append("stateDiagram-v2\r\n");
+    public abstract class AtlasToMermaidWriter {
+        public final String indent;
 
-        final String spacing = indent != null ? indent : "    ";
-        if (includeStart) {
-            final AtlasMemberType first = this.getFirstMember();
-            if (first != null) {
-                linkBuilder.append(spacing).append("[*] --> ")
-                        .append((idDisplay != null ? idDisplay.apply(this.getIDForMemberType(first))
-                                : this.getIDForMemberType(first)).toString().replace("-", ""))
-                        .append("\r\n");
+        protected AtlasToMermaidWriter(String indent) {
+            this.indent = indent != null && indent.length() > 0 ? indent : "    ";
+        }
+
+        protected abstract String displayID(AtlasMemberID id);
+
+        protected abstract String displayLink(AtlasLinkType link);
+
+        protected abstract String displayTraversalTest(AtlasTraversalTestType traversal);
+
+        protected abstract String displayMemberNote(AtlasMemberType member);
+
+        protected String startsWith(AtlasMemberType starter) {
+            StringBuilder sb = new StringBuilder();
+            if (starter != null) {
+                sb.append(this.indent).append("[*] --> ");
+                sb.append(this.displayID(Atlas.this.getIDForMemberType(starter)).replace("-", ""));
+                sb.append("\r\n");
             }
+            return sb.toString();
         }
 
-        final BiConsumer<String, Collection<TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType, AtlasMemberType>>> forTesters = (
-                id, set) -> {
+        private final String forTesters(String id,
+                Collection<TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType, AtlasMemberType>> set) {
+            StringBuilder sb = new StringBuilder();
             if (set == null || id == null) {
-                return;
+                return sb.toString();
             }
 
             for (final TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType, AtlasMemberType> targeted : set) {
                 if (targeted == null) {
                     continue;
                 }
-                linkBuilder.append(spacing).append(id).append(" --> ")
-                        .append((idDisplay != null ? idDisplay.apply(targeted.targetId) : targeted.targetId).toString()
-                                .replace("-", ""))
-                        .append(" : ");
+                sb.append(this.indent).append(id).append(" --> ")
+                        .append(this.displayID(targeted.targetId).replace("-", "")).append(" : ");
                 if (targeted.link != null) {
-                    linkBuilder.append(linkDisplay != null ? linkDisplay.apply(targeted.link) : targeted.link)
-                            .append(" ");
+                    sb.append(this.displayLink(targeted.link)).append(" ");
                 }
-                if (targeted.predicate != null && traversalDisplay != null) {
-                    linkBuilder.append(traversalDisplay.apply(targeted.predicate));
+                if (targeted.predicate != null) {
+                    sb.append(this.displayTraversalTest(targeted.predicate));
                 }
-                linkBuilder.append("\r\n");
+                sb.append("\r\n");
             }
-        };
+            return sb.toString();
+        }
 
-        for (final AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> mappingItem : this.mapping
-                .values()) {
-            final AtlasMemberType member = mappingItem.getAtlasMember();
-            if (member == null) {
-                continue;
+        public final String printStateDiagram(boolean fence, boolean includeStart) {
+            StringBuilder sb = new StringBuilder();
+            StringBuilder linkBuilder = new StringBuilder();
+            if (fence) {
+                sb.append("```mermaid\r\n");
             }
-            final String id = (idDisplay != null ? idDisplay.apply(this.getIDForMemberType(member))
-                    : this.getIDForMemberType(member)).toString().replace("-", "");
-            sb.append(spacing).append(id).append(":").append(this.getNameForMemberType(member)).append("\r\n");
-            if (memberNoteGenerator != null) {
-                final String note = memberNoteGenerator.apply(member);
+            sb.append("stateDiagram-v2\r\n");
+
+            if (includeStart) {
+                linkBuilder.append(this.startsWith(getFirstMember()));
+            }
+
+            for (final AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> mappingItem : Atlas.this.mapping
+                    .values()) {
+                final AtlasMemberType member = mappingItem.getAtlasMember();
+                if (member == null) {
+                    continue;
+                }
+                final String id = this.displayID(Atlas.this.getIDForMemberType(member)).replace("-", "");
+                sb.append(indent).append(id).append(":").append(Atlas.this.getNameForMemberType(member)).append("\r\n");
+                final String note = this.displayMemberNote(member);
                 if (note != null && !note.isBlank()) {
-                    sb.append(spacing).append("note right of ").append(id).append("\r\n");
-                    for (String part : note.split("\\r?\\n")) {
-                        sb.append(spacing + spacing).append(part).append("\r\n");
+                    if (note != null && !note.isBlank()) {
+                        sb.append(indent).append("note right of ").append(id).append("\r\n");
+                        for (String part : note.split("\\r?\\n")) {
+                            sb.append(indent + indent).append(part).append("\r\n");
+                        }
+                        sb.append(indent).append("end note\r\n");
                     }
-                    sb.append(spacing).append("end note\r\n");
                 }
+
+                linkBuilder.append(this.forTesters(id, mappingItem.links));
             }
 
-            forTesters.accept(id, mappingItem.links);
+            sb.append(linkBuilder.toString()).append("\r\n");
+
+            if (fence) {
+                sb.append("```\r\n");
+            }
+
+            return sb.toString();
         }
 
-        sb.append(linkBuilder.toString()).append("\r\n");
-
-        if (fence) {
-            sb.append("```\r\n");
+        @Override
+        public String toString() {
+            return this.printStateDiagram(false, true);
         }
 
-        return sb.toString();
     }
+
+    public abstract AtlasToMermaidWriter generateMermaidWriter(String indent);
 
 }

@@ -200,18 +200,40 @@ public class AtlasTrawlerBuilder<Member, ID extends Comparable<ID>, Link extends
         return this.atlas.size();
     }
 
-    public final String toStateDiagramMermaid(String indent, boolean fence, boolean includeStart,
-            Function<ID, String> idDisplay, Function<Link, String> linkDisplay,
-            Function<Traversal, String> traversalDisplay, Function<Member, String> memberNoteGenerator) {
-        return this.atlas != null
-                ? this.atlas.toStateDiagramMermaid(indent, fence, includeStart, idDisplay, linkDisplay,
-                        traversalDisplay, memberNoteGenerator)
-                : "null";
+    public final String toStateDiagramMermaid(String indent, boolean fence, boolean includeStart) {
+        if (this.atlas == null) {
+            return "null";
+        }
+        Atlas<Member, ID, Link, Traversal>.AtlasToMermaidWriter writer = this.atlas.generateMermaidWriter(indent);
+        if (writer == null) {
+            writer = this.atlas.new AtlasToMermaidWriter(indent) {
+
+                @Override
+                protected String displayID(ID id) {
+                    return id != null ? id.toString() : "null";
+                }
+
+                @Override
+                protected String displayLink(Link link) {
+                    return link != null ? link.toString() : "null";
+                }
+
+                @Override
+                protected String displayTraversalTest(Traversal traversal) {
+                    return traversal != null ? traversal.toString() : "null";
+                }
+
+                @Override
+                protected String displayMemberNote(Member member) {
+                    return AtlasTrawlerBuilder.this.atlas.getNameForMemberType(member);
+                }
+
+            };
+        }
+        return writer.printStateDiagram(fence, includeStart);
     }
 
     public final String printMermaid() {
-        return this.atlas != null ? this.atlas.toStateDiagramMermaid("    ", false, true,
-                a -> a != null ? a.toString() : "null", a -> a != null ? a.toString() : "null",
-                a -> a != null ? a.toString() : "null", a -> a != null ? a.toString() : "null") : "null";
+        return this.toStateDiagramMermaid("    ", false, true);
     }
 }
