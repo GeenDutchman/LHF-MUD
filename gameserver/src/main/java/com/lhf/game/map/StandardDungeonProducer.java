@@ -52,7 +52,7 @@ import com.lhf.game.serialization.GsonBuilderFactory;
 public final class StandardDungeonProducer {
     public static DungeonBuilder buildStaticDungeonBuilder(BuildInfoManager statblockLoader)
             throws JsonIOException, JsonSyntaxException, IOException, AtlasMemberException {
-        DungeonBuilder builder = DungeonBuilder.newInstance();
+        DungeonBuilder builder = DungeonBuilder.newInstance().setName("Ibaif");
 
         GsonBuilderFactory gsonFactory = GsonBuilderFactory.start().creatureInfoBuilders();
 
@@ -126,7 +126,8 @@ public final class StandardDungeonProducer {
         statueRoomBuilder.addItem(bossNote);
 
         InteractDoor statue = new InteractDoor("golden statue",
-                "The statue has a start to a riddle, but it looks like it hasn't been finished yet.");
+                "The statue has a start to a riddle, but it looks like it hasn't been finished yet.", builder.getName(),
+                secretRoomBuilder.getName());
 
         statueRoomBuilder.addItem(statue);
         secretRoomBuilder.addItem(statue);
