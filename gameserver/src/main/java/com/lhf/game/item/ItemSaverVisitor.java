@@ -7,10 +7,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.lhf.game.item.IItem.ItemID;
+import com.lhf.game.item.concrete.InteractDoor;
 import com.lhf.game.item.concrete.Item;
 
 public class ItemSaverVisitor implements ItemVisitor {
     private final Map<ItemID, InteractObject> interactObjects = new LinkedHashMap<>();
+    private final Map<ItemID, InteractDoor> interactDoors = new LinkedHashMap<>();
     private final Map<ItemID, Item> notes = new LinkedHashMap<>();
     private final Map<ItemID, Takeable> takeables = new LinkedHashMap<>();
     private final Map<ItemID, Usable> usables = new LinkedHashMap<>();
@@ -24,6 +26,14 @@ public class ItemSaverVisitor implements ItemVisitor {
             return;
         }
         this.interactObjects.put(interactObject.getItemID(), interactObject);
+    }
+
+    @Override
+    public void visit(InteractDoor door) {
+        if (door == null) {
+            return;
+        }
+        this.interactDoors.put(door.getItemID(), door);
     }
 
     @Override
@@ -83,7 +93,13 @@ public class ItemSaverVisitor implements ItemVisitor {
     }
 
     public Map<ItemID, InteractObject> getInteractObjectsMap() {
-        return Collections.unmodifiableMap(interactObjects);
+        return Collections.unmodifiableMap(
+                Stream.concat(interactObjects.entrySet().stream(), interactDoors.entrySet().stream()).collect(
+                        Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> b, LinkedHashMap::new)));
+    }
+
+    public Map<ItemID, InteractDoor> getInteractDoors() {
+        return Collections.unmodifiableMap(interactDoors);
     }
 
     public Map<ItemID, Item> getNotesMap() {
