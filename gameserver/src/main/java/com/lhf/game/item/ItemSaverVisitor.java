@@ -98,7 +98,7 @@ public class ItemSaverVisitor implements ItemVisitor {
                         Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> b, LinkedHashMap::new)));
     }
 
-    public Map<ItemID, InteractDoor> getInteractDoors() {
+    public Map<ItemID, InteractDoor> getInteractDoorsMap() {
         return Collections.unmodifiableMap(interactDoors);
     }
 

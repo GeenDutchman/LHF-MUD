@@ -6,7 +6,7 @@ import com.lhf.game.ItemContainer.ItemFilterQuery;
 import com.lhf.game.ItemContainer.ItemFilters;
 import com.lhf.game.item.concrete.Item;
 
-public class ItemNameSearchVisitor extends ItemPartitionCollectionVisitor {
+public class ItemNameSearchVisitor extends ItemPartitionListVisitor {
     protected final ItemFilterQuery query;
 
     public ItemNameSearchVisitor(String searchName) {
@@ -26,11 +26,19 @@ public class ItemNameSearchVisitor extends ItemPartitionCollectionVisitor {
         this.query = query != null ? query : new ItemFilterQuery();
     }
 
-    public void copyFrom(ItemPartitionCollectionVisitor partitioner) {
+    public void copyFrom(ItemPartitionListVisitor partitioner) {
         if (partitioner == null) {
             return;
         }
         partitioner.getItems().stream().filter(item -> item != null)
+                .forEachOrdered(item -> item.acceptItemVisitor(this));
+    }
+
+    public void copyFrom(ItemSaverVisitor saver) {
+        if (saver == null) {
+            return;
+        }
+        saver.getItemsMap().values().stream().filter(item -> item != null)
                 .forEachOrdered(item -> item.acceptItemVisitor(this));
     }
 
