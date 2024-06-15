@@ -8,7 +8,7 @@ import com.lhf.game.ItemContainer;
 import com.lhf.game.LockableItemContainer;
 import com.lhf.game.item.AItem;
 import com.lhf.game.item.IItem;
-import com.lhf.game.item.ItemPartitionCollectionVisitor;
+import com.lhf.game.item.ItemPartitionListVisitor;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.map.Area.AreaCommandHandler;
 import com.lhf.messages.CommandChainHandler;
@@ -46,7 +46,7 @@ public class AreaTakeHandler implements AreaCommandHandler {
         if (!AreaCommandHandler.super.isEnabled(ctx)) {
             return false;
         }
-        ItemPartitionCollectionVisitor visitor = new ItemPartitionCollectionVisitor();
+        ItemPartitionListVisitor visitor = new ItemPartitionListVisitor();
         ctx.getArea().acceptItemVisitor(visitor);
         return !visitor.getTakeables().isEmpty();
     }
