@@ -82,7 +82,7 @@ public class ItemPartitionListVisitor implements ItemVisitor {
         this.equipablesWithHiddenEffects.add(equipableHiddenEffect);
     }
 
-    protected List<AItem> getItems() {
+    public List<AItem> getItems() {
         ArrayList<AItem> consolidated = new ArrayList<>(this.getTakeables());
         consolidated.addAll(this.getInteractObjects());
         consolidated.addAll(this.notes);
@@ -128,6 +128,38 @@ public class ItemPartitionListVisitor implements ItemVisitor {
 
     public List<EquipableHiddenEffect> getEquipablesWithHiddenEffects() {
         return Collections.unmodifiableList(equipablesWithHiddenEffects);
+    }
+
+    public List<InteractObject> editInteractObjects() {
+        return this.interactObjects;
+    }
+
+    public List<InteractDoor> editInteractDoors() {
+        return this.interactDoors;
+    }
+
+    public List<Item> editNotes() {
+        return this.notes;
+    }
+
+    public List<Takeable> editTakeables() {
+        return this.takeables;
+    }
+
+    public List<Usable> editUsables() {
+        return this.usables;
+    }
+
+    public List<EquipableHiddenEffect> editEquipableHiddenEffects() {
+        return this.equipablesWithHiddenEffects;
+    }
+
+    public List<Equipable> editEquipables() {
+        return this.equipables;
+    }
+
+    public List<Weapon> editWeapons() {
+        return this.weapons;
     }
 
 }
