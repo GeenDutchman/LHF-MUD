@@ -1,13 +1,18 @@
 package com.lhf.game.item;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
+import com.lhf.game.ItemContainer;
 import com.lhf.game.item.concrete.InteractDoor;
 import com.lhf.game.item.concrete.Item;
 
-public class ItemPartitionListVisitor implements ItemVisitor {
+public class ItemPartitionListVisitor implements ItemVisitor, ItemContainer {
 
     private final List<InteractObject> interactObjects = new ArrayList<>();
     private final List<InteractDoor> interactDoors = new ArrayList<>();
@@ -82,7 +87,14 @@ public class ItemPartitionListVisitor implements ItemVisitor {
         this.equipablesWithHiddenEffects.add(equipableHiddenEffect);
     }
 
-    public List<AItem> getItems() {
+    public Collection<IItem> getItems() {
+        ArrayList<IItem> consolidated = new ArrayList<>(this.takeables);
+        consolidated.addAll(this.getInteractObjects());
+        consolidated.addAll(this.notes);
+        return Collections.unmodifiableCollection(consolidated);
+    }
+
+    public List<AItem> getItemsList() {
         ArrayList<AItem> consolidated = new ArrayList<>(this.getTakeables());
         consolidated.addAll(this.getInteractObjects());
         consolidated.addAll(this.notes);
@@ -160,6 +172,113 @@ public class ItemPartitionListVisitor implements ItemVisitor {
 
     public List<Weapon> editWeapons() {
         return this.weapons;
+    }
+
+    @Override
+    public String getName() {
+        return this.getClass().getName();
+    }
+
+    @Override
+    public String getDescription() {
+        return "A set of partitioned lists of items.";
+    }
+
+    @Override
+    public boolean addItem(IItem item) {
+        if (item == null) {
+            return false;
+        }
+        this.accept(item);
+        return true;
+    }
+
+    @Override
+    public Optional<IItem> removeItem(String name) {
+        if (name == null) {
+            return Optional.empty();
+        }
+        for (List<? extends IItem> sublist : List.of(this.weapons, this.equipables, this.equipablesWithHiddenEffects,
+                this.usables, this.takeables, this.notes, this.interactDoors, this.interactObjects)) {
+            Iterator<? extends IItem> iter = sublist.iterator();
+            while (iter.hasNext()) {
+                IItem item = iter.next();
+                if (item == null) {
+                    iter.remove();
+                    continue;
+                }
+                if (item.CheckNameRegex(name, 3)) {
+                    return Optional.of(item);
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public boolean removeItem(IItem item) {
+        if (item == null) {
+            return false;
+        }
+        for (List<? extends IItem> sublist : List.of(this.weapons, this.equipables, this.equipablesWithHiddenEffects,
+                this.usables, this.takeables, this.notes, this.interactDoors, this.interactObjects)) {
+            Iterator<? extends IItem> iter = sublist.iterator();
+            while (iter.hasNext()) {
+                IItem iterItem = iter.next();
+                if (iterItem == null) {
+                    iter.remove();
+                    continue;
+                }
+                if (iterItem.equals(item)) {
+                    iter.remove();
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public Iterator<? extends IItem> itemIterator() {
+        List<Iterator<? extends IItem>> iterators = List.of(this.weapons.iterator(), this.equipables.iterator(),
+                this.equipablesWithHiddenEffects.iterator(), this.usables.iterator(), this.takeables.iterator(),
+                this.notes.iterator(), this.interactDoors.iterator(), this.interactObjects.iterator());
+        return new Iterator<>() {
+
+            @Override
+            public boolean hasNext() {
+                Iterator<Iterator<? extends IItem>> metaIterator = iterators.iterator();
+                while (metaIterator.hasNext()) {
+                    Iterator<? extends IItem> subIter = metaIterator.next();
+                    if (subIter.hasNext()) {
+                        return true;
+                    }
+                    metaIterator.remove();
+                }
+                return false;
+            }
+
+            @Override
+            public IItem next() {
+                if (!this.hasNext()) {
+                    throw new NoSuchElementException("hasNext(): false");
+                }
+                Iterator<? extends IItem> nextIter = iterators.get(0);
+                if (nextIter == null) {
+                    throw new NoSuchElementException("No iters left");
+                }
+                return nextIter.next();
+            }
+
+            @Override
+            public void remove() {
+                Iterator<? extends IItem> nextIter = iterators.get(0);
+                if (nextIter != null) {
+                    nextIter.remove();
+                }
+            }
+
+        };
     }
 
 }
