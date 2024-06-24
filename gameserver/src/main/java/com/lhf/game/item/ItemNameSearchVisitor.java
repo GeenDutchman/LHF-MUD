@@ -2,8 +2,6 @@ package com.lhf.game.item;
 
 import java.util.Optional;
 
-import com.lhf.game.ItemContainer.ItemFilterQuery;
-import com.lhf.game.ItemContainer.ItemFilters;
 import com.lhf.game.item.concrete.Item;
 
 public class ItemNameSearchVisitor extends ItemPartitionListVisitor {

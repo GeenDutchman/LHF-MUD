@@ -27,7 +27,6 @@ import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
-import com.lhf.game.item.IItem;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.ItemPartitionListVisitor;
 import com.lhf.game.item.Takeable;
@@ -121,7 +120,7 @@ public interface Area extends ItemContainer, CreatureContainer, CommandChainHand
 
         public abstract String getDescription();
 
-        public abstract Collection<IItem> getItems();
+        public abstract ItemPartitionListVisitor getItems();
 
         public abstract Collection<INonPlayerCharacterBuildInfo> getNPCsToBuild();
 
