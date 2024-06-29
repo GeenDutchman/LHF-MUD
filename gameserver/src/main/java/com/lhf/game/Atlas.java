@@ -420,7 +420,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         return AtlasTrawlerBuilder.trawl(this);
     }
 
-    public synchronized int size() {
+    public synchronized final int size() {
         return this.mapping.size();
     }
 
@@ -976,7 +976,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         return Objects.hash(uuid);
     }
 
