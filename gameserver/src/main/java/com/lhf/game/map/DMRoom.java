@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -303,6 +304,22 @@ public class DMRoom extends Room {
                             aiRunner, conversationManager, fallbackNoConversation) : null,
                     dir -> dir, door -> door);
 
+            final BiFunction<String, String, Area> lookupFunction = (landName, areaName) -> {
+                if (landName == null || areaName == null) {
+                    return null;
+                }
+                final Land land = dmRoom.lands.getAtlasMemberOrNull(landName);
+                if (land != null) {
+                    return land.getAreaByName(areaName).orElse(null);
+                }
+                return null;
+            };
+            for (final Land land : dmRoom.lands) {
+                if (land == null) {
+                    continue;
+                }
+                land.getAtlas().populateExternalReferences(lookupFunction);
+            }
         }
 
         @Override

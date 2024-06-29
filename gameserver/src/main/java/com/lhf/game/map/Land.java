@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -27,6 +28,8 @@ import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
+import com.lhf.game.item.ItemNoOpVisitor;
+import com.lhf.game.item.concrete.InteractDoor;
 import com.lhf.game.map.Area.AreaBuilder;
 import com.lhf.game.map.Area.AreaBuilder.AreaBuilderID;
 import com.lhf.game.map.commandHandlers.LandSeeHandler;
@@ -70,6 +73,21 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
                 return null;
             }
             return link.opposite();
+        }
+
+        @Override
+        protected void populateExternalReferencesForMember(BiFunction<String, String, Area> populator, Area member) {
+            if (populator == null || member == null) {
+                return;
+            }
+            member.acceptItemVisitor(new ItemNoOpVisitor() {
+                @Override
+                public void visit(InteractDoor door) {
+                    if (door != null) {
+                        door.populateExternalReference(populator);
+                    }
+                }
+            });
         }
 
         @Override

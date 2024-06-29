@@ -23,7 +23,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<AtlasMemberID>, AtlasLinkType extends Comparable<AtlasLinkType>, AtlasTraversalTestType extends Comparable<AtlasTraversalTestType>>
-        implements Comparable<Atlas<AtlasMemberType, AtlasMemberID, AtlasLinkType, AtlasTraversalTestType>> {
+        implements Comparable<Atlas<AtlasMemberType, AtlasMemberID, AtlasLinkType, AtlasTraversalTestType>>,
+        Iterable<AtlasMemberType> {
 
     public static sealed class AtlasException extends Exception
             permits AtlasMemberException, AtlasLinkException, AtlasTraversalException {
@@ -223,7 +224,6 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             this.externalTarget = externalTarget;
         }
 
-        // FIXME: the external shouldn't be able to control this
         protected void populateExternalReference(BiFunction<String, String, TargetMemberType> populator) {
             if (populator != null && this.externalReferenceLocality != null) {
                 this.externalTarget = populator.apply(externalReferenceLocality, externalTargetName);
@@ -367,7 +367,6 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             return Collections.unmodifiableSet(this.getLinksAsMap().keySet());
         }
 
-        // FIXME: the external shouldn't be able to control this
         protected void populateExternalReferences(BiFunction<String, String, MappingMember> populator) {
             if (populator == null) {
                 return;
@@ -428,6 +427,15 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         this.emplaceMember(nextMember);
     }
 
+    /**
+     * This is meant to be overridden as a callback function, it is called when a
+     * new member is added
+     * 
+     * @param member
+     */
+    protected void onMemberAdditionCallback(AtlasMemberType member) {
+    }
+
     private final synchronized AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> emplaceMember(
             final AtlasMemberType nextMember) {
         synchronized (this.mapping) {
@@ -435,7 +443,10 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                 throw new IllegalArgumentException("Cannot add null member!");
             }
             final AtlasMemberID nextMemberID = this.getIDForMemberType(nextMember);
-            return this.mapping.computeIfAbsent(nextMemberID, key -> new AtlasMappingItem<>(nextMember));
+            return this.mapping.computeIfAbsent(nextMemberID, key -> {
+                this.onMemberAdditionCallback(nextMember);
+                return new AtlasMappingItem<>(nextMember);
+            });
         }
     }
 
@@ -582,7 +593,18 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         }
     }
 
-    // FIXME: the external shouldn't be able to control this
+    /**
+     * Meant to be overridden. Sometimes the member might need special handling with
+     * regards to external references to MemberTypes. This will allow them to
+     * connect.
+     * 
+     * @param populator
+     * @param member
+     */
+    protected void populateExternalReferencesForMember(BiFunction<String, String, AtlasMemberType> populator,
+            AtlasMemberType member) {
+    }
+
     public final synchronized void populateExternalReferences(BiFunction<String, String, AtlasMemberType> populator) {
         if (populator == null) {
             return;
@@ -592,6 +614,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                     .values()) {
                 if (mapMember != null) {
                     mapMember.populateExternalReferences(populator);
+                    this.populateExternalReferencesForMember(populator, mapMember.atlasMember);
                 }
             }
         }
@@ -1145,8 +1168,25 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         }
     }
 
-    public DepthFirstIterator depthFirstIterator() {
-        return new DepthFirstIterator();
+    public enum IteratorStyle {
+        ENCOUNTER, DEPTH;
+    }
+
+    public final Iterator<AtlasMemberType> generateIterator(IteratorStyle style) {
+        if (style == null) {
+            style = IteratorStyle.ENCOUNTER;
+        }
+        switch (style) {
+        case DEPTH:
+            return new DepthFirstIterator();
+        case ENCOUNTER:
+        default:
+            return getAtlasMembers().iterator();
+        }
+    }
+
+    public final Iterator<AtlasMemberType> iterator() {
+        return this.getAtlasMembers().iterator();
     }
 
     @FunctionalInterface
