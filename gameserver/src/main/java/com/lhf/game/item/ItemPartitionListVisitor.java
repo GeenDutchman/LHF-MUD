@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.StringJoiner;
 
 import com.lhf.game.ItemContainer;
 import com.lhf.game.item.concrete.InteractDoor;
@@ -279,6 +280,39 @@ public class ItemPartitionListVisitor implements ItemVisitor, ItemContainer {
             }
 
         };
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(this.getClass().getName());
+        StringJoiner sj = new StringJoiner(", ", " [", "]");
+        if (interactObjects.size() > 0) {
+            sj.add("interactObjects=" + interactObjects.toString());
+        }
+        if (interactDoors.size() > 0) {
+            sj.add("interactDoors=" + interactDoors.toString());
+        }
+        if (notes.size() > 0) {
+            sj.add("notes=" + notes.toString());
+        }
+        if (takeables.size() > 0) {
+            sj.add("takeables=" + takeables.toString());
+        }
+        if (usables.size() > 0) {
+            sj.add("usables=" + usables.toString());
+        }
+        if (equipablesWithHiddenEffects.size() > 0) {
+            sj.add("equipablesWithHiddenEffects=" + equipablesWithHiddenEffects.toString());
+        }
+        if (equipables.size() > 0) {
+            sj.add("equipables=" + equipables.toString());
+        }
+        if (weapons.size() > 0) {
+            sj.add("weapons=" + weapons.toString());
+        }
+        builder.append(sj.toString());
+        return builder.toString();
     }
 
 }

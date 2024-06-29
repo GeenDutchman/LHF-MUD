@@ -124,4 +124,12 @@ public class ItemNameSearchVisitor extends ItemPartitionListVisitor {
         return super.getEquipablesWithHiddenEffects().stream().findFirst();
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("ItemNameSearchVisitor [query=").append(query).append(", results=").append(super.toString())
+                .append("]");
+        return builder.toString();
+    }
+
 }
