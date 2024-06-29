@@ -6,9 +6,10 @@ import java.util.LinkedList;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
+import com.lhf.game.Atlas.AtlasException;
+import com.lhf.game.Atlas.AtlasFunction;
 import com.lhf.game.Atlas.AtlasMemberException;
 import com.lhf.game.Atlas.AtlasTraversalException;
 import com.lhf.game.Atlas.ContextualTraversalPredicate;
@@ -96,7 +97,7 @@ public class AtlasTrawlerBuilder<Member, ID extends Comparable<ID>, Link extends
     }
 
     public AtlasTrawlerBuilder<Member, ID, Link, Traversal> addMemberTwoWay(Link link, Traversal traversal,
-            Member nextMember) throws IllegalArgumentException, AtlasMemberException {
+            Member nextMember) throws IllegalArgumentException, AtlasException {
         this.checkInitialized();
         this.atlas.connect(this.currentNode, link, nextMember, traversal);
         this.trace.addLast(this.currentNode);
@@ -105,15 +106,15 @@ public class AtlasTrawlerBuilder<Member, ID extends Comparable<ID>, Link extends
     }
 
     public AtlasTrawlerBuilder<Member, ID, Link, Traversal> addTwoWayToExistingMember(Link link, Traversal traversal,
-            ID existant) throws AtlasMemberException {
+            ID existant) throws AtlasException {
         this.checkInitialized();
         Member destination = this.atlas.getAtlasMemberOrThrow(existant);
         return this.addMemberTwoWay(link, traversal, destination);
     }
 
     public AtlasTrawlerBuilder<Member, ID, Link, Traversal> addMemberTwoWay(Link link, Traversal traversal,
-            Member nextMember, Function<Link, Link> linkReverser, Function<Traversal, Traversal> traversalReverser)
-            throws IllegalArgumentException, AtlasMemberException {
+            Member nextMember, AtlasFunction<Link, Link> linkReverser,
+            AtlasFunction<Traversal, Traversal> traversalReverser) throws IllegalArgumentException, AtlasException {
         this.checkInitialized();
         this.atlas.connectTwoWay(this.currentNode, link, nextMember, traversal, linkReverser, traversalReverser);
         this.trace.addLast(this.currentNode);
@@ -122,8 +123,8 @@ public class AtlasTrawlerBuilder<Member, ID extends Comparable<ID>, Link extends
     }
 
     public AtlasTrawlerBuilder<Member, ID, Link, Traversal> addTwoWayToExistingMember(Link link, Traversal traversal,
-            ID existant, Function<Link, Link> linkReverser, Function<Traversal, Traversal> traversalReverser)
-            throws IllegalArgumentException, IllegalStateException, AtlasMemberException {
+            ID existant, AtlasFunction<Link, Link> linkReverser, AtlasFunction<Traversal, Traversal> traversalReverser)
+            throws IllegalArgumentException, IllegalStateException, AtlasException {
         this.checkInitialized();
         Member destination = this.atlas.getAtlasMemberOrThrow(existant);
         return this.addMemberTwoWay(link, traversal, destination, linkReverser, traversalReverser);

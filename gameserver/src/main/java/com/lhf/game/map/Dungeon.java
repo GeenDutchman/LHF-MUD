@@ -82,7 +82,7 @@ public class Dungeon implements Land {
         }
 
         public DungeonBuilder connectRoom(AreaBuilder first, Directions toSecond, AreaBuilder second, Doorway type)
-                throws AtlasMemberException {
+                throws AtlasException {
             if (this.atlas == null || this.startingRoom == null) {
                 throw new IllegalStateException("Cannot connect a room without first specifying a starting room!");
             }
@@ -91,7 +91,7 @@ public class Dungeon implements Land {
         }
 
         public DungeonBuilder connectRoom(AreaBuilder first, Directions toSecond, AreaBuilder second)
-                throws AtlasMemberException {
+                throws AtlasException {
             return this.connectRoom(first, toSecond, second, new Doorway());
         }
 
@@ -371,7 +371,7 @@ public class Dungeon implements Land {
         try {
             this.atlas.connect(existing, toExistingRoom.opposite(), toAdd, type);
             return true;
-        } catch (IllegalArgumentException | IllegalStateException | AtlasMemberException e) {
+        } catch (IllegalArgumentException | IllegalStateException | AtlasException e) {
             this.log(Level.WARNING, e.toString());
             return false;
         }

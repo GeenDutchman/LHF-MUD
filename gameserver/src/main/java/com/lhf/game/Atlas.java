@@ -18,7 +18,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -224,6 +223,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             this.externalTarget = externalTarget;
         }
 
+        // FIXME: the external shouldn't be able to control this
         protected void populateExternalReference(BiFunction<String, String, TargetMemberType> populator) {
             if (populator != null && this.externalReferenceLocality != null) {
                 this.externalTarget = populator.apply(externalReferenceLocality, externalTargetName);
@@ -367,6 +367,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             return Collections.unmodifiableSet(this.getLinksAsMap().keySet());
         }
 
+        // FIXME: the external shouldn't be able to control this
         protected void populateExternalReferences(BiFunction<String, String, MappingMember> populator) {
             if (populator == null) {
                 return;
@@ -555,8 +556,8 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
 
     public final synchronized void connectTwoWay(final AtlasMemberType first, final AtlasLinkType firstToSecond,
             final AtlasMemberType second, final AtlasTraversalTestType predicate,
-            Function<AtlasLinkType, AtlasLinkType> linkReverser,
-            Function<AtlasTraversalTestType, AtlasTraversalTestType> predicateReverser) throws AtlasMemberException {
+            AtlasFunction<AtlasLinkType, AtlasLinkType> linkReverser,
+            AtlasFunction<AtlasTraversalTestType, AtlasTraversalTestType> predicateReverser) throws AtlasException {
         if (firstToSecond == null) {
             throw new IllegalArgumentException("The provided link to the second must not be null!");
         }
@@ -565,22 +566,23 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         if (secondToFirst == null) {
             throw new IllegalArgumentException(String.format("The reversal of '%s' must not be null!", firstToSecond));
         }
+        AtlasTraversalTestType reversedPredicate = predicateReverser != null ? predicateReverser.apply(predicate)
+                : this.reverseTraversalTest(predicate);
         synchronized (this.mapping) {
             this.connectOneWay(first, firstToSecond, second, predicate);
-            this.connectOneWay(second, secondToFirst, first,
-                    predicateReverser != null ? predicateReverser.apply(predicate)
-                            : this.reverseTraversalTest(predicate));
+            this.connectOneWay(second, secondToFirst, first, reversedPredicate);
         }
     }
 
     public final synchronized void connect(AtlasMemberType first, AtlasLinkType toSecond, AtlasMemberType second,
-            AtlasTraversalTestType predicate) throws AtlasMemberException {
+            AtlasTraversalTestType predicate) throws AtlasException {
         synchronized (this.mapping) {
             this.connectTwoWay(first, toSecond, second, predicate, this::translateLinkToOpposite,
                     this::reverseTraversalTest);
         }
     }
 
+    // FIXME: the external shouldn't be able to control this
     public final synchronized void populateExternalReferences(BiFunction<String, String, AtlasMemberType> populator) {
         if (populator == null) {
             return;
@@ -985,7 +987,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         if (!(obj instanceof Atlas))
             return false;
         Atlas<?, ?, ?, ?> other = (Atlas<?, ?, ?, ?>) obj;
-        return Objects.equals(uuid, other.uuid);
+        return Objects.equals(uuid, other.uuid) && Objects.equals(mapping, other.mapping);
     }
 
     @Override
@@ -1147,11 +1149,36 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         return new DepthFirstIterator();
     }
 
+    @FunctionalInterface
+    public interface AtlasFunction<T, R> {
+        R apply(T var) throws AtlasException;
+
+        default <V> AtlasFunction<V, R> compose(AtlasFunction<? super V, ? extends T> before) {
+            Objects.requireNonNull(before);
+            return (v) -> {
+                return this.apply(before.apply(v));
+            };
+        }
+
+        default <V> AtlasFunction<T, V> andThen(AtlasFunction<? super R, ? extends V> after) {
+            Objects.requireNonNull(after);
+            return (t) -> {
+                return after.apply(this.apply(t));
+            };
+        }
+
+        static <T> AtlasFunction<T, T> identity() {
+            return (t) -> {
+                return t;
+            };
+        }
+    }
+
     public final <TranslateMemberType, TranslateID extends Comparable<TranslateID>, TranslateLinkType extends Comparable<TranslateLinkType>, TranslateTraversalTestType extends Comparable<TranslateTraversalTestType>> Map<AtlasMemberID, TranslateID> translate(
             Atlas<TranslateMemberType, TranslateID, TranslateLinkType, TranslateTraversalTestType> translation,
-            Function<AtlasMemberType, TranslateMemberType> memberTransformer,
-            Function<AtlasLinkType, TranslateLinkType> linkTransformer,
-            Function<AtlasTraversalTestType, TranslateTraversalTestType> traversalTestTransformer)
+            AtlasFunction<AtlasMemberType, TranslateMemberType> memberTransformer,
+            AtlasFunction<AtlasLinkType, TranslateLinkType> linkTransformer,
+            AtlasFunction<AtlasTraversalTestType, TranslateTraversalTestType> traversalTestTransformer)
             throws AtlasException {
 
         if (translation == null) {
@@ -1210,9 +1237,9 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
 
     public final <TranslateMemberType, TranslateID extends Comparable<TranslateID>, TranslateLinkType extends Comparable<TranslateLinkType>, TranslateTraversalTestType extends Comparable<TranslateTraversalTestType>> Map<AtlasMemberID, TranslateID> translateToSuppliedAtlas(
             Supplier<Atlas<TranslateMemberType, TranslateID, TranslateLinkType, TranslateTraversalTestType>> starter,
-            Function<AtlasMemberType, TranslateMemberType> memberTransformer,
-            Function<AtlasLinkType, TranslateLinkType> linkTransformer,
-            Function<AtlasTraversalTestType, TranslateTraversalTestType> traversalTestTransformer)
+            AtlasFunction<AtlasMemberType, TranslateMemberType> memberTransformer,
+            AtlasFunction<AtlasLinkType, TranslateLinkType> linkTransformer,
+            AtlasFunction<AtlasTraversalTestType, TranslateTraversalTestType> traversalTestTransformer)
             throws AtlasException {
         if (starter == null) {
             throw new IllegalArgumentException("Must provide an Atlas supplier for translation!");

@@ -12,7 +12,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
@@ -22,6 +21,7 @@ import com.google.gson.stream.JsonWriter;
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.Atlas;
 import com.lhf.game.Atlas.AtlasException;
+import com.lhf.game.Atlas.AtlasFunction;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
@@ -226,13 +226,13 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
 
             final Supplier<Atlas<Area, UUID, Directions, Doorway>> starter = () -> builtLand.getAtlas();
 
-            final Function<AreaBuilder, Area> transformer = (builder) -> {
+            final AtlasFunction<AreaBuilder, Area> transformer = (builder) -> {
                 return builder.build(builtLand, builtLand, aiRunner, conversationManager, fallbackNoConversation);
             };
 
-            final Function<Directions, Directions> linkTransforer = (dir) -> dir;
+            final AtlasFunction<Directions, Directions> linkTransforer = (dir) -> dir;
 
-            final Function<Doorway, Doorway> traversalTransformer = (doorway) -> doorway;
+            final AtlasFunction<Doorway, Doorway> traversalTransformer = (doorway) -> doorway;
 
             final AreaBuilderAtlas builderAtlas = this.getAtlas();
             if (builderAtlas == null) {

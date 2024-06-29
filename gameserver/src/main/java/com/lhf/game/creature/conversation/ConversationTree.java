@@ -13,7 +13,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,10 +22,11 @@ import com.lhf.RichOutput;
 import com.lhf.RichOutput.PrintingInstructions;
 import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.Atlas;
-import com.lhf.game.AtlasTrawlerBuilder;
 import com.lhf.game.Atlas.AtlasException;
+import com.lhf.game.Atlas.AtlasFunction;
 import com.lhf.game.Atlas.AtlasMemberException;
 import com.lhf.game.Atlas.AtlasTraversalException;
+import com.lhf.game.AtlasTrawlerBuilder;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContext;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
 import com.lhf.server.client.Client.ClientID;
@@ -232,7 +232,7 @@ public class ConversationTree implements Serializable {
                     .setRepeatWords(tree.repeatWords).setTagkeywords(tree.tagkeywords);
             try {
                 tree.conversationAtlas.translate(builder.conversationAtlas,
-                        node -> new ConversationTreeNode.Builder(node), Function.identity(),
+                        node -> new ConversationTreeNode.Builder(node), AtlasFunction.identity(),
                         ConversationPredicate::copyFrom);
             } catch (AtlasException e) {
                 // wrap it and send it on

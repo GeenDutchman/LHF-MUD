@@ -6,9 +6,9 @@ import org.junit.jupiter.api.Test;
 
 import com.google.common.truth.Truth;
 import com.google.gson.Gson;
-import com.lhf.game.creature.MonsterBuildInfo;
-import com.lhf.game.Atlas.AtlasMemberException;
+import com.lhf.game.Atlas.AtlasException;
 import com.lhf.game.creature.Monster;
+import com.lhf.game.creature.MonsterBuildInfo;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.concrete.equipment.CarnivorousArmor;
@@ -24,7 +24,7 @@ import com.lhf.game.map.Room.RoomBuilder;
 
 public class GsonBuilderFactoryTest {
     @Test
-    void testBuild() throws FileNotFoundException, AtlasMemberException {
+    void testBuild() throws FileNotFoundException, AtlasException {
         Inventory georgeInventory = new Inventory();
         georgeInventory.addItem(new Longsword());
         georgeInventory.addItem(new Takeable("Sharkbait"));
@@ -37,7 +37,11 @@ public class GsonBuilderFactoryTest {
         DungeonBuilder dungeon = Dungeon.DungeonBuilder.newInstance().addStartingRoom(roomBuilder)
                 .connectRoom(roomBuilder, Directions.WEST, nextRoomBuilder);
 
-        DMRoomBuilder dmRoom = DMRoom.DMRoomBuilder.buildDefault(null, null).addLandBuilder(dungeon);
+        DMRoomBuilder dmRoom = DMRoom.DMRoomBuilder.buildDefault(null, null).arrangeLandsInline(trawler -> {
+            if (trawler != null) {
+                trawler.plainAddMember(dungeon);
+            }
+        });
 
         GsonBuilderFactory gbf = new GsonBuilderFactory().conversation().items().creatureInfoBuilders().prettyPrinting()
                 .lands().areas();
@@ -51,7 +55,7 @@ public class GsonBuilderFactoryTest {
         DMRoomBuilder reconstituted = gson.fromJson(asJson, DMRoomBuilder.class);
 
         Truth.assertWithMessage("reconstituted map does not equal original")
-                .that(reconstituted.getLandBuilders().get(0).getAtlas()).isEqualTo(dungeon.getAtlas());
+                .that(reconstituted.getLandBuilders().getFirstMember()).isEqualTo(dungeon);
 
         Truth.assertWithMessage("builders do not match").that(dmRoom).isEqualTo(reconstituted);
 
