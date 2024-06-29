@@ -237,9 +237,15 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             if (comparison != 0) {
                 return comparison;
             }
-            comparison = this.predicate.compareTo(other.predicate);
-            if (comparison != 0) {
-                return comparison;
+            if (this.predicate == null && other.predicate != null) {
+                return 1;
+            } else if (this.predicate != null && other.predicate == null) {
+                return -1;
+            } else if (this.predicate != null && other.predicate != null) {
+                comparison = this.predicate.compareTo(other.predicate);
+                if (comparison != 0) {
+                    return comparison;
+                }
             }
 
             if (this.externalReferenceLocality != null && other.externalReferenceLocality == null) {
@@ -263,7 +269,14 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                 } // if both are null it doesn't matter
             } // if both are null it doesn't matter
 
-            return this.targetId.compareTo(other.targetId);
+            if (this.targetId != null && other.targetId == null) {
+                return -1;
+            } else if (this.targetId == null && other.targetId != null) {
+                return 1;
+            } else if (this.targetId != null && other.targetId != null) {
+                return this.targetId.compareTo(other.targetId);
+            }
+            return 0;
         }
 
         @Override
