@@ -16,7 +16,7 @@ import com.lhf.messages.MessageMatcher;
 
 public class ExternalReferenceTest {
     @Test
-    void testCanTraverse() throws AtlasException {
+    void testCanTraverseSameDungeon() throws AtlasException {
         final String dungeonName = "My Dungeon";
         final String roomAName = "roomA";
         final String roomBName = "roomB";
@@ -51,5 +51,52 @@ public class ExternalReferenceTest {
         bundle.brain.ProcessString("go west");
         Mockito.verify(bundle.sssb, Mockito.timeout(1000))
                 .send(Mockito.argThat(new MessageMatcher(GameEventType.BAD_GO, "wall")));
+    }
+
+    @Test
+    void testCanTraverseDifferentDungeon() throws AtlasException {
+        final String dungeonName = "My Dungeon";
+        final String roomAName = "roomA";
+        final String bDungeonName = "Their Dungeon";
+        final String roomBName = "roomB";
+        DungeonBuilder builderA = DungeonBuilder.newInstance();
+        builderA.setName(dungeonName);
+        DungeonBuilder builderB = DungeonBuilder.newInstance().setName(bDungeonName);
+        RoomBuilder roomABuilder = RoomBuilder.getInstance().setName(roomAName);
+        RoomBuilder roomBBuilder = RoomBuilder.getInstance().setName(roomBName);
+        builderA.addStartingRoom(roomABuilder);
+        builderB.addStartingRoom(roomBBuilder);
+        builderA.getAtlas().connectOneWayExternally(roomABuilder, Directions.EAST, null, bDungeonName, roomBName);
+
+        Dungeon dungeonA = builderA.quickBuild(null, null);
+        Dungeon dungeonB = builderB.quickBuild(null, null);
+        dungeonA.getAtlas()
+                .populateExternalReferences((dName, aName) -> bDungeonName.equals(dName) && roomBName.equals(aName)
+                        ? dungeonB.getAreaByName(aName).orElse(null)
+                        : null);
+
+        System.out.println(dungeonA.toMermaid(false));
+        System.out.println(dungeonB.toMermaid(false));
+
+        assertThat(dungeonA).areaByName(roomAName).isPresent();
+        assertThat(dungeonA).areaByName(roomBName).isEmpty();
+        assertThat(dungeonB).areaByName(roomBName).isPresent();
+        assertThat(dungeonB).areaByName(roomAName).isEmpty();
+
+        AIComBundle bundle = new AIComBundle();
+        dungeonA.addCreature(bundle.getNPC());
+        Mockito.verify(bundle.sssb, Mockito.timeout(1000)).send(Mockito.argThat(new MessageMatcher(GameEventType.SEE,
+                List.of(roomAName, Directions.EAST.toString().toLowerCase()), null)));
+
+        bundle.brain.ProcessString("go east");
+        Mockito.verify(bundle.sssb, Mockito.timeout(1000))
+                .send(Mockito.argThat(new MessageMatcher(GameEventType.SEE, List.of(roomBName), null)));
+
+        bundle.brain.ProcessString("go west");
+        Mockito.verify(bundle.sssb, Mockito.timeout(1000))
+                .send(Mockito.argThat(new MessageMatcher(GameEventType.BAD_GO, "wall")));
+
+        assertThat(dungeonB).hasCreature(bundle.getNPC());
+        assertThat(dungeonA).doesNotHaveCreature(bundle.getNPC());
     }
 }

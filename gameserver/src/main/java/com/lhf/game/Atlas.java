@@ -45,12 +45,12 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         final String memberID;
 
         public AtlasMemberException(String id) {
-            super(String.format("No atlas member found with id '%s'"));
+            super(String.format("No atlas member found with id '%s'", id));
             this.memberID = id;
         }
 
         public AtlasMemberException(String id, Throwable cause) {
-            super(String.format("No atlas member found with id '%s'"), cause);
+            super(String.format("No atlas member found with id '%s'", id), cause);
             this.memberID = id;
         }
 
@@ -751,6 +751,9 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             AtlasMappingItem<AtlasMemberType, AtlasLinkType, AtlasMemberID, AtlasTraversalTestType> item = this
                     .getAtlasMappingItem(memberId);
             if (item == null) {
+                if (memberId == null) {
+                    throw new AtlasMemberException(null, new NoSuchElementException("No element found for null ID"));
+                }
                 throw new AtlasMemberException(memberId.toString(),
                         new NoSuchElementException(String.format("No element found for id '%s'", memberId)));
             }
@@ -978,25 +981,29 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                     .noLink(new AtlasLinkException(from.toString(), "provided predicate", null, null));
         }
         for (TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType, AtlasMemberType> targetedTester : testers) {
-            if (targetedTester == null || targetedTester.targetId == null) {
+            if (targetedTester == null) {
                 if (ignoreLinkFailure) {
                     continue;
                 }
                 throw AtlasTraversalException.noLink(new AtlasLinkException(from.toString(), "provided predicate", null,
                         new IllegalStateException("Atlas link is null")));
             }
-            AtlasMemberType destination = targetedTester.getExternalTarget();
-            if (destination != null && traversalPredicate.test(targetedTester.predicate, member.atlasMember,
-                    targetedTester.link, destination)) {
-                return destination;
-            }
+
+            AtlasMemberType destination = null;
             try {
-                destination = this.getAtlasMemberOrThrow(targetedTester.targetId);
+                destination = targetedTester.getExternalTarget();
+                if (destination == null && targetedTester.targetId != null) {
+                    destination = this.getAtlasMemberOrThrow(targetedTester.targetId);
+                }
             } catch (AtlasMemberException e) {
                 if (ignoreLinkFailure) {
                     continue;
                 }
                 throw AtlasTraversalException.noDestination(e);
+            }
+            if (destination == null) {
+                throw AtlasTraversalException.noDestination(
+                        new AtlasException("Neither an internal target nor an external reference found"));
             }
             if (traversalPredicate.test(targetedTester.predicate, member.atlasMember, targetedTester.link,
                     destination)) {
@@ -1378,21 +1385,26 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                 if (targeted.externalReferenceLocality != null || targeted.externalTargetName != null) {
                     externalRefState = String.format("%s%s%s%s", id, targeted.link, targeted.externalReferenceLocality,
                             targeted.externalTargetName).replaceAll("\\W", "_");
-                    forkState = "if_" + externalRefState;
-                    sb.append(this.indent).append("state ").append(forkState).append(" <<fork>> \n");
                     sb.append(this.indent).append(externalRefState).append(" : ");
                     sb.append("Locality \"").append(targeted.externalReferenceLocality).append("\"\\nName \"")
                             .append(targeted.externalTargetName).append("\"\n");
+                }
+                if (externalRefState != null && targeted.targetId != null) {
+                    forkState = "if_" + externalRefState;
+                    sb.append(this.indent).append("state ").append(forkState).append(" <<fork>> \n");
                     sb.append(this.indent).append(forkState).append(" --> ").append(externalRefState)
                             .append(" : External Reference\n");
+                    sb.append(this.indent).append(forkState).append(" --> ").append(targetedID)
+                            .append(" : Internal Reference\n");
                 }
                 sb.append(this.indent).append(id).append(" --> ");
                 if (forkState != null) {
-                    sb.append(forkState);
+                    sb.append(forkState).append(" : ");
+                } else if (externalRefState != null) {
+                    sb.append(externalRefState).append(" : (External Reference) ");
                 } else {
-                    sb.append(targetedID);
+                    sb.append(targetedID).append(" : ");
                 }
-                sb.append(" : ");
                 if (targeted.link != null) {
                     sb.append(this.displayLink(targeted.link)).append(" ");
                 }
@@ -1400,10 +1412,6 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                     sb.append(this.displayTraversalTest(targeted.predicate));
                 }
                 sb.append("\r\n");
-                if (forkState != null && targeted.targetId != null) {
-                    sb.append(this.indent).append(forkState).append(" --> ").append(targetedID)
-                            .append(" : Internal Reference\n");
-                }
             }
             return sb.toString();
         }
