@@ -524,10 +524,12 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                 throw new IllegalArgumentException(String.format(
                         "If the external target name is provided ('%s'), the external locality must be provided as well!",
                         externalTargetName));
-            } else if (externalLocality == null) {
-                throw new IllegalArgumentException(
-                        "The external locality must be provided and the external target name is optional");
             }
+            // else if (externalLocality == null) {
+            // throw new IllegalArgumentException(
+            // "The external locality must be provided and the external target name is
+            // optional");
+            // }
 
             if (toSecond == null) {
                 throw new IllegalArgumentException("The provided link to the second must not be null!");
@@ -1257,6 +1259,11 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             }
             final AtlasMemberID mappingItemId = this.getIDForMemberType(mappingItem.getAtlasMember());
             final TranslateMemberType translatedMember = memberTransformer.apply(member);
+            if (translatedMember == null) {
+                throw new NullPointerException(String.format(
+                        "The member transformer must not transform anything to null! Among which, this member: %s",
+                        member));
+            }
             final TranslateID translatedID = translation.getIDForMemberType(translatedMember);
             translation.addMember(translatedMember);
             visited.put(mappingItemId, translatedID);
@@ -1269,14 +1276,14 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                     .getAtlasMappingItem(vistedEntry.getValue());
             for (final TargetedTester<AtlasLinkType, AtlasMemberID, AtlasTraversalTestType, AtlasMemberType> tester : member.links) {
                 final AtlasMemberID targetMemberID = tester.getTargetId();
-                final AtlasMappingItem<TranslateMemberType, TranslateLinkType, TranslateID, TranslateTraversalTestType> translatedTarget = translation
-                        .getAtlasMappingItem(visited.get(targetMemberID));
+                final TranslateMemberType accrossTranslation = translation
+                        .getAtlasMemberOrNull(visited.getOrDefault(targetMemberID, null));
                 final AtlasLinkType link = tester.getLink();
-                final TranslateMemberType accrossTranslation = translatedTarget.getAtlasMember();
                 final AtlasTraversalTestType predicate = tester.getPredicate();
                 try {
-                    translation.connectOneWay(translatedMember.getAtlasMember(), linkTransformer.apply(link),
-                            accrossTranslation, traversalTestTransformer.apply(predicate));
+                    translation.connectOneWayExternallyInternalFallback(translatedMember.getAtlasMember(),
+                            linkTransformer.apply(link), traversalTestTransformer.apply(predicate),
+                            tester.externalReferenceLocality, tester.externalTargetName, accrossTranslation);
                 } catch (AtlasMemberException e) {
                     throw new AtlasException(String.format(
                             "Cannot complete the translation linking of this Atlas '%s', especially between this member '%s' and the translation '%s'",
@@ -1365,8 +1372,27 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                 if (targeted == null) {
                     continue;
                 }
-                sb.append(this.indent).append(id).append(" --> ")
-                        .append(this.displayID(targeted.targetId).replace("-", "")).append(" : ");
+                final String targetedID = this.displayID(targeted.targetId).replace("-", "");
+                String externalRefState = null;
+                String forkState = null;
+                if (targeted.externalReferenceLocality != null || targeted.externalTargetName != null) {
+                    externalRefState = String.format("%s%s%s%s", id, targeted.link, targeted.externalReferenceLocality,
+                            targeted.externalTargetName).replaceAll("\\W", "_");
+                    forkState = "if_" + externalRefState;
+                    sb.append(this.indent).append("state ").append(forkState).append(" <<fork>> \n");
+                    sb.append(this.indent).append(externalRefState).append(" : ");
+                    sb.append("Locality \"").append(targeted.externalReferenceLocality).append("\"\\nName \"")
+                            .append(targeted.externalTargetName).append("\"\n");
+                    sb.append(this.indent).append(forkState).append(" --> ").append(externalRefState)
+                            .append(" : External Reference\n");
+                }
+                sb.append(this.indent).append(id).append(" --> ");
+                if (forkState != null) {
+                    sb.append(forkState);
+                } else {
+                    sb.append(targetedID);
+                }
+                sb.append(" : ");
                 if (targeted.link != null) {
                     sb.append(this.displayLink(targeted.link)).append(" ");
                 }
@@ -1374,6 +1400,10 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                     sb.append(this.displayTraversalTest(targeted.predicate));
                 }
                 sb.append("\r\n");
+                if (forkState != null && targeted.targetId != null) {
+                    sb.append(this.indent).append(forkState).append(" --> ").append(targetedID)
+                            .append(" : Internal Reference\n");
+                }
             }
             return sb.toString();
         }
