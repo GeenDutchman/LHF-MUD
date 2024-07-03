@@ -45,6 +45,7 @@ import com.lhf.game.item.AItem;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.ItemPartitionListVisitor;
 import com.lhf.game.item.concrete.Corpse;
+import com.lhf.game.item.concrete.InteractDoor;
 import com.lhf.game.lewd.LewdBabyMaker;
 import com.lhf.game.map.Land.LandBuilder;
 import com.lhf.game.map.Land.LandBuilder.LandBuilderID;
@@ -299,10 +300,18 @@ public class DMRoom extends Room {
                 throw new IllegalStateException("The DMRoom to be built cannot already have a null land atlas!?!");
             }
 
-            toBuild.translate(dmRoom.lands,
-                    landBuilder -> landBuilder != null ? landBuilder.build(successor != null ? successor : dmRoom,
-                            aiRunner, conversationManager, fallbackNoConversation) : null,
-                    dir -> dir, door -> door);
+            final HashSet<InteractDoor> doors = new HashSet<>();
+
+            toBuild.translate(dmRoom.lands, landBuilder -> {
+                if (landBuilder != null) {
+                    doors.addAll(landBuilder.getAtlas().getAtlasMembers().stream()
+                            .filter(areaBuilder -> areaBuilder != null)
+                            .flatMap(areaBuilder -> areaBuilder.getItems().getInteractDoors().stream()).toList());
+                    return landBuilder.build(successor != null ? successor : dmRoom, aiRunner, conversationManager,
+                            fallbackNoConversation);
+                }
+                return null;
+            }, dir -> dir, door -> door);
 
             final BiFunction<String, String, Area> lookupFunction = (landName, areaName) -> {
                 if (landName == null || areaName == null) {
@@ -319,6 +328,12 @@ public class DMRoom extends Room {
                     continue;
                 }
                 land.getAtlas().populateExternalReferences(lookupFunction);
+            }
+            for (final InteractDoor door : doors) {
+                if (door == null) {
+                    continue;
+                }
+                door.populateExternalReference(lookupFunction);
             }
         }
 
