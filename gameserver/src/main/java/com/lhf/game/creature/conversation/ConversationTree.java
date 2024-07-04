@@ -495,7 +495,7 @@ public class ConversationTree implements Serializable {
 
         public String toMermaidStateDiagram(boolean fence) {
             final String spacing = "    ";
-            String mermaid = this.conversationAtlas.generateMermaidWriter(spacing).printStateDiagram(fence, true);
+            String mermaid = this.conversationAtlas.generateMermaidWriter(spacing).printStateDiagram(fence, true, true);
 
             StringBuilder sb = new StringBuilder();
             final String startID = this.start.getNodeID().toString().replace("-", "");
@@ -682,7 +682,7 @@ public class ConversationTree implements Serializable {
 
     public String toMermaidStateDiagram(boolean fence) {
         final String spacing = "    ";
-        String mermaid = this.conversationAtlas.generateMermaidWriter(spacing).printStateDiagram(fence, true);
+        String mermaid = this.conversationAtlas.generateMermaidWriter(spacing).printStateDiagram(fence, true, true);
 
         StringBuilder sb = new StringBuilder();
         final String startID = this.start.getNodeID().toString().replace("-", "");

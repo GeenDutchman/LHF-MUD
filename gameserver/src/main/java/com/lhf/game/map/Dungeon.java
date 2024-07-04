@@ -157,7 +157,7 @@ public class Dungeon implements Land {
         }
 
         public String toMermaid(boolean fence) {
-            return "DungeonBuilder\r\n" + this.atlas.generateMermaidWriter("    ").printStateDiagram(fence, true);
+            return "DungeonBuilder\r\n" + this.atlas.generateMermaidWriter("    ").printStateDiagram(fence, true, true);
         }
 
         @Override
@@ -472,7 +472,7 @@ public class Dungeon implements Land {
     }
 
     public String toMermaid(boolean fence) {
-        return this.getName() + "\r\n" + this.atlas.generateMermaidWriter("    ").printStateDiagram(fence, true);
+        return this.getName() + "\r\n" + this.atlas.generateMermaidWriter("    ").printStateDiagram(fence, true, true);
     }
 
     @Override

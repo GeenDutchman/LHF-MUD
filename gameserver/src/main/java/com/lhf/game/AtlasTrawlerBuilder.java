@@ -231,7 +231,7 @@ public class AtlasTrawlerBuilder<Member, ID extends Comparable<ID>, Link extends
 
             };
         }
-        return writer.printStateDiagram(fence, includeStart);
+        return writer.printStateDiagram(fence, includeStart, true);
     }
 
     public final String printMermaid() {

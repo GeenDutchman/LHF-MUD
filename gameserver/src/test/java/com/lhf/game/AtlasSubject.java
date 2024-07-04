@@ -80,7 +80,7 @@ public class AtlasSubject<AtlasMemberType, AtlasMemberID extends Comparable<Atla
         final boolean fence = false;
         final boolean includeStart = true;
         return check("generateMermaidWriter('%s').printStateDiagram(%s, %s)", indent, fence, includeStart)
-                .that(this.actual.generateMermaidWriter(indent).printStateDiagram(fence, includeStart));
+                .that(this.actual.generateMermaidWriter(indent).printStateDiagram(fence, includeStart, true));
     }
 
     public StringSubject asString() {

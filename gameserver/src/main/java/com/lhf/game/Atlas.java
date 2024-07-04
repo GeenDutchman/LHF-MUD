@@ -1416,13 +1416,15 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             return sb.toString();
         }
 
-        public final String printStateDiagram(boolean fence, boolean includeStart) {
+        public final String printStateDiagram(boolean fence, boolean includeStart, boolean includeHeaderType) {
             StringBuilder sb = new StringBuilder();
             StringBuilder linkBuilder = new StringBuilder();
             if (fence) {
                 sb.append("```mermaid\r\n");
             }
-            sb.append("stateDiagram-v2\r\n");
+            if (includeHeaderType) {
+                sb.append("stateDiagram-v2\r\n");
+            }
 
             if (includeStart) {
                 linkBuilder.append(this.startsWith(getFirstMember()));
@@ -1461,7 +1463,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
 
         @Override
         public String toString() {
-            return this.printStateDiagram(false, true);
+            return this.printStateDiagram(false, true, true);
         }
 
     }

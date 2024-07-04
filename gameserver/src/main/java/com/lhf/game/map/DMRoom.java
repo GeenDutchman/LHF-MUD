@@ -473,6 +473,10 @@ public class DMRoom extends Room {
         this.commands.keySet().removeAll(builder.getForbiddenCommandTypes());
     }
 
+    public LandAtlas getLands() {
+        return lands;
+    }
+
     public boolean addUser(User user) {
         if (this.filterCreatures(EnumSet.of(CreatureContainer.CreatureFilters.TYPE), null, null, null, null,
                 DungeonMaster.class, null).size() < 2) {
@@ -513,6 +517,10 @@ public class DMRoom extends Room {
             }
         }
         return null;
+    }
+
+    public Land getFirstLand() {
+        return this.lands.getFirstMember();
     }
 
     public boolean addNewPlayer(Player player) {

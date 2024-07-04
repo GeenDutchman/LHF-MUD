@@ -66,12 +66,26 @@ public class Room implements Area {
                 interactObject.setArea(Room.this);
             }
         };
+
+        @Override
+        public void visit(com.lhf.game.item.concrete.InteractDoor door) {
+            if (door != null) {
+                door.setArea(Room.this);
+            }
+        };
     };
     private final transient ItemVisitor itemRemovalVisitor = new ItemNoOpVisitor() {
         @Override
         public void visit(com.lhf.game.item.InteractObject interactObject) {
             if (interactObject != null) {
                 interactObject.setArea(null);
+            }
+        };
+
+        @Override
+        public void visit(com.lhf.game.item.concrete.InteractDoor door) {
+            if (door != null) {
+                door.setArea(null);
             }
         };
     };

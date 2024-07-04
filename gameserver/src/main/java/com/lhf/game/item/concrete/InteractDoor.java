@@ -62,22 +62,6 @@ public final class InteractDoor extends InteractObject implements Lockable {
         return new InteractDoor(this);
     }
 
-    @Override
-    public synchronized void setArea(Area area) {
-        if (area == null) {
-            this.area = null;
-            this.secondArea = null;
-        } else if (this.area == null || this.area.equals(area)) {
-            this.area = area;
-        } else if (this.secondArea == null) {
-            this.secondArea = area;
-        } else {
-            throw new IllegalStateException(
-                    String.format("First and second areas (%s %s) are already set, cannot set to %s", this.area,
-                            this.secondArea, area));
-        }
-    }
-
     public synchronized void setSecondArea(Area area) {
         this.secondArea = area;
     }

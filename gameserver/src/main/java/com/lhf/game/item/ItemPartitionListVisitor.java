@@ -103,7 +103,7 @@ public class ItemPartitionListVisitor implements ItemVisitor, ItemContainer {
     }
 
     public List<InteractObject> getInteractObjects() {
-        ArrayList<InteractObject> consolidated = new ArrayList<>(this.interactDoors);
+        ArrayList<InteractObject> consolidated = new ArrayList<>(this.interactObjects);
         consolidated.addAll(this.interactDoors);
         return Collections.unmodifiableList(consolidated);
     }
