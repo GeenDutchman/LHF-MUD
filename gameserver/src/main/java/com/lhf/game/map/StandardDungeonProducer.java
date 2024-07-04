@@ -131,7 +131,6 @@ public final class StandardDungeonProducer {
                 secretRoomBuilder.getName());
 
         statueRoomBuilder.addItem(statue);
-        secretRoomBuilder.addItem(statue);
 
         // RM6 The armory
         Room.RoomBuilder armoryBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
