@@ -1358,6 +1358,13 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
 
         protected abstract String displayMemberNote(AtlasMemberType member);
 
+        protected String displayMember(AtlasMemberType member) {
+            if (member == null) {
+                return "null";
+            }
+            return Atlas.this.getNameForMemberType(member);
+        }
+
         protected String startsWith(AtlasMemberType starter) {
             StringBuilder sb = new StringBuilder();
             if (starter != null) {
@@ -1437,7 +1444,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                     continue;
                 }
                 final String id = this.displayID(Atlas.this.getIDForMemberType(member)).replace("-", "");
-                sb.append(indent).append(id).append(":").append(Atlas.this.getNameForMemberType(member)).append("\r\n");
+                sb.append(indent).append(id).append(":").append(this.displayMember(member)).append("\r\n");
                 final String note = this.displayMemberNote(member);
                 if (note != null && !note.isBlank()) {
                     if (note != null && !note.isBlank()) {

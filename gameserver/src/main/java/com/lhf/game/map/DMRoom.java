@@ -101,7 +101,7 @@ public class DMRoom extends Room {
 
                 @Override
                 protected String displayID(String id) {
-                    return id;
+                    return id != null ? id.replaceAll(" |-", "_") : "null";
                 }
 
                 @Override
@@ -117,6 +117,24 @@ public class DMRoom extends Room {
                 @Override
                 protected String displayMemberNote(Land member) {
                     return "";
+                }
+
+                @Override
+                protected String displayMember(Land member) {
+                    if (member == null) {
+                        return "null";
+                    }
+                    StringBuilder sb = new StringBuilder(super.displayMember(member)).append("\n");
+                    sb.append(indent).append("state ")
+                            .append(this.displayID(LandAtlas.this.getIDForMemberType(member).replaceAll("-| ", "_")))
+                            .append(" {\n");
+                    String landMermaid = member.getAtlas().generateMermaidWriter(indent).printStateDiagram(false, true,
+                            false);
+                    for (String part : landMermaid.split("\\r?\\n")) {
+                        sb.append(indent).append(part).append("\n");
+                    }
+                    sb.append(indent).append("}\n");
+                    return sb.toString();
                 }
 
             };

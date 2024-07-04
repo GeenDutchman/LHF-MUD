@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -24,11 +25,15 @@ import com.lhf.game.Atlas;
 import com.lhf.game.Atlas.AtlasException;
 import com.lhf.game.Atlas.AtlasFunction;
 import com.lhf.game.Atlas.AtlasTraversalException;
+import com.lhf.game.ItemContainer.ItemFilterQuery;
+import com.lhf.game.ItemContainer.ItemFilters;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
+import com.lhf.game.item.IItem;
+import com.lhf.game.item.ItemNameSearchVisitor;
 import com.lhf.game.item.ItemNoOpVisitor;
 import com.lhf.game.item.concrete.InteractDoor;
 import com.lhf.game.map.Area.AreaBuilder;
@@ -114,6 +119,48 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
                 @Override
                 protected String displayMemberNote(Area member) {
                     return "";
+                }
+
+                @Override
+                protected String displayMember(Area member) {
+                    if (member == null) {
+                        return "null";
+                    }
+                    ItemFilterQuery query = new ItemFilterQuery();
+                    query.clazz = InteractDoor.class;
+                    query.filters = EnumSet.of(ItemFilters.TYPE);
+                    ItemNameSearchVisitor searcher = new ItemNameSearchVisitor(query);
+                    member.acceptItemVisitor(searcher);
+
+                    StringBuilder sb = new StringBuilder(super.displayMember(member));
+
+                    if (searcher.isEmpty()) {
+                        return sb.toString();
+                    }
+
+                    sb.append("\n").append(indent).append("state ")
+                            .append(this.displayID(AreaAtlas.this.getIDForMemberType(member)).replaceAll("-", ""))
+                            .append(" {\n");
+                    for (InteractDoor door : searcher.getInteractDoors()) {
+                        sb.append(indent).append(indent).append(door.getItemID().toString().replace("-", ""))
+                                .append(" : ").append(door.getName()).append("\r\n");
+                        if (door.getSecondArea() != null) {
+                            sb.append(indent).append(indent).append(door.getItemID().toString().replace("-", ""))
+                                    .append(" --> ")
+                                    .append(this.displayID(AreaAtlas.this.getIDForMemberType(door.getSecondArea()))
+                                            .replaceAll("-", ""))
+                                    .append(" : ").append("InteractDoor enabled=").append(door.isUnlocked())
+                                    .append("\n");
+                        } else {
+                            sb.append(indent).append(indent).append("note right of ")
+                                    .append(door.getItemID().toString().replace("-", "")).append("\r\n");
+                            sb.append(indent).append(indent).append(indent).append(door.toString()).append("\r\n");
+                            sb.append(indent).append(indent).append("end note\n");
+                        }
+                    }
+                    sb.append(indent).append("}\n");
+
+                    return sb.toString();
                 }
 
             };

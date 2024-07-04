@@ -5,6 +5,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import com.lhf.game.AtlasSubject;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.item.concrete.InteractDoor;
 import com.lhf.game.map.DMRoom.DMRoomBuilder;
@@ -33,8 +34,9 @@ public class DMRoomTest {
 
         final DMRoom built = builder.quickBuild(null, null, null);
         AreaSubject.assertThat(built).isNotNull();
-        // AtlasSubject.assertThat(built.getLands()).asMermaid().contains(landBRoomBName);
-        // AtlasSubject.assertThat(built.getLands()).asMermaid().contains(landARoomAName);
+        AtlasSubject.assertThat(built.getLands()).asMermaid().contains(landBRoomBName);
+        AtlasSubject.assertThat(built.getLands()).asMermaid().contains(landARoomAName);
+        AtlasSubject.assertThat(built.getLands()).asMermaid().contains(door.getName());
         LandSubject.assertThat(built.getFirstLand()).startingArea().asItemContainer().containsExactly(door);
 
         AIComBundle bundle = new AIComBundle();

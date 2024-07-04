@@ -160,4 +160,12 @@ public final class InteractDoor extends InteractObject implements Lockable {
         this.enabled.set(false);
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("InteractDoor [secondLocality=").append(secondLocality).append(", secondName=")
+                .append(secondName).append(", enabled=").append(enabled).append("]");
+        return builder.toString();
+    }
+
 }
