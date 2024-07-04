@@ -1,11 +1,17 @@
 package com.lhf.game.item;
 
+import com.lhf.game.item.concrete.InteractDoor;
 import com.lhf.game.item.concrete.Item;
 
 public class ItemNoOpVisitor implements ItemVisitor {
 
     @Override
     public void visit(InteractObject interactObject) {
+        // deliberate no-operation
+    }
+
+    @Override
+    public void visit(InteractDoor door) {
         // deliberate no-operation
     }
 

@@ -1,26 +1,27 @@
 package com.lhf.game.map;
 
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.lhf.game.Atlas;
 import com.lhf.game.Atlas.AtlasException;
+import com.lhf.game.AtlasTrawlerBuilder;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.EffectPersistence;
-import com.lhf.game.Game;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.CreatureFactory;
@@ -42,8 +43,12 @@ import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.AItem;
 import com.lhf.game.item.IItem;
+import com.lhf.game.item.ItemPartitionListVisitor;
 import com.lhf.game.item.concrete.Corpse;
+import com.lhf.game.item.concrete.InteractDoor;
 import com.lhf.game.lewd.LewdBabyMaker;
+import com.lhf.game.map.Land.LandBuilder;
+import com.lhf.game.map.Land.LandBuilder.LandBuilderID;
 import com.lhf.game.map.RestArea.LewdStyle;
 import com.lhf.game.map.SubArea.ISubAreaBuildInfo;
 import com.lhf.game.map.SubArea.SubAreaCasting;
@@ -67,24 +72,139 @@ import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.SayMessage;
 import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.client.user.User;
-import com.lhf.server.interfaces.NotNull;
 
 public class DMRoom extends Room {
-    private Set<User> users;
-    private List<Land> lands;
+
+    private final class LandAtlas extends Atlas<Land, String, Directions, Doorway> {
+
+        @Override
+        public String getIDForMemberType(Land member) {
+            return member != null ? member.getName() : null;
+        }
+
+        @Override
+        public String getNameForMemberType(Land member) {
+            return member != null ? member.getName() : null;
+        }
+
+        @Override
+        public Directions translateLinkToOpposite(Directions link) {
+            if (link == null) {
+                return null;
+            }
+            return link.opposite();
+        }
+
+        @Override
+        public Atlas<Land, String, Directions, Doorway>.AtlasToMermaidWriter generateMermaidWriter(String indent) {
+            return this.new AtlasToMermaidWriter(indent) {
+
+                @Override
+                protected String displayID(String id) {
+                    return id != null ? id.replaceAll(" |-", "_") : "null";
+                }
+
+                @Override
+                protected String displayLink(Directions link) {
+                    return link != null ? link.toString() : "null";
+                }
+
+                @Override
+                protected String displayTraversalTest(Doorway traversal) {
+                    return "";
+                }
+
+                @Override
+                protected String displayMemberNote(Land member) {
+                    return "";
+                }
+
+                @Override
+                protected String displayMember(Land member) {
+                    if (member == null) {
+                        return "null";
+                    }
+                    StringBuilder sb = new StringBuilder(super.displayMember(member)).append("\n");
+                    sb.append(indent).append("state ")
+                            .append(this.displayID(LandAtlas.this.getIDForMemberType(member).replaceAll("-| ", "_")))
+                            .append(" {\n");
+                    String landMermaid = member.getAtlas().generateMermaidWriter(indent).printStateDiagram(false, true,
+                            false);
+                    for (String part : landMermaid.split("\\r?\\n")) {
+                        sb.append(indent).append(part).append("\n");
+                    }
+                    sb.append(indent).append("}\n");
+                    return sb.toString();
+                }
+
+            };
+        }
+
+    }
+
+    private transient Set<User> users;
+    private final LandAtlas lands;
     private transient Map<AMessageType, CommandHandler> commands;
 
     public static class DMRoomBuilder implements Area.AreaBuilder {
+        public final static class LandBuilderAtlas extends Atlas<LandBuilder, LandBuilderID, Directions, Doorway>
+                implements Serializable {
+
+            @Override
+            public LandBuilderID getIDForMemberType(LandBuilder member) {
+                return member != null ? member.getLandBuilderID() : null;
+            }
+
+            @Override
+            public String getNameForMemberType(LandBuilder member) {
+                return member != null ? member.getName() : null;
+            }
+
+            @Override
+            public Directions translateLinkToOpposite(Directions link) {
+                return link != null ? link.opposite() : null;
+            }
+
+            @Override
+            public Atlas<LandBuilder, LandBuilderID, Directions, Doorway>.AtlasToMermaidWriter generateMermaidWriter(
+                    String indent) {
+                return new AtlasToMermaidWriter(indent) {
+
+                    @Override
+                    protected String displayID(LandBuilderID id) {
+                        return id != null ? id.toString() : "null";
+                    }
+
+                    @Override
+                    protected String displayLink(Directions link) {
+                        return link != null ? link.toString() : "null";
+                    }
+
+                    @Override
+                    protected String displayTraversalTest(Doorway traversal) {
+                        return "";
+                    }
+
+                    @Override
+                    protected String displayMemberNote(LandBuilder member) {
+                        return "";
+                    }
+
+                };
+            }
+
+        };
+
         private final String className;
         private final transient Logger logger;
         private Room.RoomBuilder delegate;
-        private List<Land.LandBuilder> landBuilders;
+        private LandBuilderAtlas landBuilders;
 
         private DMRoomBuilder() {
             this.className = this.getClass().getName();
             this.logger = Logger.getLogger(this.className);
             this.delegate = Room.RoomBuilder.getInstance();
-            this.landBuilders = new ArrayList<>();
+            this.landBuilders = new LandBuilderAtlas();
         }
 
         public static DMRoomBuilder getInstance() {
@@ -121,9 +241,14 @@ public class DMRoom extends Room {
             return this;
         }
 
-        public DMRoomBuilder addLandBuilder(Land.LandBuilder builder) {
-            if (builder != null) {
-                this.landBuilders.add(builder);
+        public AtlasTrawlerBuilder<LandBuilder, LandBuilderID, Directions, Doorway> getTrawlerBuilder() {
+            return this.landBuilders.getTrawlerBuilder();
+        }
+
+        public DMRoomBuilder arrangeLandsInline(
+                Consumer<AtlasTrawlerBuilder<LandBuilder, LandBuilderID, Directions, Doorway>> arranger) {
+            if (arranger != null) {
+                arranger.accept(this.getTrawlerBuilder());
             }
             return this;
         }
@@ -148,8 +273,8 @@ public class DMRoom extends Room {
             return this.delegate.getForbiddenCommandTypes();
         }
 
-        public List<Land.LandBuilder> getLandBuilders() {
-            return Collections.unmodifiableList(this.landBuilders);
+        public LandBuilderAtlas getLandBuilders() {
+            return this.landBuilders;
         }
 
         @Override
@@ -158,7 +283,7 @@ public class DMRoom extends Room {
         }
 
         @Override
-        public Collection<IItem> getItems() {
+        public ItemPartitionListVisitor getItems() {
             return this.delegate.getItems();
         }
 
@@ -182,20 +307,52 @@ public class DMRoom extends Room {
             return delegate.getSubAreasToBuild();
         }
 
-        private List<Land> buildLands(AIRunner aiRunner, DMRoom dmRoom, Game game,
+        private void buildLands(DMRoom dmRoom, CommandChainHandler successor, AIRunner aiRunner,
                 ConversationManager conversationManager, boolean fallbackNoConversation) throws AtlasException {
-            List<Land.LandBuilder> toBuild = this.getLandBuilders();
-            if (toBuild == null) {
-                return List.of();
+            LandBuilderAtlas toBuild = this.getLandBuilders();
+            if (toBuild.size() == 0) {
+                toBuild.addMember(Dungeon.DungeonBuilder.newInstance().addStartingRoom(
+                        Room.RoomBuilder.getInstance().setDescription("What a boring, default room!")));
             }
-            List<Land> built = new ArrayList<>();
-            for (final Land.LandBuilder builder : toBuild) {
-                if (builder == null) {
+            if (dmRoom.lands == null) {
+                throw new IllegalStateException("The DMRoom to be built cannot already have a null land atlas!?!");
+            }
+
+            final HashSet<InteractDoor> doors = new HashSet<>();
+
+            toBuild.translate(dmRoom.lands, landBuilder -> {
+                if (landBuilder != null) {
+                    doors.addAll(landBuilder.getAtlas().getAtlasMembers().stream()
+                            .filter(areaBuilder -> areaBuilder != null)
+                            .flatMap(areaBuilder -> areaBuilder.getItems().getInteractDoors().stream()).toList());
+                    return landBuilder.build(successor != null ? successor : dmRoom, aiRunner, conversationManager,
+                            fallbackNoConversation);
+                }
+                return null;
+            }, dir -> dir, door -> door);
+
+            final BiFunction<String, String, Area> lookupFunction = (landName, areaName) -> {
+                if (landName == null || areaName == null) {
+                    return null;
+                }
+                final Land land = dmRoom.lands.getAtlasMemberOrNull(landName);
+                if (land != null) {
+                    return land.getAreaByName(areaName).orElse(null);
+                }
+                return null;
+            };
+            for (final Land land : dmRoom.lands) {
+                if (land == null) {
                     continue;
                 }
-                built.add(builder.build(game, aiRunner, conversationManager, fallbackNoConversation));
+                land.getAtlas().populateExternalReferences(lookupFunction);
             }
-            return Collections.unmodifiableList(built);
+            for (final InteractDoor door : doors) {
+                if (door == null) {
+                    continue;
+                }
+                door.populateExternalReference(lookupFunction);
+            }
         }
 
         @Override
@@ -210,16 +367,12 @@ public class DMRoom extends Room {
                     room.addSubArea(subAreaBuilder);
                 }
             }, () -> (dmRoom) -> {
-                List<Land> landsBuilt;
                 try {
-                    landsBuilt = this.buildLands(aiRunner, dmRoom, null, conversationManager, fallbackNoConversation);
+                    this.buildLands(dmRoom, successor, aiRunner, conversationManager, fallbackNoConversation);
                 } catch (AtlasException e) {
                     final String errDesc = String.format("Cannot build lands for DMRoom with builder '%s'", this);
                     this.logger.log(Level.SEVERE, errDesc, e);
                     throw new IllegalStateException(errDesc, e);
-                }
-                for (Land toAdd : landsBuilt) {
-                    dmRoom.addLand(toAdd);
                 }
             });
         }
@@ -332,15 +485,14 @@ public class DMRoom extends Room {
 
     DMRoom(DMRoomBuilder builder, Supplier<Land> landSupplier, Supplier<CommandChainHandler> successorSupplier) {
         super(builder.delegate, landSupplier, successorSupplier);
-        this.lands = new ArrayList<>();
+        this.lands = new LandAtlas();
         this.users = new HashSet<>();
         this.commands = this.buildCommands();
         this.commands.keySet().removeAll(builder.getForbiddenCommandTypes());
     }
 
-    public boolean addLand(@NotNull Land land) {
-        land.setSuccessor(this);
-        return this.lands.add(land);
+    public LandAtlas getLands() {
+        return lands;
     }
 
     public boolean addUser(User user) {
@@ -385,15 +537,19 @@ public class DMRoom extends Room {
         return null;
     }
 
+    public Land getFirstLand() {
+        return this.lands.getFirstMember();
+    }
+
     public boolean addNewPlayer(Player player) {
         if (this.lands.size() <= 0) {
             return this.addCreature(player);
         }
-        return this.lands.get(0).addPlayer(player);
+        return this.lands.getFirstMember().addPlayer(player);
     }
 
     public void userExitSystem(User user) {
-        for (Land land : this.lands) {
+        for (Land land : this.lands.getAtlasMembers()) {
             if (land.removePlayer(user.getUserID()).isPresent()) {
                 land.announce(UserLeftEvent.getBuilder().setUser(user).setBroacast().Build());
             }

@@ -5,7 +5,7 @@ import java.util.Optional;
 
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.ItemNameSearchVisitor;
-import com.lhf.game.item.ItemPartitionCollectionVisitor;
+import com.lhf.game.item.ItemPartitionListVisitor;
 import com.lhf.game.map.Area.AreaCommandHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -38,7 +38,7 @@ public class AreaInteractHandler implements AreaCommandHandler {
         if (!AreaCommandHandler.super.isEnabled(ctx) || ctx.getCreature().isInBattle()) {
             return false;
         }
-        ItemPartitionCollectionVisitor visitor = new ItemPartitionCollectionVisitor();
+        ItemPartitionListVisitor visitor = new ItemPartitionListVisitor();
         ctx.getArea().acceptItemVisitor(visitor);
         return !visitor.getInteractObjects().isEmpty();
     }
@@ -54,7 +54,7 @@ public class AreaInteractHandler implements AreaCommandHandler {
             return ctx.handled();
         }
         String name = intMessage.getObject();
-        ItemPartitionCollectionVisitor partitionVisitor = new ItemPartitionCollectionVisitor();
+        ItemPartitionListVisitor partitionVisitor = new ItemPartitionListVisitor();
         ctx.getArea().getItems().stream().filter(item -> item != null)
                 .forEach(item -> item.acceptItemVisitor(partitionVisitor));
         ItemNameSearchVisitor nameSearchVisitor = new ItemNameSearchVisitor(name, 3);

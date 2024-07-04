@@ -8,6 +8,7 @@ import java.util.UUID;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import com.lhf.RichOutput.RichOutputBuilder;
+import com.lhf.game.Atlas.AtlasException;
 import com.lhf.game.Atlas.AtlasMemberException;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.battle.BattleManager;
@@ -51,8 +52,8 @@ import com.lhf.game.serialization.GsonBuilderFactory;
 
 public final class StandardDungeonProducer {
     public static DungeonBuilder buildStaticDungeonBuilder(BuildInfoManager statblockLoader)
-            throws JsonIOException, JsonSyntaxException, IOException, AtlasMemberException {
-        DungeonBuilder builder = DungeonBuilder.newInstance();
+            throws JsonIOException, JsonSyntaxException, IOException, AtlasException {
+        DungeonBuilder builder = DungeonBuilder.newInstance().setName("Ibaif");
 
         GsonBuilderFactory gsonFactory = GsonBuilderFactory.start().creatureInfoBuilders();
 
@@ -126,10 +127,10 @@ public final class StandardDungeonProducer {
         statueRoomBuilder.addItem(bossNote);
 
         InteractDoor statue = new InteractDoor("golden statue",
-                "The statue has a start to a riddle, but it looks like it hasn't been finished yet.");
+                "The statue has a start to a riddle, but it looks like it hasn't been finished yet.", builder.getName(),
+                secretRoomBuilder.getName());
 
         statueRoomBuilder.addItem(statue);
-        secretRoomBuilder.addItem(statue);
 
         // RM6 The armory
         Room.RoomBuilder armoryBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
@@ -188,7 +189,7 @@ public final class StandardDungeonProducer {
         return builder;
     }
 
-    public static DungeonBuilder buildBHDormitory(BuildInfoManager statblockLoader) throws AtlasMemberException {
+    public static DungeonBuilder buildBHDormitory(BuildInfoManager statblockLoader) throws AtlasException {
         final DungeonBuilder builder = DungeonBuilder.newInstance().setName("Buster Hanesworth Dormitory");
 
         final InstancedArea.InstancedAreaBuilder bedroomBuilder = InstancedArea.getBuilder().setName("Your Room")

@@ -13,7 +13,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,10 +22,11 @@ import com.lhf.RichOutput;
 import com.lhf.RichOutput.PrintingInstructions;
 import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.Atlas;
-import com.lhf.game.AtlasTrawlerBuilder;
 import com.lhf.game.Atlas.AtlasException;
+import com.lhf.game.Atlas.AtlasFunction;
 import com.lhf.game.Atlas.AtlasMemberException;
 import com.lhf.game.Atlas.AtlasTraversalException;
+import com.lhf.game.AtlasTrawlerBuilder;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContext;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
 import com.lhf.server.client.Client.ClientID;
@@ -51,6 +51,49 @@ public class ConversationTree implements Serializable {
         public final ConversationPattern translateLinkToOpposite(ConversationPattern link) {
             throw new UnsupportedOperationException(
                     "Default two-way link is unsupported for conversations, specify a concrete reversal in `connectTwoWay`");
+        }
+
+        @Override
+        public Atlas<ConversationTreeNode, UUID, ConversationPattern, ConversationPredicate>.AtlasToMermaidWriter generateMermaidWriter(
+                String indent) {
+            return this.new AtlasToMermaidWriter(indent) {
+
+                @Override
+                protected String displayID(UUID id) {
+                    return id != null ? id.toString() : "null";
+                }
+
+                @Override
+                protected String displayLink(ConversationPattern link) {
+                    return link != null ? link.getRegex().toString() : "linked";
+                }
+
+                @Override
+                protected String displayTraversalTest(ConversationPredicate traversal) {
+                    if (traversal == null) {
+                        return "";
+                    }
+                    StringBuilder branchBuilder = new StringBuilder();
+                    for (Entry<String, ConversationPattern> restriction : traversal.getBlacklist().entrySet()) {
+                        branchBuilder.append(" ").append(restriction.getKey()).append(" ")
+                                .append(restriction.getValue().getRegex().toString());
+                    }
+                    return branchBuilder.toString();
+                }
+
+                @Override
+                protected String displayMemberNote(ConversationTreeNode member) {
+                    if (member == null) {
+                        return "";
+                    }
+                    StringBuilder sb = new StringBuilder();
+                    for (RichOutput prompt : member.getPrompts()) {
+                        sb.append(prompt.printString(EnumSet.allOf(PrintingInstructions.class))).append("\r\n");
+                    }
+                    return sb.toString();
+                }
+
+            };
         }
 
     }
@@ -98,6 +141,47 @@ public class ConversationTree implements Serializable {
             public final ConversationPattern translateLinkToOpposite(ConversationPattern link) {
                 throw new UnsupportedOperationException(
                         "Default two-way link is unsupported for conversations, specify a concrete reversal in `connectTwoWay`");
+            }
+
+            @Override
+            public Atlas<com.lhf.game.creature.conversation.ConversationTreeNode.Builder, UUID, ConversationPattern, ConversationPredicate>.AtlasToMermaidWriter generateMermaidWriter(
+                    String indent) {
+                return this.new AtlasToMermaidWriter(indent) {
+                    @Override
+                    protected String displayID(UUID id) {
+                        return id != null ? id.toString() : "null";
+                    }
+
+                    @Override
+                    protected String displayLink(ConversationPattern link) {
+                        return link != null ? link.getRegex().toString() : "linked";
+                    }
+
+                    @Override
+                    protected String displayTraversalTest(ConversationPredicate traversal) {
+                        if (traversal == null) {
+                            return "";
+                        }
+                        StringBuilder branchBuilder = new StringBuilder();
+                        for (Entry<String, ConversationPattern> restriction : traversal.getBlacklist().entrySet()) {
+                            branchBuilder.append(" ").append(restriction.getKey()).append(" ")
+                                    .append(restriction.getValue().getRegex().toString());
+                        }
+                        return branchBuilder.toString();
+                    }
+
+                    @Override
+                    protected String displayMemberNote(ConversationTreeNode.Builder member) {
+                        if (member == null) {
+                            return "";
+                        }
+                        StringBuilder sb = new StringBuilder();
+                        for (RichOutputBuilder prompt : member.getPrompts()) {
+                            sb.append(prompt.printString(EnumSet.allOf(PrintingInstructions.class))).append("\r\n");
+                        }
+                        return sb.toString();
+                    }
+                };
             }
 
         }
@@ -148,7 +232,7 @@ public class ConversationTree implements Serializable {
                     .setRepeatWords(tree.repeatWords).setTagkeywords(tree.tagkeywords);
             try {
                 tree.conversationAtlas.translate(builder.conversationAtlas,
-                        node -> new ConversationTreeNode.Builder(node), Function.identity(),
+                        node -> new ConversationTreeNode.Builder(node), AtlasFunction.identity(),
                         ConversationPredicate::copyFrom);
             } catch (AtlasException e) {
                 // wrap it and send it on
@@ -411,30 +495,9 @@ public class ConversationTree implements Serializable {
 
         public String toMermaidStateDiagram(boolean fence) {
             final String spacing = "    ";
-            String mermaid = this.conversationAtlas.toStateDiagramMermaid(spacing, fence, true, uuid -> uuid.toString(),
-                    pattern -> pattern != null ? pattern.getRegex().toString() : "linked", predicate -> {
-                        if (predicate == null) {
-                            return "";
-                        }
-                        StringBuilder branchBuilder = new StringBuilder();
-                        for (Entry<String, ConversationPattern> restriction : predicate.getBlacklist().entrySet()) {
-                            branchBuilder.append(" ").append(restriction.getKey()).append(" ")
-                                    .append(restriction.getValue().getRegex().toString());
-                        }
-                        return branchBuilder.toString();
-                    }, builder -> {
-                        if (builder == null) {
-                            return "";
-                        }
-                        StringBuilder sb = new StringBuilder();
-                        for (RichOutputBuilder prompt : builder.getPrompts()) {
-                            sb.append(prompt.printString(EnumSet.allOf(PrintingInstructions.class))).append("\r\n");
-                        }
-                        return sb.toString();
-                    });
+            String mermaid = this.conversationAtlas.generateMermaidWriter(spacing).printStateDiagram(fence, true, true);
 
             StringBuilder sb = new StringBuilder();
-
             final String startID = this.start.getNodeID().toString().replace("-", "");
             for (Entry<ConversationPattern, ConversationPredicate.Builder> greetBranch : this.greetings.entrySet()) {
                 sb.append(spacing).append("[*] --> ").append(startID);
@@ -619,30 +682,9 @@ public class ConversationTree implements Serializable {
 
     public String toMermaidStateDiagram(boolean fence) {
         final String spacing = "    ";
-        String mermaid = this.conversationAtlas.toStateDiagramMermaid(spacing, fence, true, uuid -> uuid.toString(),
-                pattern -> pattern != null ? pattern.getRegex().toString() : "linked", predicate -> {
-                    if (predicate == null) {
-                        return "";
-                    }
-                    StringBuilder branchBuilder = new StringBuilder();
-                    for (Entry<String, ConversationPattern> restriction : predicate.getBlacklist().entrySet()) {
-                        branchBuilder.append(" ").append(restriction.getKey()).append(" ")
-                                .append(restriction.getValue().getRegex().toString());
-                    }
-                    return branchBuilder.toString();
-                }, node -> {
-                    if (node == null) {
-                        return "";
-                    }
-                    StringBuilder sb = new StringBuilder();
-                    for (RichOutput prompt : node.getPrompts()) {
-                        sb.append(prompt.printString(EnumSet.allOf(PrintingInstructions.class))).append("\r\n");
-                    }
-                    return sb.toString();
-                });
+        String mermaid = this.conversationAtlas.generateMermaidWriter(spacing).printStateDiagram(fence, true, true);
 
         StringBuilder sb = new StringBuilder();
-
         final String startID = this.start.getNodeID().toString().replace("-", "");
         for (Entry<ConversationPattern, ConversationPredicate> greetBranch : this.greetings.entrySet()) {
             sb.append(spacing).append("[*] --> ").append(startID);

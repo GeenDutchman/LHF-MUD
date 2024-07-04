@@ -1,6 +1,7 @@
 package com.lhf.game.item;
 
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+import com.lhf.game.item.concrete.Book;
 import com.lhf.game.item.concrete.Chest;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.concrete.Dispenser;
@@ -27,13 +28,11 @@ import com.lhf.game.item.concrete.equipment.Whimsystick;
 
 public class IItemRunTypeAdapterFactoryProducer {
     public static RuntimeTypeAdapterFactory<IItem> produce() {
-        RuntimeTypeAdapterFactory<IItem> itemTypeAdapter = RuntimeTypeAdapterFactory
-                .of(IItem.class, "className", true)
-                .registerSubtype(AItem.class, AItem.class.getName())
-                .registerSubtype(Item.class, Item.class.getName())
+        RuntimeTypeAdapterFactory<IItem> itemTypeAdapter = RuntimeTypeAdapterFactory.of(IItem.class, "className", true)
+                .registerSubtype(AItem.class, AItem.class.getName()).registerSubtype(Item.class, Item.class.getName())
+                .registerSubtype(Book.class, Book.class.getName())
                 .registerSubtype(InteractObject.class, InteractObject.class.getName())
-                .registerSubtype(Trap.class, Trap.class.getName())
-                .registerSubtype(Lever.class, Lever.class.getName())
+                .registerSubtype(Trap.class, Trap.class.getName()).registerSubtype(Lever.class, Lever.class.getName())
                 .registerSubtype(InteractDoor.class, InteractDoor.class.getName())
                 .registerSubtype(Dispenser.class, Dispenser.class.getName())
                 .registerSubtype(Chest.class, Chest.class.getName())
@@ -46,8 +45,7 @@ public class IItemRunTypeAdapterFactoryProducer {
                 .registerSubtype(LockKey.class, LockKey.class.getName())
                 .registerSubtype(QuestingStone.class, QuestingStone.class.getName())
                 .registerSubtype(Equipable.class, Equipable.class.getName())
-                .registerSubtype(EquipableHiddenEffect.class,
-                        EquipableHiddenEffect.class.getName())
+                .registerSubtype(EquipableHiddenEffect.class, EquipableHiddenEffect.class.getName())
                 .registerSubtype(CarnivorousArmor.class, CarnivorousArmor.class.getName())
                 .registerSubtype(ChainMail.class, ChainMail.class.getName())
                 .registerSubtype(LeatherArmor.class, LeatherArmor.class.getName())
@@ -60,8 +58,7 @@ public class IItemRunTypeAdapterFactoryProducer {
                 .registerSubtype(ReaperScythe.class, ReaperScythe.class.getName())
                 .registerSubtype(RustyDagger.class, RustyDagger.class.getName())
                 .registerSubtype(Shortsword.class, Shortsword.class.getName())
-                .registerSubtype(Whimsystick.class, Whimsystick.class.getName())
-                .recognizeSubtypes();
+                .registerSubtype(Whimsystick.class, Whimsystick.class.getName()).recognizeSubtypes();
         return itemTypeAdapter;
     }
 }

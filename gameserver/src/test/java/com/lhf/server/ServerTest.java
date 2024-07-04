@@ -27,6 +27,7 @@ import com.lhf.game.creature.BuildInfoManager;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
+import com.lhf.game.map.Dungeon.DungeonBuilder;
 import com.lhf.game.map.StandardDungeonProducer;
 import com.lhf.game.map.SubArea;
 import com.lhf.messages.CommandContext.Reply;
@@ -116,9 +117,14 @@ public class ServerTest {
             AIRunner aiRunner = new GroupAIRunner(true, 2, 250, TimeUnit.MILLISECONDS);
             ConversationManager conversationManager = new ConversationManager();
             BuildInfoManager statblockManager = new BuildInfoManager();
+            final DungeonBuilder defaultDungeon = StandardDungeonProducer.buildStaticDungeonBuilder(statblockManager);
             GameBuilder gameBuilder = new GameBuilder().setAiRunner(aiRunner)
                     .setConversationManager(conversationManager).setStatblockManager(statblockManager)
-                    .addAdditionalLands(StandardDungeonProducer.buildStaticDungeonBuilder(statblockManager));
+                    .arrangeLandsInline(trawler -> {
+                        if (trawler != null) {
+                            trawler.plainAddMember(defaultDungeon);
+                        }
+                    });
             this.server = new Server(this.userManager, this.clientManager, gameBuilder);
             this.comm = new ServerClientComBundle(this.server);
         } catch (IOException e) {

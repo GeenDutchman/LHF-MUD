@@ -33,6 +33,7 @@ import com.lhf.game.item.AItem;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.ItemNoOpVisitor;
+import com.lhf.game.item.ItemPartitionListVisitor;
 import com.lhf.game.item.ItemVisitor;
 import com.lhf.game.item.concrete.Item;
 import com.lhf.game.map.Room.RoomBuilder;
@@ -152,7 +153,7 @@ public class InstancedArea implements Area {
             return subordinate.getDescription();
         }
 
-        public Collection<IItem> getItems() {
+        public ItemPartitionListVisitor getItems() {
             return subordinate.getItems();
         }
 
@@ -426,7 +427,7 @@ public class InstancedArea implements Area {
 
     @Override
     public Collection<IItem> getItems() {
-        return Collections.unmodifiableCollection(this.builder.getItems());
+        return Collections.unmodifiableCollection(this.builder.getItems().getItems());
     }
 
     @Override
@@ -477,7 +478,7 @@ public class InstancedArea implements Area {
 
     @Override
     public Optional<IItem> removeItem(String name) {
-        for (Iterator<IItem> iterator = this.builder.getItems().iterator(); iterator.hasNext();) {
+        for (Iterator<? extends IItem> iterator = this.builder.getItems().itemIterator(); iterator.hasNext();) {
             IItem item = iterator.next();
             if (item != null && item.checkName(name)) {
                 iterator.remove();
@@ -498,7 +499,7 @@ public class InstancedArea implements Area {
             return false;
         }
         AtomicBoolean removed = new AtomicBoolean();
-        removed.compareAndExchange(false, this.builder.getItems().remove(item));
+        removed.compareAndExchange(false, this.builder.getItems().removeItem(item));
         this.rooms.values().stream().filter(room -> room != null)
                 .forEach(room -> removed.compareAndExchange(false, room.removeItem(item)));
         return removed.get();
@@ -526,7 +527,7 @@ public class InstancedArea implements Area {
 
     @Override
     public Iterator<? extends IItem> itemIterator() {
-        return this.builder.getItems().iterator();
+        return this.builder.getItems().itemIterator();
     }
 
     @Override

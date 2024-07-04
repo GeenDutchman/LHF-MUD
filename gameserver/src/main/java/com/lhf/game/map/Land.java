@@ -5,14 +5,15 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
@@ -22,11 +23,18 @@ import com.google.gson.stream.JsonWriter;
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.Atlas;
 import com.lhf.game.Atlas.AtlasException;
+import com.lhf.game.Atlas.AtlasFunction;
+import com.lhf.game.Atlas.AtlasTraversalException;
 import com.lhf.game.CreatureContainer;
+import com.lhf.game.ItemContainer.ItemFilterQuery;
+import com.lhf.game.ItemContainer.ItemFilters;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
+import com.lhf.game.item.ItemNameSearchVisitor;
+import com.lhf.game.item.ItemNoOpVisitor;
+import com.lhf.game.item.concrete.InteractDoor;
 import com.lhf.game.map.Area.AreaBuilder;
 import com.lhf.game.map.Area.AreaBuilder.AreaBuilderID;
 import com.lhf.game.map.commandHandlers.LandSeeHandler;
@@ -37,6 +45,7 @@ import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.events.BadGoEvent;
 import com.lhf.messages.events.BadGoEvent.BadGoType;
+import com.lhf.messages.events.BadGoEvent.Builder;
 import com.lhf.messages.events.BadMessageEvent;
 import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.events.GameEvent;
@@ -72,6 +81,89 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
             return link.opposite();
         }
 
+        @Override
+        protected void populateExternalReferencesForMember(BiFunction<String, String, Area> populator, Area member) {
+            if (populator == null || member == null) {
+                return;
+            }
+            member.acceptItemVisitor(new ItemNoOpVisitor() {
+                @Override
+                public void visit(InteractDoor door) {
+                    if (door != null) {
+                        door.populateExternalReference(populator);
+                    }
+                }
+            });
+        }
+
+        @Override
+        public Atlas<Area, UUID, Directions, Doorway>.AtlasToMermaidWriter generateMermaidWriter(String indent) {
+            return this.new AtlasToMermaidWriter(indent) {
+
+                @Override
+                protected String displayID(UUID id) {
+                    return id != null ? id.toString() : "null";
+                }
+
+                @Override
+                protected String displayLink(Directions link) {
+                    return link != null ? link.toString() : "null";
+                }
+
+                @Override
+                protected String displayTraversalTest(Doorway traversal) {
+                    return "";
+                }
+
+                @Override
+                protected String displayMemberNote(Area member) {
+                    return "";
+                }
+
+                @Override
+                protected String displayMember(Area member) {
+                    if (member == null) {
+                        return "null";
+                    }
+                    ItemFilterQuery query = new ItemFilterQuery();
+                    query.clazz = InteractDoor.class;
+                    query.filters = EnumSet.of(ItemFilters.TYPE);
+                    ItemNameSearchVisitor searcher = new ItemNameSearchVisitor(query);
+                    member.acceptItemVisitor(searcher);
+
+                    StringBuilder sb = new StringBuilder(super.displayMember(member));
+
+                    if (searcher.isEmpty()) {
+                        return sb.toString();
+                    }
+
+                    sb.append("\n").append(indent).append("state ")
+                            .append(this.displayID(AreaAtlas.this.getIDForMemberType(member)).replaceAll("-", ""))
+                            .append(" {\n");
+                    for (InteractDoor door : searcher.getInteractDoors()) {
+                        sb.append(indent).append(indent).append(door.getItemID().toString().replace("-", ""))
+                                .append(" : ").append(door.getName()).append("\r\n");
+                        if (door.getSecondArea() != null) {
+                            sb.append(indent).append(indent).append(door.getItemID().toString().replace("-", ""))
+                                    .append(" --> ")
+                                    .append(this.displayID(AreaAtlas.this.getIDForMemberType(door.getSecondArea()))
+                                            .replaceAll("-", ""))
+                                    .append(" : ").append("InteractDoor enabled=").append(door.isUnlocked())
+                                    .append("\n");
+                        } else {
+                            sb.append(indent).append(indent).append("note right of ")
+                                    .append(door.getItemID().toString().replace("-", "")).append("\r\n");
+                            sb.append(indent).append(indent).append(indent).append(door.toString()).append("\r\n");
+                            sb.append(indent).append(indent).append("end note\n");
+                        }
+                    }
+                    sb.append(indent).append("}\n");
+
+                    return sb.toString();
+                }
+
+            };
+        }
     }
 
     public interface LandBuilder extends Serializable {
@@ -162,6 +254,33 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
                 return link.opposite();
             }
 
+            @Override
+            public Atlas<AreaBuilder, AreaBuilderID, Directions, Doorway>.AtlasToMermaidWriter generateMermaidWriter(
+                    String indent) {
+                return new AtlasToMermaidWriter(indent) {
+
+                    @Override
+                    protected String displayID(AreaBuilderID id) {
+                        return id != null ? id.toString() : "null";
+                    }
+
+                    @Override
+                    protected String displayLink(Directions link) {
+                        return link != null ? link.toString() : "null";
+                    }
+
+                    @Override
+                    protected String displayTraversalTest(Doorway traversal) {
+                        return "";
+                    }
+
+                    @Override
+                    protected String displayMemberNote(AreaBuilder member) {
+                        return "";
+                    }
+
+                };
+            }
         }
 
         public abstract AreaBuilder getStartingAreaBuilder();
@@ -173,13 +292,13 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
 
             final Supplier<Atlas<Area, UUID, Directions, Doorway>> starter = () -> builtLand.getAtlas();
 
-            final Function<AreaBuilder, Area> transformer = (builder) -> {
+            final AtlasFunction<AreaBuilder, Area> transformer = (builder) -> {
                 return builder.build(builtLand, builtLand, aiRunner, conversationManager, fallbackNoConversation);
             };
 
-            final Function<Directions, Directions> linkTransforer = (dir) -> dir;
+            final AtlasFunction<Directions, Directions> linkTransforer = (dir) -> dir;
 
-            final Function<Doorway, Doorway> traversalTransformer = (doorway) -> doorway;
+            final AtlasFunction<Doorway, Doorway> traversalTransformer = (doorway) -> doorway;
 
             final AreaBuilderAtlas builderAtlas = this.getAtlas();
             if (builderAtlas == null) {
@@ -324,31 +443,45 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
             }
             Area presentRoom = ctx.getArea();
 
-            Set<Directions> exits = land.getAtlas().getLinksForMember(presentRoom.getUuid());
-            if (exits == null || exits.size() == 0 || !exits.contains(toGo)) {
-                ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo).Build());
-                return ctx.handled();
-            }
-            UUID nextRoomID = land.getAtlas().getTargetFromMemberOrNull(presentRoom.getUuid(), toGo);
-            final Area nextRoom = land.getAtlas().getAtlasMemberOrNull(nextRoomID);
-            if (nextRoom == null) {
-                ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.NO_ROOM).setAttempted(command.getDirection())
-                        .Build());
-                return ctx.handled();
-            }
-            Doorway tester = land.getAtlas().getTraversalTestFromMemberOrNull(presentRoom.getUuid(), toGo);
-            if (tester != null && !tester.testTraversal(ctx.getCreature(), toGo, presentRoom, presentRoom)) {
-                ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.BLOCKED).setAttempted(toGo).setAvailable(exits)
-                        .Build());
+            try {
+                final Area nextRoom = land.getAtlas().attemptTraversal(presentRoom.getUuid(), toGo,
+                        (traversalTester, source, link, destination) -> {
+                            return traversalTester == null ? true
+                                    : traversalTester.testTraversal(ctx.getCreature(), toGo, presentRoom, destination);
+                        });
+                if (presentRoom.removeCreature(ctx.getCreature(), toGo)) {
+                    ICreature.eventAccepter.accept(ctx.getCreature(),
+                            TickEvent.getBuilder().setTickType(TickType.ROOM).Build());
+                    nextRoom.addCreature(ctx.getCreature());
+                    return ctx.handled();
+                }
+            } catch (AtlasTraversalException e) {
+                Builder badGo = BadGoEvent.getBuilder().setAttempted(toGo).setNotBroadcast();
+                switch (e.getType()) {
+                case FAIL_TRAVERSAL_TEST:
+                    Set<Directions> exits = land.getAtlas().getLinksForMember(presentRoom.getUuid());
+                    badGo.setSubType(BadGoType.BLOCKED).setAvailable(exits);
+                    break;
+                case NO_DESTINATION:
+                    badGo.setSubType(BadGoType.NO_ROOM);
+                    break;
+                case NO_LINK:
+                    badGo.setSubType(BadGoType.DNE);
+                    break;
+                case NO_SOURCE:
+                    badGo.setSubType(BadGoType.NO_ROOM);
+                    break;
+                case OTHER:
+                    badGo.setSubType(null);
+                    break;
+                default:
+                    badGo.setSubType(null);
+                    break;
+                }
+                ctx.receive(badGo.Build());
                 return ctx.handled();
             }
 
-            if (presentRoom.removeCreature(ctx.getCreature(), toGo)) {
-                ICreature.eventAccepter.accept(ctx.getCreature(),
-                        TickEvent.getBuilder().setTickType(TickType.ROOM).Build());
-                nextRoom.addCreature(ctx.getCreature());
-                return ctx.handled();
-            }
             return ctx.failhandle();
         }
 

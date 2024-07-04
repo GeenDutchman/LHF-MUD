@@ -2,13 +2,13 @@ package com.lhf.game;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,7 +16,6 @@ import java.util.logging.Logger;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import com.lhf.game.Atlas.AtlasException;
-import com.lhf.game.Atlas.AtlasMemberException;
 import com.lhf.game.creature.BuildInfoManager;
 import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.Player;
@@ -27,8 +26,11 @@ import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.magic.ThirdPower;
 import com.lhf.game.map.DMRoom;
 import com.lhf.game.map.DMRoom.DMRoomBuilder;
-import com.lhf.game.map.Land;
+import com.lhf.game.map.Directions;
+import com.lhf.game.map.Doorway;
+import com.lhf.game.map.Dungeon.DungeonBuilder;
 import com.lhf.game.map.Land.LandBuilder;
+import com.lhf.game.map.Land.LandBuilder.LandBuilderID;
 import com.lhf.game.map.StandardDungeonProducer;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
@@ -63,7 +65,6 @@ public class Game implements UserListener, CommandChainHandler {
         private ConversationManager conversationManager;
         private BuildInfoManager statblockManager;
         private DMRoomBuilder dmRoomBuilder;
-        private ArrayList<Land.LandBuilder> additionalLands;
 
         public GameBuilder() {
             this.server = null;
@@ -71,8 +72,7 @@ public class Game implements UserListener, CommandChainHandler {
             this.aiRunner = null;
             this.conversationManager = null;
             this.statblockManager = null;
-            this.dmRoomBuilder = null;
-            this.additionalLands = new ArrayList<>();
+            this.dmRoomBuilder = DMRoomBuilder.getInstance();
         }
 
         public ServerInterface getServer() {
@@ -111,17 +111,36 @@ public class Game implements UserListener, CommandChainHandler {
             return dmRoomBuilder;
         }
 
-        public ArrayList<Land.LandBuilder> getAdditionalLands() {
-            return additionalLands;
+        public GameBuilder buildDMRoomInline(Consumer<DMRoomBuilder> adjuster) {
+            if (this.dmRoomBuilder == null) {
+                this.dmRoomBuilder = DMRoomBuilder.getInstance();
+            }
+            if (adjuster != null) {
+                adjuster.accept(this.dmRoomBuilder);
+            }
+            return this;
         }
 
-        public GameBuilder setDefaults()
-                throws JsonIOException, JsonSyntaxException, IOException, AtlasMemberException {
+        public GameBuilder arrangeLandsInline(
+                Consumer<AtlasTrawlerBuilder<LandBuilder, LandBuilderID, Directions, Doorway>> landBuilderAdder) {
+            if (landBuilderAdder != null) {
+                this.dmRoomBuilder.arrangeLandsInline(landBuilderAdder);
+            }
+            return this;
+        }
+
+        public GameBuilder setDefaults() throws JsonIOException, JsonSyntaxException, IOException, AtlasException {
             this.thirdPower = new ThirdPower(null, null);
             this.aiRunner = new GroupAIRunner(true);
             this.conversationManager = new ConversationManager();
             this.statblockManager = new BuildInfoManager();
-            this.additionalLands.add(0, StandardDungeonProducer.buildStaticDungeonBuilder(statblockManager));
+            this.dmRoomBuilder = DMRoomBuilder.getInstance();
+            final DungeonBuilder defaultDungeon = StandardDungeonProducer.buildStaticDungeonBuilder(statblockManager);
+            this.dmRoomBuilder.arrangeLandsInline(trawler -> {
+                if (trawler != null) {
+                    trawler.plainAddMember(defaultDungeon);
+                }
+            });
             return this;
         }
 
@@ -155,16 +174,6 @@ public class Game implements UserListener, CommandChainHandler {
             return this;
         }
 
-        public GameBuilder addAdditionalLands(Land.LandBuilder additionalLand) {
-            this.additionalLands.add(additionalLand);
-            return this;
-        }
-
-        public GameBuilder setAdditionalLands(ArrayList<Land.LandBuilder> additionalLands) {
-            this.additionalLands = additionalLands;
-            return this;
-        }
-
         public Game build(UserManager userManager) throws FileNotFoundException, AtlasException {
             Game game = new Game(this, userManager);
             game.setServer(server);
@@ -190,15 +199,7 @@ public class Game implements UserListener, CommandChainHandler {
 
         this.controlRoom = dmRoomBuilder.build(this.thirdPower, null, aiRunner, conversationManager, false);
         this.controlRoom.setSuccessor(this.thirdPower);
-        ArrayList<LandBuilder> moreLands = builder.getAdditionalLands();
-        if (moreLands != null) {
-            for (LandBuilder landBuilder : moreLands) {
-                if (landBuilder == null) {
-                    continue;
-                }
-                this.controlRoom.addLand(landBuilder.build(this.thirdPower, aiRunner, conversationManager, false));
-            }
-        }
+
         this.successor = builder.getServer();
         this.server = builder.getServer();
         if (this.server != null) {

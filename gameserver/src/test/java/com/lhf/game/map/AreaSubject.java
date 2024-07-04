@@ -7,6 +7,7 @@ import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.IterableSubject;
 import com.google.common.truth.Truth;
 import com.lhf.game.CreatureContainerSubject;
+import com.lhf.game.ItemContainerSubject;
 import com.lhf.game.creature.ICreature;
 
 public class AreaSubject extends ComparableSubject<Area> {
@@ -31,6 +32,10 @@ public class AreaSubject extends ComparableSubject<Area> {
 
     public CreatureContainerSubject asCreatureContainer() {
         return check("this").about(CreatureContainerSubject.creatureContainers()).that(actual);
+    }
+
+    public ItemContainerSubject asItemContainer() {
+        return check("this").about(ItemContainerSubject.itemContainers()).that(actual);
     }
 
     public LandSubject land() {

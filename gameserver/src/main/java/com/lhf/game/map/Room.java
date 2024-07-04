@@ -31,6 +31,7 @@ import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.item.AItem;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.ItemNoOpVisitor;
+import com.lhf.game.item.ItemPartitionListVisitor;
 import com.lhf.game.item.ItemVisitor;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.map.RestArea.Builder;
@@ -65,12 +66,26 @@ public class Room implements Area {
                 interactObject.setArea(Room.this);
             }
         };
+
+        @Override
+        public void visit(com.lhf.game.item.concrete.InteractDoor door) {
+            if (door != null) {
+                door.setArea(Room.this);
+            }
+        };
     };
     private final transient ItemVisitor itemRemovalVisitor = new ItemNoOpVisitor() {
         @Override
         public void visit(com.lhf.game.item.InteractObject interactObject) {
             if (interactObject != null) {
                 interactObject.setArea(null);
+            }
+        };
+
+        @Override
+        public void visit(com.lhf.game.item.concrete.InteractDoor door) {
+            if (door != null) {
+                door.setArea(null);
             }
         };
     };
@@ -84,7 +99,7 @@ public class Room implements Area {
         private final AreaBuilderID id;
         private String name;
         private String description;
-        private List<IItem> items;
+        private ItemPartitionListVisitor items;
         private Set<INonPlayerCharacterBuildInfo> npcsToBuild;
         private Set<ISubAreaBuildInfo> subAreasToBuild;
         private Set<AMessageType> forbiddenCommandTypes;
@@ -95,7 +110,7 @@ public class Room implements Area {
             this.id = new AreaBuilderID();
             this.name = null;
             this.description = "An area that Creatures and Items can be in";
-            this.items = new ArrayList<>();
+            this.items = new ItemPartitionListVisitor();
             this.npcsToBuild = new HashSet<>();
             this.subAreasToBuild = new HashSet<>();
             this.forbiddenCommandTypes = EnumSet.noneOf(AMessageType.class);
@@ -122,10 +137,10 @@ public class Room implements Area {
 
         public RoomBuilder addItem(AItem item) {
             if (this.items == null) {
-                this.items = new ArrayList<>();
+                this.items = new ItemPartitionListVisitor();
             }
             if (item != null) {
-                this.items.add(item);
+                this.items.accept(item);
             }
             return this;
         }
@@ -198,7 +213,7 @@ public class Room implements Area {
         }
 
         @Override
-        public Collection<IItem> getItems() {
+        public ItemPartitionListVisitor getItems() {
             return this.items;
         }
 
@@ -289,7 +304,7 @@ public class Room implements Area {
                 + (this.name != null && !this.name.isBlank() ? this.name.replaceAll("\\W", "_")
                         : this.uuid.toString()));
         this.description = builder.getDescription() != null ? builder.getDescription() : builder.getName();
-        this.items = new ArrayList<>(builder.getItems());
+        this.items = new ArrayList<>(builder.getItems().getItems());
         for (final IItem item : this.items) {
             item.acceptItemVisitor(itemAdditionVisitor);
         }

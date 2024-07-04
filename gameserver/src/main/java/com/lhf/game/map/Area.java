@@ -27,9 +27,8 @@ import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
-import com.lhf.game.item.IItem;
 import com.lhf.game.item.InteractObject;
-import com.lhf.game.item.ItemPartitionCollectionVisitor;
+import com.lhf.game.item.ItemPartitionListVisitor;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.concrete.Item;
 import com.lhf.game.map.AreaVisitor.AreaVisitorAcceptor;
@@ -121,7 +120,7 @@ public interface Area extends ItemContainer, CreatureContainer, CommandChainHand
 
         public abstract String getDescription();
 
-        public abstract Collection<IItem> getItems();
+        public abstract ItemPartitionListVisitor getItems();
 
         public abstract Collection<INonPlayerCharacterBuildInfo> getNPCsToBuild();
 
@@ -214,7 +213,7 @@ public interface Area extends ItemContainer, CreatureContainer, CommandChainHand
             seen.addSeen(SeeCategory.NPC, npc);
         }
 
-        ItemPartitionCollectionVisitor itemVisitor = new ItemPartitionCollectionVisitor();
+        ItemPartitionListVisitor itemVisitor = new ItemPartitionListVisitor();
         this.acceptItemVisitor(itemVisitor);
         for (final Takeable item : itemVisitor.getTakeables()) {
             seen.addSeen(item.isVisible() ? SeeCategory.TAKEABLE : SeeCategory.INVISIBLE_TAKEABLE, item);
