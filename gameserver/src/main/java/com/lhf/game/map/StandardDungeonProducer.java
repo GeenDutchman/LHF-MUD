@@ -8,6 +8,7 @@ import java.util.UUID;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import com.lhf.RichOutput.RichOutputBuilder;
+import com.lhf.Taggable.BasicTaggable;
 import com.lhf.game.Atlas.AtlasException;
 import com.lhf.game.Atlas.AtlasMemberException;
 import com.lhf.game.EffectResistance;
@@ -40,6 +41,7 @@ import com.lhf.game.item.concrete.HealPotion;
 import com.lhf.game.item.concrete.InteractDoor;
 import com.lhf.game.item.concrete.Item;
 import com.lhf.game.item.concrete.Lever;
+import com.lhf.game.item.concrete.Book.BookBuilder;
 import com.lhf.game.item.concrete.equipment.CarnivorousArmor;
 import com.lhf.game.item.concrete.equipment.ChainMail;
 import com.lhf.game.item.concrete.equipment.MantleOfDeath;
@@ -51,6 +53,7 @@ import com.lhf.game.map.Dungeon.DungeonBuilder;
 import com.lhf.game.serialization.GsonBuilderFactory;
 
 public final class StandardDungeonProducer {
+
     public static DungeonBuilder buildStaticDungeonBuilder(BuildInfoManager statblockLoader)
             throws JsonIOException, JsonSyntaxException, IOException, AtlasException {
         DungeonBuilder builder = DungeonBuilder.newInstance().setName("Ibaif");
@@ -198,24 +201,48 @@ public final class StandardDungeonProducer {
         bedroomBuilder.addItem(new Item("Window",
                 "Through the window you can see the town wall, and then above that a stripe of beach followed by the water of the Umbra Deeps."));
         bedroomBuilder.addItem(new Item("Mirror", "You look just fine, trust me."));
-        final Book.BookBuilder welcomeBook = Book.getBuilder().setName("Welcome Pamplet")
-                .setDescription("A pamphlet welcoming you to the University")
-                .addPage(new RichOutputBuilder("Welcome to Umbra University!")
-                        .appendString("We welcome you to Umbra University!")
-                        .appendString("While your first semester here does not start quite yet,")
-                        .appendString("please feel free to visit campus and get to know your professors!"));
-        welcomeBook.addPage(new RichOutputBuilder("Professors")
-                .appendString("Our faculty includes such prestigious names such as:\r\n")
-                .appendString(" - Professor Hill: Biology\r\n").appendString(" - Professor Mlaka: Maths\r\n")
-                .appendString(" - Professor Thornwhip: Academic Writing\r\n")
-                .appendString(" - Professor Laroc: Creative Writing\r\n")
-                .appendString(" - Professor Binnis: History\r\n").appendString(" - Professor Shelia: Zeroth Power\r\n")
-                .appendString(" - Professor Splyt: First Power\r\n")
-                .appendString(" - Professor Noddingto: Second Power\r\n")
-                .appendString(" - Professor Nadine: Third Power\r\n")
-                .appendString("And the illustrious Professor Woo: Fourth Power\r\n"));
-        welcomeBook.addPage(
-                "We're pleased to have you join us, and we look forward to seeing what you accomplish!\r\n - Head Master Tabin");
+        final BookBuilder welcomeBook = Book.getBuilder().setName("Welcome Pamphlet")
+                .setDescription("Welcome to Umbra University!");
+        welcomeBook.addPage(new RichOutputBuilder("Greetings new Student!")
+                .appendString("We are pleased that you have chosen Umbra University to further your education!")
+                .appendString("Our University has the grand history of being solemnized by")
+                .appendTaggable(BasicTaggable.customTaggable("npc", "Her Greatness the DM Ada Lovelace Herself"))
+                .appendString("!", null, null)
+                .appendString(
+                        "We eagerly await your grand scholarly achievements while attending our prestigious school, and look forward to your eventual graduation!")
+                .appendString("We expect to have a grand time this upcoming fall trimester!"));
+        welcomeBook.addPage(new RichOutputBuilder("Our Staff").appendString(
+                "We have a great many illustrious and storied proffessors here to impart of their experience to you.")
+                .produceSubBuilder("Faculty:").appendTaggable(BasicTaggable.customTaggable("npc", "Professor Binnis"))
+                .appendString("- History\n").appendTaggable(BasicTaggable.customTaggable("npc", "Professor Laroc"))
+                .appendString("- Creative Writing\n")
+                .appendTaggable(BasicTaggable.customTaggable("npc", "Professor Shelia"))
+                .appendString("- Zeroth Power\n").appendTaggable(BasicTaggable.customTaggable("npc", "Professor Splyt"))
+                .appendString("- First Power\n")
+                .appendTaggable(BasicTaggable.customTaggable("npc", "Professor Noddingto"))
+                .appendString("- Second Power\n")
+                .appendTaggable(BasicTaggable.customTaggable("npc", "Professor Nadine")).appendString("- Third Power\n")
+                .appendString("\nAnd the famous\n").appendTaggable(BasicTaggable.customTaggable("npc", "Professor Woo"))
+                .appendString("- Fourth Power"));
+        welcomeBook.addPage(new RichOutputBuilder("Feel Welcome!").appendString("We have many amneties here in")
+                .appendTaggable(BasicTaggable.customTaggable("dungeon", "Umbra Town"))
+                .appendString("and we invite you to avail yourself of them.").appendString("Come tour campus (")
+                .appendTaggable(Directions.WEST).appendString("of town )")
+                .appendString("and familiariaze yourself with the classrooms.")
+                .appendString("Again, we give you a warm welcome, and look forward to your success!\n")
+                .appendTaggable(BasicTaggable.customTaggable("npc", "Headmaster Tabin")));
+        welcomeBook.addPage(new RichOutputBuilder("Warning").appendString("We advise you to avoid the")
+                .appendTaggable(BasicTaggable.customTaggable("dungeon", "Walen Forest")).appendString(" to the ")
+                .appendTaggable(Directions.SOUTH)
+                .appendString("as the enchantment there makes it rather difficult to return.")
+                .appendString("And while you are welcome to visit the")
+                .appendTaggable(BasicTaggable.customTaggable("dungeon", "Umbra Deeps")).appendString("to the")
+                .appendTaggable(Directions.WEST)
+                .appendString(", please be advised that swimming is an activity to engage in responsibly.\n", null,
+                        null)
+                .appendString(
+                        "We mean this in all seriousness, and wish to avoid tragedy.  We also recognize that you are Adults now and can make your own mistakes.\n")
+                .appendString("May the Dungeon Mistress and Dungeon Master watch over and forgive you."));
 
         bedroomBuilder.addItem(welcomeBook.build());
 

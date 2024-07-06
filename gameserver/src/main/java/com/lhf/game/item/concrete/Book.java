@@ -200,7 +200,8 @@ public class Book extends InteractObject implements Comparable<Book> {
             if (outputbuilder == null) {
                 return;
             }
-            RichOutputBuilder sub = outputbuilder.produceSubBuilder(String.format("Page %d", pageNum));
+            RichOutputBuilder sub = outputbuilder
+                    .produceSubBuilder(String.format("Page %d/%d", pageNum, this.pages.size()));
             sub.appendRichOutput(page);
         });
         ICreature.eventAccepter.accept(creature, builder.Build());
