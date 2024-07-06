@@ -1,7 +1,7 @@
 package com.lhf.game.item;
 
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
-import com.lhf.game.item.concrete.Book;
+import com.lhf.game.item.concrete.Ledger;
 import com.lhf.game.item.concrete.Chest;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.concrete.Dispenser;
@@ -30,7 +30,7 @@ public class IItemRunTypeAdapterFactoryProducer {
     public static RuntimeTypeAdapterFactory<IItem> produce() {
         RuntimeTypeAdapterFactory<IItem> itemTypeAdapter = RuntimeTypeAdapterFactory.of(IItem.class, "className", true)
                 .registerSubtype(AItem.class, AItem.class.getName()).registerSubtype(Item.class, Item.class.getName())
-                .registerSubtype(Book.class, Book.class.getName())
+                .registerSubtype(Ledger.class, Ledger.class.getName())
                 .registerSubtype(InteractObject.class, InteractObject.class.getName())
                 .registerSubtype(Trap.class, Trap.class.getName()).registerSubtype(Lever.class, Lever.class.getName())
                 .registerSubtype(InteractDoor.class, InteractDoor.class.getName())

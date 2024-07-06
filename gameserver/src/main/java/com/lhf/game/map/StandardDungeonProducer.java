@@ -34,14 +34,14 @@ import com.lhf.game.enums.HealType;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.Trap;
 import com.lhf.game.item.concrete.Bed;
-import com.lhf.game.item.concrete.Book;
+import com.lhf.game.item.concrete.Ledger;
 import com.lhf.game.item.concrete.Chest;
 import com.lhf.game.item.concrete.Dispenser;
 import com.lhf.game.item.concrete.HealPotion;
 import com.lhf.game.item.concrete.InteractDoor;
 import com.lhf.game.item.concrete.Item;
 import com.lhf.game.item.concrete.Lever;
-import com.lhf.game.item.concrete.Book.BookBuilder;
+import com.lhf.game.item.concrete.Ledger.LedgerBuilder;
 import com.lhf.game.item.concrete.equipment.CarnivorousArmor;
 import com.lhf.game.item.concrete.equipment.ChainMail;
 import com.lhf.game.item.concrete.equipment.MantleOfDeath;
@@ -130,8 +130,8 @@ public final class StandardDungeonProducer {
         statueRoomBuilder.addItem(bossNote);
 
         InteractDoor statue = new InteractDoor("golden statue",
-                "The statue has a start to a riddle, but it looks like it hasn't been finished yet.", builder.getName(),
-                secretRoomBuilder.getName());
+                "The statue has a start to a riddle, but it looks like it hasn't been finished yet.",
+                "Buster Hanesworth Dormitory", "Your Room");
 
         statueRoomBuilder.addItem(statue);
 
@@ -201,7 +201,7 @@ public final class StandardDungeonProducer {
         bedroomBuilder.addItem(new Item("Window",
                 "Through the window you can see the town wall, and then above that a stripe of beach followed by the water of the Umbra Deeps."));
         bedroomBuilder.addItem(new Item("Mirror", "You look just fine, trust me."));
-        final BookBuilder welcomeBook = Book.getBuilder().setName("Welcome Pamphlet")
+        final LedgerBuilder welcomeBook = Ledger.getBuilder().setName("Welcome Pamphlet")
                 .setDescription("Welcome to Umbra University!");
         welcomeBook.addPage(new RichOutputBuilder("Greetings new Student!")
                 .appendString("We are pleased that you have chosen Umbra University to further your education!")

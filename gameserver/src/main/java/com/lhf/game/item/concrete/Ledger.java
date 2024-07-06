@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -12,23 +11,20 @@ import java.util.stream.Collectors;
 import com.lhf.RichOutput;
 import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.creature.ICreature;
-import com.lhf.game.item.Usable;
+import com.lhf.game.item.InteractObject;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.events.ItemInteractionEvent;
-import com.lhf.messages.events.ItemUsedEvent;
-import com.lhf.messages.events.ItemUsedEvent.UseOutMessageOption;
 
-public class Book extends Usable implements Comparable<Book> {
+public class Ledger extends InteractObject implements Comparable<Ledger> {
     protected final List<RichOutput> pages;
-    protected int currentPage = 0;
 
-    public static class BookBuilder implements Serializable, Comparable<BookBuilder> {
+    public static class LedgerBuilder implements Serializable, Comparable<LedgerBuilder> {
         private final UUID builderuuid = UUID.randomUUID();
         private String name;
         private String description;
         private List<RichOutputBuilder> pages;
 
-        public BookBuilder() {
+        public LedgerBuilder() {
             this.name = "Book";
             this.description = "A book.";
             this.pages = new ArrayList<>();
@@ -42,7 +38,7 @@ public class Book extends Usable implements Comparable<Book> {
             return name;
         }
 
-        public BookBuilder setName(String name) {
+        public LedgerBuilder setName(String name) {
             this.name = name != null ? name : "Book";
             return this;
         }
@@ -51,7 +47,7 @@ public class Book extends Usable implements Comparable<Book> {
             return description;
         }
 
-        public BookBuilder setDescription(String description) {
+        public LedgerBuilder setDescription(String description) {
             this.description = description;
             return this;
         }
@@ -63,19 +59,19 @@ public class Book extends Usable implements Comparable<Book> {
             return pages;
         }
 
-        public BookBuilder setPages(List<RichOutputBuilder> pages) {
+        public LedgerBuilder setPages(List<RichOutputBuilder> pages) {
             this.pages = pages != null ? pages : new ArrayList<>();
             return this;
         }
 
-        public BookBuilder addPage(RichOutputBuilder page) {
+        public LedgerBuilder addPage(RichOutputBuilder page) {
             if (page != null) {
                 this.getPages().add(page);
             }
             return this;
         }
 
-        public BookBuilder addPage(String page) {
+        public LedgerBuilder addPage(String page) {
             if (page != null) {
                 RichOutputBuilder pageBuilder = new RichOutputBuilder().appendString(page);
                 this.getPages().add(pageBuilder);
@@ -83,7 +79,7 @@ public class Book extends Usable implements Comparable<Book> {
             return this;
         }
 
-        public BookBuilder addPage(Consumer<RichOutputBuilder> pageBuilder) {
+        public LedgerBuilder addPage(Consumer<RichOutputBuilder> pageBuilder) {
             if (pageBuilder != null) {
                 RichOutputBuilder builder = new RichOutputBuilder();
                 this.getPages().add(builder);
@@ -104,7 +100,7 @@ public class Book extends Usable implements Comparable<Book> {
             return this.pages.get(index);
         }
 
-        public BookBuilder createOrEditPage(int index, Consumer<RichOutputBuilder> pageEditor) {
+        public LedgerBuilder createOrEditPage(int index, Consumer<RichOutputBuilder> pageEditor) {
             RichOutputBuilder pageBuilder = this.createOrGetPage(index);
             if (pageBuilder != null && pageEditor != null) {
                 pageEditor.accept(pageBuilder);
@@ -112,7 +108,7 @@ public class Book extends Usable implements Comparable<Book> {
             return this;
         }
 
-        public BookBuilder clearPages() {
+        public LedgerBuilder clearPages() {
             if (this.pages != null) {
                 this.pages.clear();
             }
@@ -132,9 +128,9 @@ public class Book extends Usable implements Comparable<Book> {
         public boolean equals(Object obj) {
             if (this == obj)
                 return true;
-            if (!(obj instanceof BookBuilder))
+            if (!(obj instanceof LedgerBuilder))
                 return false;
-            BookBuilder other = (BookBuilder) obj;
+            LedgerBuilder other = (LedgerBuilder) obj;
             return Objects.equals(builderuuid, other.builderuuid);
         }
 
@@ -147,23 +143,23 @@ public class Book extends Usable implements Comparable<Book> {
         }
 
         @Override
-        public int compareTo(BookBuilder arg0) {
+        public int compareTo(LedgerBuilder arg0) {
             return this.getBuilderuuid().compareTo(arg0.getBuilderuuid());
         }
 
-        public Book build() {
-            return new Book(this);
+        public Ledger build() {
+            return new Ledger(this);
         }
 
     }
 
-    public static BookBuilder getBuilder() {
-        return new BookBuilder();
+    public static LedgerBuilder getBuilder() {
+        return new LedgerBuilder();
     }
 
-    protected Book(BookBuilder builder) {
-        super(builder != null ? builder.getName() : "Book", builder != null ? builder.getDescription() : "A book", -1,
-                Set.of());
+    protected Ledger(LedgerBuilder builder) {
+        super(builder != null ? builder.getName() : "Book", builder != null ? builder.getDescription() : "A book",
+                true);
         if (builder != null && builder.size() > 0) {
             this.pages = builder.getPages().stream().map(pageBuilder -> pageBuilder.build())
                     .collect(Collectors.toUnmodifiableList());
@@ -172,14 +168,14 @@ public class Book extends Usable implements Comparable<Book> {
         }
     }
 
-    protected Book(Book other) {
-        super(other.getName(), other.descriptionString, -1, other.creatureUseEffects);
+    protected Ledger(Ledger other) {
+        super(other.getName(), other.descriptionString, true);
         this.pages = other.pages; // final reference either way
     }
 
     @Override
-    public Book makeCopy() {
-        return new Book(this);
+    public Ledger makeCopy() {
+        return new Ledger(this);
     }
 
     public List<RichOutput> getPages() {
@@ -187,48 +183,33 @@ public class Book extends Usable implements Comparable<Book> {
     }
 
     @Override
-    public boolean useOn(CommandContext ctx, ICreature creature) {
-        ItemUsedEvent.Builder useOutMessage = ItemUsedEvent.getBuilder().setItemUser(ctx.getCreature()).setUsable(this);
-        if (ctx.getCreature() == null) {
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());
-            return false;
-        } else if (ctx.getCreature() != creature) {
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
-                    .addMessage("You can only use this on yourself!").Build());
-            return false;
+    public void doAction(CommandContext ctx) {
+        if (ctx == null) {
+            return;
         }
-        return super.useOn(ctx, creature);
-    }
 
-    @Override
-    public Consumer<ICreature> produceCreatureConsumer(CommandContext ctx) {
-        final Book self = this;
-        return new Consumer<ICreature>() {
-            @Override
-            public void accept(ICreature creature) {
-                if (creature == null) {
-                    return;
-                }
-                ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setNotBroadcast()
-                        .setTaggable(self).setPerformed();
-                final int pageNum = self.currentPage % self.pages.size();
-                RichOutput page = self.pages.get(pageNum);
-                builder.setOutputCallback(outputbuilder -> {
-                    if (outputbuilder == null) {
-                        return;
-                    }
-                    RichOutputBuilder sub = outputbuilder
-                            .produceSubBuilder(String.format("Page %d/%d", pageNum, self.pages.size()));
-                    sub.appendRichOutput(page);
-                });
-                ICreature.eventAccepter.accept(creature, builder.Build());
-                ++self.currentPage;
+        final ICreature creature = ctx.getCreature();
+        if (creature == null) {
+            return;
+        }
+        ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setNotBroadcast().setTaggable(this)
+                .setPerformed();
+        final int pageNum = this.interactCount % this.pages.size();
+        RichOutput page = this.pages.get(pageNum);
+        builder.setOutputCallback(outputbuilder -> {
+            if (outputbuilder == null) {
+                return;
             }
-        }.andThen(super.produceCreatureConsumer(ctx));
+            RichOutputBuilder sub = outputbuilder
+                    .produceSubBuilder(String.format("Page %d/%d", pageNum, this.pages.size()));
+            sub.appendRichOutput(page);
+        });
+        ICreature.eventAccepter.accept(creature, builder.Build());
+        ++this.interactCount;
     }
 
     @Override
-    public int compareTo(Book other) {
+    public int compareTo(Ledger other) {
         if (this.equals(other)) {
             return 0;
         }
@@ -254,9 +235,9 @@ public class Book extends Usable implements Comparable<Book> {
             return true;
         if (!super.equals(obj))
             return false;
-        if (!(obj instanceof Book))
+        if (!(obj instanceof Ledger))
             return false;
-        Book other = (Book) obj;
+        Ledger other = (Ledger) obj;
         return Objects.equals(pages, other.pages);
     }
 
