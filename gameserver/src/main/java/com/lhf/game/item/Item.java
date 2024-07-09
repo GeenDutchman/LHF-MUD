@@ -2,7 +2,7 @@ package com.lhf.game.item;
 
 import java.util.regex.PatternSyntaxException;
 
-public abstract class AItem implements IItem {
+public class Item implements IItem {
 
     private final ItemID itemID;
     // Class name for discrimination
@@ -14,7 +14,7 @@ public abstract class AItem implements IItem {
     // Every item should describe itself
     protected String descriptionString;
 
-    public AItem(String name) {
+    public Item(String name) {
         assert name.trim().length() >= 3;
         this.itemID = new ItemID();
         this.className = this.getClass().getName();
@@ -23,7 +23,7 @@ public abstract class AItem implements IItem {
         this.descriptionString = this.objectName;
     }
 
-    public AItem(String name, String description) {
+    public Item(String name, String description) {
         assert name.trim().length() >= 3;
         this.itemID = new ItemID();
         this.className = this.getClass().getName();
@@ -32,7 +32,7 @@ public abstract class AItem implements IItem {
         this.descriptionString = description;
     }
 
-    protected AItem(ItemID itemID, String className, String name, boolean visible, String descriptionString) {
+    protected Item(ItemID itemID, String className, String name, boolean visible, String descriptionString) {
         if (itemID == null) {
             throw new IllegalArgumentException("item id cannot be null");
         } else if (name == null || name.trim().length() < 3) {
@@ -54,10 +54,16 @@ public abstract class AItem implements IItem {
     }
 
     @Override
-    public abstract AItem makeCopy();
+    public Item makeCopy() {
+        return new Item(new ItemID(), className, className, visible, descriptionString);
+    }
 
     @Override
-    public abstract void acceptItemVisitor(ItemVisitor visitor);
+    public void acceptItemVisitor(ItemVisitor visitor) {
+        if (visitor != null) {
+            visitor.visit(this);
+        }
+    }
 
     @Override
     public final String getClassName() {
@@ -114,10 +120,10 @@ public abstract class AItem implements IItem {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof AItem)) {
+        if (!(obj instanceof Item)) {
             return false;
         }
-        AItem ro = (AItem) obj;
+        Item ro = (Item) obj;
         if (objectName.equals(ro.objectName)) {
             return this.itemID.equals(ro.itemID);
         }

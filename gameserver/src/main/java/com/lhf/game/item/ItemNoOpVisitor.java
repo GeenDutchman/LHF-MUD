@@ -1,7 +1,6 @@
 package com.lhf.game.item;
 
 import com.lhf.game.item.concrete.InteractDoor;
-import com.lhf.game.item.concrete.Item;
 
 public class ItemNoOpVisitor implements ItemVisitor {
 

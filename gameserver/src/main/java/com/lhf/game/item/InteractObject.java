@@ -7,7 +7,7 @@ import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 
-public class InteractObject extends AItem {
+public class InteractObject extends Item {
     protected transient Area area;
     // Indicates if the action can be used multiple times
     protected boolean repeatable;

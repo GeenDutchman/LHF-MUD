@@ -8,7 +8,6 @@ import java.util.stream.Stream;
 
 import com.lhf.game.item.IItem.ItemID;
 import com.lhf.game.item.concrete.InteractDoor;
-import com.lhf.game.item.concrete.Item;
 
 public class ItemSaverVisitor implements ItemVisitor {
     private final Map<ItemID, InteractObject> interactObjects = new LinkedHashMap<>();
@@ -84,7 +83,7 @@ public class ItemSaverVisitor implements ItemVisitor {
         this.equipablesWithHiddenEffects.put(equipableHiddenEffect.getItemID(), equipableHiddenEffect);
     }
 
-    public Map<ItemID, AItem> getItemsMap() {
+    public Map<ItemID, Item> getItemsMap() {
         return Collections.unmodifiableMap(Stream
                 .concat(this.getTakeablesMap().entrySet().stream(),
                         Stream.concat(this.getInteractObjectsMap().entrySet().stream(),

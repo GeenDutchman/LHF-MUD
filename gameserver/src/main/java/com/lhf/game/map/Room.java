@@ -28,7 +28,7 @@ import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
-import com.lhf.game.item.AItem;
+import com.lhf.game.item.Item;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.ItemNoOpVisitor;
 import com.lhf.game.item.ItemPartitionListVisitor;
@@ -135,7 +135,7 @@ public class Room implements Area {
             return this;
         }
 
-        public RoomBuilder addItem(AItem item) {
+        public RoomBuilder addItem(Item item) {
             if (this.items == null) {
                 this.items = new ItemPartitionListVisitor();
             }

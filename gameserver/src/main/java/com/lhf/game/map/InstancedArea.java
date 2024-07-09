@@ -29,13 +29,12 @@ import com.lhf.game.creature.SummonedMonster;
 import com.lhf.game.creature.SummonedNPC;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
-import com.lhf.game.item.AItem;
+import com.lhf.game.item.Item;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.ItemNoOpVisitor;
 import com.lhf.game.item.ItemPartitionListVisitor;
 import com.lhf.game.item.ItemVisitor;
-import com.lhf.game.item.concrete.Item;
 import com.lhf.game.map.Room.RoomBuilder;
 import com.lhf.game.map.SubArea.ISubAreaBuildInfo;
 import com.lhf.messages.CommandChainHandler;
@@ -106,7 +105,7 @@ public class InstancedArea implements Area {
             return this;
         }
 
-        public InstancedAreaBuilder addItem(AItem item) {
+        public InstancedAreaBuilder addItem(Item item) {
             this.getSubordinate().addItem(item);
             return this;
         }

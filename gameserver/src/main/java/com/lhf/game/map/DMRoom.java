@@ -41,7 +41,7 @@ import com.lhf.game.creature.intelligence.handlers.SpeakOnOtherEntry;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.Stats;
-import com.lhf.game.item.AItem;
+import com.lhf.game.item.Item;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.ItemPartitionListVisitor;
 import com.lhf.game.item.concrete.Corpse;
@@ -221,7 +221,7 @@ public class DMRoom extends Room {
             return this;
         }
 
-        public DMRoomBuilder addItem(AItem item) {
+        public DMRoomBuilder addItem(Item item) {
             this.delegate = delegate.addItem(item);
             return this;
         }

@@ -16,6 +16,7 @@ import com.lhf.game.LockableItemContainer;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.InteractObject;
+import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.events.ItemInteractionEvent;

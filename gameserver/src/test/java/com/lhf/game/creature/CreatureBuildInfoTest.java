@@ -19,7 +19,7 @@ import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.Stats;
-import com.lhf.game.item.AItem;
+import com.lhf.game.item.Item;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.concrete.equipment.Longsword;
 import com.lhf.game.item.concrete.equipment.RustyDagger;
@@ -52,7 +52,7 @@ public class CreatureBuildInfoTest {
         for (String itemName : inv.getItemList()) {
             Truth.assertThat(json).contains(itemName);
         }
-        for (AItem item : equipped.values()) {
+        for (Item item : equipped.values()) {
             Truth.assertThat(json).contains(item.getName());
         }
 
@@ -64,8 +64,7 @@ public class CreatureBuildInfoTest {
         }
         System.out.println(
                 num2.getEquipmentSlots().getOrDefault(EquipmentSlots.WEAPON, null).produceMessage().toString());
-        Truth.assertThat(num2.getEquipmentSlots().getOrDefault(EquipmentSlots.WEAPON, null).produceMessage()
-                .toString())
+        Truth.assertThat(num2.getEquipmentSlots().getOrDefault(EquipmentSlots.WEAPON, null).produceMessage().toString())
                 .isEqualTo(s.getEquipmentSlots().getOrDefault(EquipmentSlots.WEAPON, null).produceMessage().toString());
     }
 

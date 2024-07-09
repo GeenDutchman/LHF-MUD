@@ -5,7 +5,7 @@ import java.util.List;
 import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.TickType;
 import com.lhf.game.enums.EquipmentSlots;
-import com.lhf.game.item.AItem;
+import com.lhf.game.item.Item;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.IItem;
 import com.lhf.messages.GameEventType;
@@ -17,13 +17,13 @@ public class ItemEquippedEvent extends GameEvent {
 
     private final static TickType tickType = TickType.ACTION;
     private final EquipResultType subType;
-    private final AItem item;
+    private final Item item;
     private final String attemptedItemName;
     private final EquipmentSlots attemptedSlot;
 
     public static class Builder extends GameEvent.Builder<Builder> {
         private EquipResultType subType;
-        private AItem item;
+        private Item item;
         private String attemptedItemName;
         private EquipmentSlots attemptedSlot;
 
@@ -40,11 +40,11 @@ public class ItemEquippedEvent extends GameEvent {
             return this;
         }
 
-        public AItem getItem() {
+        public Item getItem() {
             return item;
         }
 
-        public Builder setItem(AItem item) {
+        public Builder setItem(Item item) {
             this.item = item;
             return this;
         }

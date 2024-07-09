@@ -8,7 +8,6 @@ import com.lhf.game.item.concrete.Dispenser;
 import com.lhf.game.item.concrete.GuardedChest;
 import com.lhf.game.item.concrete.HealPotion;
 import com.lhf.game.item.concrete.InteractDoor;
-import com.lhf.game.item.concrete.Item;
 import com.lhf.game.item.concrete.Lever;
 import com.lhf.game.item.concrete.LewdBed;
 import com.lhf.game.item.concrete.LockKey;
@@ -29,7 +28,7 @@ import com.lhf.game.item.concrete.equipment.Whimsystick;
 public class IItemRunTypeAdapterFactoryProducer {
     public static RuntimeTypeAdapterFactory<IItem> produce() {
         RuntimeTypeAdapterFactory<IItem> itemTypeAdapter = RuntimeTypeAdapterFactory.of(IItem.class, "className", true)
-                .registerSubtype(AItem.class, AItem.class.getName()).registerSubtype(Item.class, Item.class.getName())
+                .registerSubtype(Item.class, Item.class.getName()).registerSubtype(Item.class, Item.class.getName())
                 .registerSubtype(Ledger.class, Ledger.class.getName())
                 .registerSubtype(InteractObject.class, InteractObject.class.getName())
                 .registerSubtype(Trap.class, Trap.class.getName()).registerSubtype(Lever.class, Lever.class.getName())

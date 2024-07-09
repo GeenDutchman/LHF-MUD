@@ -1,6 +1,6 @@
 package com.lhf.game.item;
 
-public class Takeable extends AItem {
+public class Takeable extends Item {
 
     public Takeable(String name) {
         super(name);

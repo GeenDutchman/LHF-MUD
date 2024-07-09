@@ -11,7 +11,6 @@ import java.util.StringJoiner;
 
 import com.lhf.game.ItemContainer;
 import com.lhf.game.item.concrete.InteractDoor;
-import com.lhf.game.item.concrete.Item;
 
 public class ItemPartitionListVisitor implements ItemVisitor, ItemContainer {
 
@@ -95,8 +94,8 @@ public class ItemPartitionListVisitor implements ItemVisitor, ItemContainer {
         return Collections.unmodifiableCollection(consolidated);
     }
 
-    public List<AItem> getItemsList() {
-        ArrayList<AItem> consolidated = new ArrayList<>(this.getTakeables());
+    public List<Item> getItemsList() {
+        ArrayList<Item> consolidated = new ArrayList<>(this.getTakeables());
         consolidated.addAll(this.getInteractObjects());
         consolidated.addAll(this.notes);
         return Collections.unmodifiableList(consolidated);

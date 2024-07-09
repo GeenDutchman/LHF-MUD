@@ -3,7 +3,6 @@ package com.lhf.game.item;
 import java.util.function.Consumer;
 
 import com.lhf.game.item.concrete.InteractDoor;
-import com.lhf.game.item.concrete.Item;
 
 public interface ItemVisitor extends Consumer<IItem> {
     public void visit(InteractObject interactObject);
