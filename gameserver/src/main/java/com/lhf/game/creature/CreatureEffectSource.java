@@ -6,6 +6,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 
@@ -16,12 +17,15 @@ import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.Stats;
+import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.GameEventTester;
+import com.lhf.messages.events.QuestEvent.QuestEventType;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
 
 public class CreatureEffectSource extends EntityEffectSource {
+    public final static String QUEST_PREFIX = "QUEST:";
 
     public static class Deltas {
 
@@ -251,35 +255,37 @@ public class CreatureEffectSource extends EntityEffectSource {
 
     protected final Deltas onApplication, onRemoval;
     protected final Map<GameEventTester, Deltas> onTickEvent;
+    protected final boolean quest;
 
-    protected static abstract class AbstractBuilder<AB extends AbstractBuilder<AB>>
-            extends EntityEffectSource.Builder<AB> {
+    public static class Builder extends EntityEffectSource.Builder<Builder> {
         private Deltas onApplication, onRemoval;
         private Map<GameEventTester, Deltas> onTickEvent;
         private boolean reverseApplication = true;
+        private Map<GameEventTester, Deltas> questEvents;
 
-        protected AbstractBuilder(String name) {
+        public Builder(String name) {
             super(name);
             this.onApplication = null;
             this.onRemoval = null;
             this.onTickEvent = new TreeMap<>();
+            this.questEvents = new TreeMap<>();
         }
 
         public Deltas getOnApplication() {
             return onApplication;
         }
 
-        public AB setOnApplication(Deltas onApplication) {
+        public Builder setOnApplication(Deltas onApplication) {
             this.onApplication = onApplication;
             return getThis();
         }
 
-        public AB withReversedApplication() {
+        public Builder withReversedApplication() {
             this.reverseApplication = true;
             return getThis();
         }
 
-        public AB withoutReversedApplication() {
+        public Builder withoutReversedApplication() {
             this.reverseApplication = false;
             return getThis();
         }
@@ -293,7 +299,7 @@ public class CreatureEffectSource extends EntityEffectSource {
                     : null;
         }
 
-        public AB setOnRemoval(Deltas onRemoval) {
+        public Builder setOnRemoval(Deltas onRemoval) {
             this.onRemoval = onRemoval;
             return getThis();
         }
@@ -302,24 +308,73 @@ public class CreatureEffectSource extends EntityEffectSource {
             return onTickEvent;
         }
 
-        public AB setOnTickEvent(Map<GameEventTester, Deltas> onTickEvent) {
+        public Builder setOnTickEvent(Map<GameEventTester, Deltas> onTickEvent) {
             this.onTickEvent = onTickEvent != null ? onTickEvent : new TreeMap<>();
             return getThis();
         }
 
-        public AB setDeltaForTester(GameEventTester tester, Deltas deltas) {
+        public Builder setDeltaForTester(GameEventTester tester, Deltas deltas) {
             if (tester == null || deltas == null) {
                 return getThis();
             }
             this.onTickEvent.put(tester, deltas);
             return getThis();
         }
-    }
 
-    public static class Builder extends AbstractBuilder<Builder> {
+        private final static GameEventTester produceSuccessTester(Builder builder) {
+            return new GameEventTester(GameEventType.QUEST,
+                    Set.of(builder.getName(), QuestEventType.COMPLETED.toString()),
+                    Set.of(QuestEventType.FAILED.toString()), null, false);
+        }
 
-        public Builder(String name) {
-            super(name);
+        private final static GameEventTester produceFailureTester(Builder builder) {
+            return new GameEventTester(GameEventType.QUEST, Set.of(builder.getName(), QuestEventType.FAILED.toString()),
+                    Set.of(QuestEventType.COMPLETED.toString()), null, false);
+        }
+
+        public Builder notQuest() {
+            this.questEvents.clear();
+            return this.getThis();
+        }
+
+        public Builder setQuest(Deltas onSuccess, Deltas onFailure) {
+            this.notQuest();
+            if (onSuccess == null && onFailure == null) {
+                return this.getThis();
+            }
+            String myname = super.getName();
+            this.setName(myname != null && !myname.startsWith(QUEST_PREFIX) ? QUEST_PREFIX + myname : myname);
+            if (this.questEvents == null) {
+                this.questEvents = new TreeMap<>();
+            }
+            if (onSuccess != null) {
+                GameEventTester successTester = produceSuccessTester(getThis());
+                this.questEvents.put(successTester, onSuccess);
+            }
+            if (onFailure != null) {
+                GameEventTester failureTester = produceFailureTester(getThis());
+                this.questEvents.put(failureTester, onFailure);
+            }
+            return this.getThis();
+        }
+
+        public Map<GameEventTester, Deltas> getQuestEvents() {
+            return questEvents;
+        }
+
+        public Map<GameEventTester, Deltas> getCombinedTickEvent() {
+            Map<GameEventTester, Deltas> combined = new TreeMap<>();
+            if (this.onTickEvent != null) {
+                combined.putAll(this.onTickEvent);
+            }
+            if (this.questEvents != null) {
+                combined.putAll(this.questEvents);
+            }
+            return Collections.unmodifiableMap(combined);
+        }
+
+        public boolean isQuest() {
+            return this.questEvents != null && !this.questEvents.isEmpty();
         }
 
         @Override
@@ -330,18 +385,22 @@ public class CreatureEffectSource extends EntityEffectSource {
         public CreatureEffectSource build() {
             return new CreatureEffectSource(getThis());
         }
-
     }
 
     public static Builder getCreatureEffectBuilder(String name) {
         return new Builder(name);
     }
 
-    protected CreatureEffectSource(AbstractBuilder<?> builder) {
+    protected CreatureEffectSource(Builder builder) {
         super(builder);
         this.onApplication = builder.getOnApplication();
         this.onRemoval = builder.getOnRemoval();
-        this.onTickEvent = builder.getOnTickEvent();
+        this.onTickEvent = builder.getCombinedTickEvent();
+        this.quest = builder.isQuest();
+    }
+
+    public boolean isQuest() {
+        return quest;
     }
 
     public Deltas getOnApplication() {

@@ -11,7 +11,7 @@ public class RoomEffectSource extends EntityEffectSource {
     protected final INPCBuildInfo npcToSummon;
     protected final MonsterBuildInfo monsterToSummon;
 
-    protected static abstract class AbstractBuilder<AB extends AbstractBuilder<AB>>
+    public static abstract class AbstractBuilder<AB extends AbstractBuilder<AB>>
             extends EntityEffectSource.Builder<AB> {
         private INPCBuildInfo npcToSummon;
         private MonsterBuildInfo monsterToSummon;

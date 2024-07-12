@@ -16,16 +16,22 @@ import com.lhf.messages.events.GameEventTester;
 public class CreatureEffect extends EntityEffect {
     protected MultiRollResult applicationDamageResult, removalDamageResult;
     protected Map<GameEventTester, MultiRollResult> tickDamageResult;
+    protected final boolean quest;
 
     public CreatureEffect(CreatureEffectSource source, ICreature creatureResponsible, Taggable generatedBy) {
         super(source, creatureResponsible, generatedBy);
         this.applicationDamageResult = null;
         this.removalDamageResult = null;
         this.tickDamageResult = new TreeMap<>();
+        this.quest = source.isQuest();
     }
 
     public CreatureEffectSource getSource() {
         return (CreatureEffectSource) this.source;
+    }
+
+    public boolean isQuest() {
+        return quest;
     }
 
     public MultiRollResult getApplicationDamageResult(Function<MultiRollResult, MultiRollResult> adjustor) {
@@ -53,8 +59,7 @@ public class CreatureEffect extends EntityEffect {
         return removalDamageResult;
     }
 
-    public MultiRollResult getEventDamageResult(GameEvent event,
-            Function<MultiRollResult, MultiRollResult> adjustor) {
+    public MultiRollResult getEventDamageResult(GameEvent event, Function<MultiRollResult, MultiRollResult> adjustor) {
         if (event == null) {
             return null;
         }
