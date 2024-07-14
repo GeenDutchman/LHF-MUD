@@ -4,7 +4,7 @@ import com.lhf.messages.events.SeeEvent;
 
 public interface ItemCapability {
     public static enum ItemCapabilityNames {
-        USABLE, LOCKING, EQUIPABLE, RENAMEABLE;
+        USABLE, LOCKING, EQUIPABLE, RENAMEABLE, WEAPON;
     }
 
     public ItemCapabilityNames getCapabilityName();

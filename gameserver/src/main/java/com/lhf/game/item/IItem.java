@@ -119,6 +119,8 @@ public interface IItem extends Examinable {
         public LockingCapability getLockingCapability();
 
         public EquipableCapability getEquipableCapability();
+
+        public WeaponCapability getWeaponCapability();
     }
 
     public RenameCapability getRenameCapability();
@@ -128,5 +130,7 @@ public interface IItem extends Examinable {
     public LockingCapability getLockingCapability();
 
     public EquipableCapability getEquipableCapability();
+
+    public WeaponCapability getWeaponCapability();
 
 }

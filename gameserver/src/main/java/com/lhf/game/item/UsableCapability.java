@@ -392,7 +392,7 @@ public interface UsableCapability extends ItemCapability {
             public Set<CreatureEffectSource> getUseOnCreatureEffects() {
                 return useOnCreatureEffects == null ? null
                         : this.useOnCreatureEffects.stream().filter(builder -> builder != null)
-                                .map(builder -> builder.build()).collect(Collectors.toSet());
+                                .map(builder -> builder.build()).collect(Collectors.toCollection(LinkedHashSet::new));
             }
 
             public UsableBuilder setUseOnCreatureEffects(Set<CreatureEffectSource.Builder> useOnCreatureEffects) {
@@ -420,7 +420,7 @@ public interface UsableCapability extends ItemCapability {
             public Set<RoomEffectSource> getUseOnAreaEffects() {
                 return useOnAreaEffects == null ? null
                         : useOnAreaEffects.stream().filter(builder -> builder != null).map(builder -> builder.build())
-                                .collect(Collectors.toSet());
+                                .collect(Collectors.toCollection(LinkedHashSet::new));
             }
 
             public UsableBuilder setUseOnAreaEffects(Set<RoomEffectSource.Builder> useOnAreaEffects) {
@@ -567,7 +567,7 @@ public interface UsableCapability extends ItemCapability {
 
         }
 
-        public Usable() {
+        private Usable() {
             this.totalNumberUsableTimes = -1;
             this.useOnAreaEffects = null;
             this.useOnCreatureEffects = null;

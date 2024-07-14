@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.StringJoiner;
 
 import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffect;
@@ -147,6 +148,13 @@ public interface EquipableCapability extends ItemCapability {
             private List<CreatureEffectSource.Builder> equipEffects;
             private List<CreatureEffectSource.Builder> hiddenEquipEffects;
 
+            public EquipableBuilder(EquipmentSlots slot) {
+                this.equipmentSlots = new ArrayList<>();
+                if (slot != null) {
+                    this.equipmentSlots.add(slot);
+                }
+            }
+
             public List<EquipmentTypes> getEquipmentTypes() {
                 return equipmentTypes;
             }
@@ -264,16 +272,25 @@ public interface EquipableCapability extends ItemCapability {
 
             @Override
             public String toString() {
-                StringBuilder builder = new StringBuilder();
-                builder.append("EquipableBuilder [equipmentTypes=").append(equipmentTypes).append(", equipmentSlots=")
-                        .append(equipmentSlots).append(", equipEffects=").append(equipEffects)
-                        .append(", hiddenEquipEffects=").append(hiddenEquipEffects).append("]");
-                return builder.toString();
+                StringJoiner sj = new StringJoiner(", ", "EquipableBuilder [", "]");
+                if (equipmentSlots != null && !equipmentSlots.isEmpty()) {
+                    sj.add("equimentSlots=" + equipmentSlots.toString());
+                }
+                if (equipmentTypes != null && !equipmentTypes.isEmpty()) {
+                    sj.add("equipmentTypes=" + equipmentTypes.toString());
+                }
+                if (equipEffects != null && !equipEffects.isEmpty()) {
+                    sj.add("equipEffects=" + equipEffects.toString());
+                }
+                if (hiddenEquipEffects != null && !hiddenEquipEffects.isEmpty()) {
+                    sj.add("hiddenEquipEffects=" + hiddenEquipEffects.toString());
+                }
+                return sj.toString();
             }
 
         }
 
-        public Equipable() {
+        private Equipable() {
             this.equipmentTypes = List.of();
             this.equipmentSlots = List.of();
             this.equipEffects = List.of();
@@ -296,22 +313,22 @@ public interface EquipableCapability extends ItemCapability {
 
         @Override
         public List<EquipmentTypes> getEquipmentTypes() {
-            return Collections.unmodifiableList(this.equipmentTypes);
+            return this.equipmentTypes == null ? null : Collections.unmodifiableList(this.equipmentTypes);
         }
 
         @Override
         public List<EquipmentSlots> getEquipmentSlots() {
-            return Collections.unmodifiableList(this.equipmentSlots);
+            return this.equipmentSlots == null ? null : Collections.unmodifiableList(this.equipmentSlots);
         }
 
         @Override
         public List<CreatureEffectSource> getEquipEffects() {
-            return Collections.unmodifiableList(this.equipEffects);
+            return this.equipEffects == null ? null : Collections.unmodifiableList(this.equipEffects);
         }
 
         @Override
         public List<CreatureEffectSource> getHiddenEquipEffects() {
-            return Collections.unmodifiableList(this.hiddenEquipEffects);
+            return this.hiddenEquipEffects == null ? null : Collections.unmodifiableList(this.hiddenEquipEffects);
         }
 
         @Override
@@ -334,11 +351,20 @@ public interface EquipableCapability extends ItemCapability {
 
         @Override
         public String toString() {
-            StringBuilder builder = new StringBuilder();
-            builder.append("Equipable [equipmentTypes=").append(equipmentTypes).append(", equipmentSlots=")
-                    .append(equipmentSlots).append(", equipEffects=").append(equipEffects)
-                    .append(", hiddenEquipEffects=").append(hiddenEquipEffects).append("]");
-            return builder.toString();
+            StringJoiner sj = new StringJoiner(", ", "EquipableBuilder [", "]");
+            if (equipmentSlots != null && !equipmentSlots.isEmpty()) {
+                sj.add("equimentSlots=" + equipmentSlots.toString());
+            }
+            if (equipmentTypes != null && !equipmentTypes.isEmpty()) {
+                sj.add("equipmentTypes=" + equipmentTypes.toString());
+            }
+            if (equipEffects != null && !equipEffects.isEmpty()) {
+                sj.add("equipEffects=" + equipEffects.toString());
+            }
+            if (hiddenEquipEffects != null && !hiddenEquipEffects.isEmpty()) {
+                sj.add("hiddenEquipEffects=" + hiddenEquipEffects.toString());
+            }
+            return sj.toString();
         }
 
     }
