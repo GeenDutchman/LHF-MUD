@@ -1,5 +1,7 @@
 package com.lhf.game.item;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.regex.PatternSyntaxException;
 
 public class Item implements IItem {
@@ -13,6 +15,60 @@ public class Item implements IItem {
     private boolean visible;
     // Every item should describe itself
     protected String descriptionString;
+
+    public static class ItemBuilder implements IItem.IItemBuilder {
+        private String name = "item";
+        private String descriptionString = "An item.";
+        private boolean visible = true;
+        private boolean takeable;
+        private String customTagName;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getDescriptionString() {
+            return descriptionString;
+        }
+
+        public void setDescriptionString(String descriptionString) {
+            this.descriptionString = descriptionString;
+        }
+
+        public boolean isVisible() {
+            return visible;
+        }
+
+        public void setVisible(boolean visible) {
+            this.visible = visible;
+        }
+
+        public boolean isTakeable() {
+            return takeable;
+        }
+
+        public void setTakeable(boolean takeable) {
+            this.takeable = takeable;
+        }
+
+        @Override
+        public String getTagName() {
+            if (customTagName != null && !customTagName.isBlank()) {
+                return customTagName;
+            }
+            return "item";
+        }
+
+        @Override
+        public Collection<ItemCapability> getCapabilities() {
+            return List.of();
+        }
+
+    }
 
     public Item(String name) {
         assert name.trim().length() >= 3;

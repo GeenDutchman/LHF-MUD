@@ -1,5 +1,6 @@
 package com.lhf.game.item;
 
+import java.util.Collection;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.PatternSyntaxException;
@@ -56,6 +57,8 @@ public interface IItem extends Examinable {
 
     boolean isVisible();
 
+    boolean isTakeable();
+
     @Override
     String getName();
 
@@ -95,5 +98,27 @@ public interface IItem extends Examinable {
     public default String getTagName() {
         return "item";
     }
+
+    public interface IItemBuilder {
+        public String getName();
+
+        public String getDescriptionString();
+
+        public String getTagName();
+
+        public boolean isTakeable();
+
+        public boolean isVisible();
+
+        public Collection<ItemCapability> getCapabilities();
+
+        public UsableCapability getUsableCapability();
+
+        public LockingCapability getLockingCapability();
+    }
+
+    public UsableCapability getUsableCapability();
+
+    public LockingCapability getLockingCapability();
 
 }

@@ -25,6 +25,7 @@ import com.lhf.game.item.concrete.equipment.Shield;
 import com.lhf.game.item.concrete.equipment.Shortsword;
 import com.lhf.game.item.concrete.equipment.Whimsystick;
 
+// TODO: THIS ISN'T TRUE WITH FLATTENING
 public class IItemRunTypeAdapterFactoryProducer {
     public static RuntimeTypeAdapterFactory<IItem> produce() {
         RuntimeTypeAdapterFactory<IItem> itemTypeAdapter = RuntimeTypeAdapterFactory.of(IItem.class, "className", true)

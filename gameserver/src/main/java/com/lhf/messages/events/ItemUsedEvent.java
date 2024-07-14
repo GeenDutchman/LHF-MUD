@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 import com.lhf.RichOutput;
 import com.lhf.Taggable;
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.item.IItem;
 import com.lhf.game.item.Usable;
 import com.lhf.messages.GameEventType;
 
@@ -17,14 +18,14 @@ public class ItemUsedEvent extends GameEvent {
 
     private final UseOutMessageOption subType;
     private final ICreature itemUser;
-    private final Usable usable;
+    private final IItem usable;
     private final Taggable target;
     private final RichOutput message;
 
     public static class Builder extends GameEvent.Builder<Builder> {
         private UseOutMessageOption subType;
         private ICreature itemUser;
-        private Usable usable;
+        private IItem usable;
         private Taggable target;
         private RichOutputBuilder message;
 
@@ -50,11 +51,11 @@ public class ItemUsedEvent extends GameEvent {
             return this;
         }
 
-        public Usable getUsable() {
+        public IItem getUsable() {
             return usable;
         }
 
-        public Builder setUsable(Usable usable) {
+        public Builder setUsable(IItem usable) {
             this.usable = usable;
             return this;
         }
@@ -140,7 +141,7 @@ public class ItemUsedEvent extends GameEvent {
         return itemUser;
     }
 
-    public Usable getUsable() {
+    public IItem getUsable() {
         return usable;
     }
 
