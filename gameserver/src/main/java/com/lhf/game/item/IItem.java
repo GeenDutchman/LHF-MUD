@@ -112,13 +112,21 @@ public interface IItem extends Examinable {
 
         public Collection<ItemCapability> getCapabilities();
 
+        public RenameCapability getRenameCapability();
+
         public UsableCapability getUsableCapability();
 
         public LockingCapability getLockingCapability();
+
+        public EquipableCapability getEquipableCapability();
     }
+
+    public RenameCapability getRenameCapability();
 
     public UsableCapability getUsableCapability();
 
     public LockingCapability getLockingCapability();
+
+    public EquipableCapability getEquipableCapability();
 
 }
