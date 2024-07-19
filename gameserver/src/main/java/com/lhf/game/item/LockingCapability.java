@@ -31,6 +31,7 @@ public interface LockingCapability extends ItemCapability, Lockable {
     public static final class Locking implements LockingCapability, Serializable {
         private final UUID lockUUID;
         private boolean locked = false;
+        // TODO: have a good look at the key
 
         public Locking() {
             this.lockUUID = UUID.randomUUID();
