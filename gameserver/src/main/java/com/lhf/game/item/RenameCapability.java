@@ -30,6 +30,20 @@ public interface RenameCapability extends ItemCapability {
         return new Renameable();
     }
 
+    public static String displayName(IItem myItem) {
+        if (myItem == null) {
+            return null;
+        }
+        final RenameCapability capability = myItem.getRenameCapability();
+        if (capability != null) {
+            final String alternate = capability.getAlternateName();
+            if (alternate != null && !alternate.isBlank()) {
+                return alternate;
+            }
+        }
+        return myItem.getName();
+    }
+
     public static final class Renameable implements RenameCapability, Serializable {
         private String alternateName;
 
