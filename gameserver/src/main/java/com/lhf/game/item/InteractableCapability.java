@@ -2,10 +2,13 @@ package com.lhf.game.item;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import com.lhf.RichOutput;
 import com.lhf.RichOutput.RichOutputBuilder;
@@ -87,6 +90,14 @@ public interface InteractableCapability extends ItemCapability {
     public Set<CreatureEffectSource> getInteractorEffects();
     // TODO: describe changes to self on interaction, needs DC for traps?
 
+    /**
+     * Returns an editable set of Guards names If any guards are present in the
+     * area, interaction is prevented
+     * 
+     * @return
+     */
+    public Set<String> getGuardsNames();
+
     @Override
     default boolean isStateful() {
         return true;
@@ -121,6 +132,30 @@ public interface InteractableCapability extends ItemCapability {
         ctx.receive(event);
     }
 
+    private static void updateGuards(InteractableCapability capability) {
+        if (capability == null) {
+            return;
+        }
+        final Area area = capability.getInteractArea();
+        if (area == null) {
+            return;
+        }
+        final Set<String> guards = capability.getGuardsNames();
+        if (guards == null || guards.isEmpty()) {
+            return;
+        }
+        for (Iterator<String> guardIterator = guards.iterator(); guardIterator.hasNext();) {
+            final String guardName = guardIterator.next();
+            if (guardName == null || guardName.isBlank()) {
+                guardIterator.remove();
+                continue;
+            }
+            if (!area.hasCreature(guardName)) {
+                guardIterator.remove();
+            }
+        }
+    }
+
     public static boolean interactWithItem(CommandContext ctx, IItem myItem) {
         if (ctx == null) {
             return false;
@@ -146,6 +181,33 @@ public interface InteractableCapability extends ItemCapability {
         if (capability == null) {
             ctx.receive(eventBuilder.setNotBroadcast().setSubType(InteractOutMessageType.NO_METHOD)
                     .setDescription("It does nothing"));
+            return false;
+        }
+        InteractableCapability.updateGuards(capability);
+        final Set<String> guards = capability.getGuardsNames();
+        if (guards != null && !guards.contains(interactor.getName())) {
+            InteractableCapability.broadcast(ctx, capability,
+                    eventBuilder.setBroacast().setSubType(InteractOutMessageType.CANNOT)
+                            .setDescription("This item is guarded").setOutputCallback(rob -> {
+                                if (rob != null) {
+                                    rob.appendString("This item is guarded.");
+                                    final StringJoiner sj = new StringJoiner(", ", " It is guarded by: ", ". ")
+                                            .setEmptyValue("");
+                                    guards.stream().filter(name -> name != null).forEachOrdered(name -> sj.add(name));
+                                    rob.appendString(sj.toString());
+                                }
+                            }));
+            return false;
+        }
+        final LockingCapability locking = myItem.getLockingCapability();
+        if (locking != null && !locking.canAccess(interactor)) {
+            InteractableCapability.broadcast(ctx, capability,
+                    eventBuilder.setBroacast().setSubType(InteractOutMessageType.CANNOT).setDescription("It is locked.")
+                            .setOutputCallback(rob -> {
+                                if (rob != null) {
+                                    rob.appendString("This item is locked.");
+                                }
+                            }));
             return false;
         }
         final CreatureFilterQuery restrictions = capability.getInteractUserRestrictions();
@@ -217,6 +279,7 @@ public interface InteractableCapability extends ItemCapability {
         private final List<RichOutput> interactDisplayPages;
         private final Set<RoomEffectSource> areaInteractEffects;
         private final Set<CreatureEffectSource> interactorEffects;
+        private final Set<String> guardsNames;
 
         private final static class AreaReference extends ExternalReference<Area> {
 
@@ -241,6 +304,7 @@ public interface InteractableCapability extends ItemCapability {
             private Set<CreatureEffectSource> interactorEffects;
             private String locality;
             private String referenceName;
+            private Set<String> guardsNames;
 
             public Builder() {
                 this.interactionRepeatable = false;
@@ -250,6 +314,7 @@ public interface InteractableCapability extends ItemCapability {
                 this.interactorEffects = null;
                 this.locality = null;
                 this.referenceName = null;
+                this.guardsNames = null;
             }
 
             public Builder reset() {
@@ -261,6 +326,7 @@ public interface InteractableCapability extends ItemCapability {
                 this.interactCount = 0;
                 this.locality = null;
                 this.referenceName = null;
+                this.guardsNames = null;
                 return this;
             }
 
@@ -438,13 +504,37 @@ public interface InteractableCapability extends ItemCapability {
                 return null;
             }
 
-            @Override
-            @Deprecated(forRemoval = false)
             /**
              * This is just here to fulfill an interface, but not to be used
              */
+            @Override
+            @Deprecated(forRemoval = false)
             public Builder setReference(Area target) {
                 throw new UnsupportedOperationException("Unimplemented method 'setReference'");
+            }
+
+            public Set<String> getGuardsNames() {
+                return guardsNames;
+            }
+
+            public Builder addGuard(String name) {
+                if (name != null && !name.isBlank()) {
+                    if (this.guardsNames == null) {
+                        this.guardsNames = new LinkedHashSet<>();
+                    }
+                    this.guardsNames.add(name);
+                }
+                return this;
+            }
+
+            public Builder addGuard(ICreature creature) {
+                if (creature != null) {
+                    if (this.guardsNames == null) {
+                        this.guardsNames = new LinkedHashSet<>();
+                    }
+                    this.guardsNames.add(creature.getName());
+                }
+                return this;
             }
 
             public InteractableCapability build() {
@@ -461,6 +551,7 @@ public interface InteractableCapability extends ItemCapability {
             this.interactDisplayPages = new ArrayList<>();
             this.areaInteractEffects = new LinkedHashSet<>();
             this.interactorEffects = new LinkedHashSet<>();
+            this.guardsNames = new LinkedHashSet<>();
         }
 
         protected Interactable(Builder builder) {
@@ -472,15 +563,21 @@ public interface InteractableCapability extends ItemCapability {
                 this.interactDisplayPages = new ArrayList<>();
                 this.areaInteractEffects = new LinkedHashSet<>();
                 this.interactorEffects = new LinkedHashSet<>();
+                this.guardsNames = new LinkedHashSet<>();
             } else {
                 this.interactionRepeatable = builder.isInteractionRepeatable();
                 this.interactCount = builder.getInteractCount();
                 this.interactArea = new AreaReference(builder);
-                this.interactUserRestrictions = builder.getInteractUserRestrictions();
+                this.interactUserRestrictions = builder.getInteractUserRestrictions() != null
+                        ? new CreatureFilterQuery(builder.interactUserRestrictions)
+                        : null;
                 this.interactDisplayPages = builder.getInteractDisplayPages().stream().filter(rab -> rab != null)
                         .map(rab -> rab.build()).toList();
-                this.areaInteractEffects = builder.getAreaInteractEffects();
-                this.interactorEffects = builder.getInteractorEffects();
+                this.areaInteractEffects = builder.getAreaInteractEffects().stream().filter(ef -> ef != null)
+                        .collect(Collectors.toCollection(LinkedHashSet::new));
+                this.interactorEffects = builder.getInteractorEffects().stream().filter(ef -> ef != null)
+                        .collect(Collectors.toCollection(LinkedHashSet::new));
+                this.guardsNames = builder.guardsNames != null ? new LinkedHashSet<>(builder.guardsNames) : null;
             }
         }
 
@@ -534,6 +631,11 @@ public interface InteractableCapability extends ItemCapability {
         @Override
         public List<IExternalReference<Area>> getExternalAreaReferences() {
             return this.interactArea != null ? List.of(this.interactArea) : List.of();
+        }
+
+        @Override
+        public Set<String> getGuardsNames() {
+            return this.guardsNames;
         }
 
     }

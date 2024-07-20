@@ -72,6 +72,22 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
         public transient Class<? extends ICreature> clazz;
         public Boolean isBattling;
 
+        public CreatureFilterQuery() {
+        }
+
+        public CreatureFilterQuery(CreatureFilterQuery copy) {
+            if (copy != null) {
+                this.filters = copy.filters != null ? EnumSet.copyOf(copy.filters)
+                        : EnumSet.noneOf(CreatureFilters.class);
+                this.name = copy.name;
+                this.nameRegexLen = copy.nameRegexLen;
+                this.faction = copy.faction;
+                this.vocation = copy.vocation;
+                this.clazz = copy.clazz;
+                this.isBattling = copy.isBattling;
+            }
+        }
+
         @Override
         public int hashCode() {
             return Objects.hash(filters, name, nameRegexLen, faction, vocation, clazz, isBattling);
