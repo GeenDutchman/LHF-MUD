@@ -18,6 +18,8 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
+import com.lhf.game.IExternalReference;
+import com.lhf.game.IExternalReference.ExternalReference;
 import com.lhf.game.ItemContainer;
 import com.lhf.game.creature.CreaturePartitionSetVisitor;
 import com.lhf.game.creature.ICreature;
@@ -255,6 +257,18 @@ public interface Area extends ItemContainer, CreatureContainer, CommandChainHand
         default CommandChainHandler getChainHandler(CommandContext ctx) {
             return ctx.getArea();
         }
+    }
+
+    public class AreaReference extends ExternalReference<Area> {
+
+        public AreaReference(String locality, String referenceName) {
+            super(locality, referenceName);
+        }
+
+        public AreaReference(IExternalReference<Area> areaReference) {
+            super(areaReference);
+        }
+
     }
 
     @Override

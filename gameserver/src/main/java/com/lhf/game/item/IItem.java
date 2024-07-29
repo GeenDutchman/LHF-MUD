@@ -3,6 +3,7 @@ package com.lhf.game.item;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.logging.Logger;
 import java.util.regex.PatternSyntaxException;
 
 import com.lhf.Examinable;
@@ -61,6 +62,12 @@ public interface IItem extends Examinable {
 
     @Override
     String getName();
+
+    public default Logger getLogger() {
+        final String itemID = this.getItemID().toString();
+        final String name = RenameCapability.displayName(this);
+        return Logger.getLogger(String.format("%s.%s.%s", this.getClass().getName(), itemID, name));
+    }
 
     default boolean checkName(String name) {
         return this.getName().equalsIgnoreCase(name);
@@ -123,6 +130,8 @@ public interface IItem extends Examinable {
         public WeaponCapability getWeaponCapability();
 
         public InteractableCapability getInteractableCapability();
+
+        public IItem build();
     }
 
     public RenameCapability getRenameCapability();

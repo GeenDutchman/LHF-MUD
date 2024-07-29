@@ -37,6 +37,8 @@ public class CreatureEffectSource extends EntityEffectSource {
 
         final protected List<DamageDice> damages;
 
+        // TODO: add boolean restTick and some sort of dynamic changes?
+
         protected boolean restoreFaction;
 
         public Deltas() {
