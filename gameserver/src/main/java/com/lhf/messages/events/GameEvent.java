@@ -67,6 +67,18 @@ public abstract class GameEvent implements Comparable<GameEvent> {
             return this.getThis();
         }
 
+        public T addOutputCallback(Consumer<RichOutputBuilder> callback) {
+            if (callback == null) {
+                return this.getThis();
+            }
+            if (this.outputCallback == null) {
+                this.outputCallback = callback;
+            } else {
+                this.outputCallback = this.outputCallback.andThen(callback);
+            }
+            return this.getThis();
+        }
+
         public abstract T getThis();
 
         public abstract GameEvent Build();
