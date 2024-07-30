@@ -12,9 +12,9 @@ import java.util.stream.Collectors;
 
 import com.lhf.RichOutput;
 import com.lhf.RichOutput.RichOutputBuilder;
-import com.lhf.game.IExternalReference;
 import com.lhf.game.CreatureContainer.CreatureFilterQuery;
-import com.lhf.game.IExternalReference.ExternalReference;
+import com.lhf.game.IExternalReference;
+import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.ICreature;
@@ -24,9 +24,11 @@ import com.lhf.game.map.RoomEffectSource;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.ItemInteractionEvent;
+import com.lhf.messages.events.RoomExitedEvent;
 import com.lhf.messages.events.ItemInteractionEvent.Builder;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 import com.lhf.messages.events.SeeEvent.ABuilder;
+import com.lhf.messages.events.TickEvent;
 
 public interface InteractableCapability extends ItemCapability {
     public boolean isInteractionRepeatable();
@@ -156,6 +158,8 @@ public interface InteractableCapability extends ItemCapability {
         }
     }
 
+    public boolean isDispenser();
+
     public static boolean interactWithItem(CommandContext ctx, IItem myItem) {
         if (ctx == null) {
             return false;
@@ -248,6 +252,37 @@ public interface InteractableCapability extends ItemCapability {
                         interactor.applyEffect(new CreatureEffect(creatureEffectSource, interactor, myItem)));
             }
         }
+        final ItemContainerCapability itemContainer = myItem.getItemContainerCapability();
+        if (capability.isDispenser() && itemContainer != null && area != null) {
+            final IItem removed = itemContainer.removeOne();
+            area.addItem(removed);
+        }
+        final Area ctxArea = ctx.getArea();
+        final List<IExternalReference<Area>> areas = capability.getExternalAreaReferences();
+        if (areas != null && ctxArea != null && ctxArea.hasCreature(interactor)) {
+            for (final IExternalReference<Area> reference : areas) {
+                final Area referred = reference.getReference();
+                if (referred == null) {
+                    continue;
+                }
+                if (referred.equals(ctxArea)) {
+                    continue;
+                }
+                if (ctxArea.removeCreature(interactor)) {
+                    ctxArea.announce(
+                            RoomExitedEvent.getBuilder().setLeaveTaker(interactor).setBecauseOf(myItem).Build());
+                    ICreature.eventAccepter.accept(ctx.getCreature(),
+                            TickEvent.getBuilder().setTickType(TickType.ROOM).Build());
+                    referred.addCreature(interactor);
+                    break;
+                }
+            }
+        } else if (myItem.getCreatureContainerCapability() != null) {
+            final CreatureContainerCapability ccc = myItem.getCreatureContainerCapability();
+            if (ccc.hasCapacity()) {
+                ccc.addCreature(interactor);
+            }
+        }
         capability.incrementInteractCount();
         return true;
     }
@@ -280,31 +315,19 @@ public interface InteractableCapability extends ItemCapability {
         private final Set<RoomEffectSource> areaInteractEffects;
         private final Set<CreatureEffectSource> interactorEffects;
         private final Set<String> guardsNames;
+        private final List<Area.AreaReference> interactAreas;
+        private final boolean dispenser;
 
-        private final static class AreaReference extends ExternalReference<Area> {
-
-            public AreaReference(String locality, String referenceName) {
-                super(locality, referenceName);
-            }
-
-            public AreaReference(IExternalReference<Area> areaReference) {
-                super(areaReference);
-            }
-
-        }
-
-        private final AreaReference interactArea;
-
-        public static class Builder implements IExternalReference<Area> {
+        public static class Builder {
             private boolean interactionRepeatable;
             private int interactCount = 0;
             private CreatureFilterQuery interactUserRestrictions;
             private List<RichOutputBuilder> interactDisplayPages;
             private Set<RoomEffectSource> areaInteractEffects;
             private Set<CreatureEffectSource> interactorEffects;
-            private String locality;
-            private String referenceName;
+            private List<Area.AreaReference> interactAreas;
             private Set<String> guardsNames;
+            private boolean dispenser;
 
             public Builder() {
                 this.interactionRepeatable = false;
@@ -312,9 +335,9 @@ public interface InteractableCapability extends ItemCapability {
                 this.interactDisplayPages = null;
                 this.areaInteractEffects = null;
                 this.interactorEffects = null;
-                this.locality = null;
-                this.referenceName = null;
+                this.interactAreas = null;
                 this.guardsNames = null;
+                this.dispenser = false;
             }
 
             public Builder reset() {
@@ -324,9 +347,18 @@ public interface InteractableCapability extends ItemCapability {
                 this.areaInteractEffects = null;
                 this.interactorEffects = null;
                 this.interactCount = 0;
-                this.locality = null;
-                this.referenceName = null;
+                this.interactAreas = null;
                 this.guardsNames = null;
+                this.dispenser = false;
+                return this;
+            }
+
+            public boolean isDispenser() {
+                return dispenser;
+            }
+
+            public Builder setDispenser(boolean dispenser) {
+                this.dispenser = dispenser;
                 return this;
             }
 
@@ -481,38 +513,6 @@ public interface InteractableCapability extends ItemCapability {
                 return this;
             }
 
-            public String getLocality() {
-                return locality;
-            }
-
-            public Builder setLocality(String locality) {
-                this.locality = locality;
-                return this;
-            }
-
-            public String getReferenceName() {
-                return referenceName;
-            }
-
-            public Builder setReferenceName(String referenceName) {
-                this.referenceName = referenceName;
-                return this;
-            }
-
-            @Override
-            public final Area getReference() {
-                return null;
-            }
-
-            /**
-             * This is just here to fulfill an interface, but not to be used
-             */
-            @Override
-            @Deprecated(forRemoval = false)
-            public Builder setReference(Area target) {
-                throw new UnsupportedOperationException("Unimplemented method 'setReference'");
-            }
-
             public Set<String> getGuardsNames() {
                 return guardsNames;
             }
@@ -537,6 +537,40 @@ public interface InteractableCapability extends ItemCapability {
                 return this;
             }
 
+            public Builder setGuardsNames(Set<String> guardsNames) {
+                this.guardsNames = guardsNames;
+                return this;
+            }
+
+            public List<Area.AreaReference> getInteractAreas() {
+                return interactAreas;
+            }
+
+            public Builder setInteractAreas(List<Area.AreaReference> interactAreas) {
+                this.interactAreas = interactAreas;
+                return this;
+            }
+
+            public Builder addInteractArea(Area.AreaReference reference) {
+                if (reference != null) {
+                    if (this.interactAreas == null) {
+                        this.interactAreas = new ArrayList<>();
+                    }
+                    this.interactAreas.add(reference);
+                }
+                return this;
+            }
+
+            public Builder adjustInteractAreas(Consumer<List<Area.AreaReference>> adjustor) {
+                if (adjustor != null) {
+                    if (this.interactAreas == null) {
+                        this.interactAreas = new ArrayList<>();
+                    }
+                    adjustor.accept(interactAreas);
+                }
+                return this;
+            }
+
             public InteractableCapability build() {
                 return new Interactable(this);
             }
@@ -546,28 +580,30 @@ public interface InteractableCapability extends ItemCapability {
         protected Interactable() {
             this.interactionRepeatable = false;
             this.interactCount = 0;
-            this.interactArea = null;
+            this.interactAreas = new ArrayList<>();
             this.interactUserRestrictions = null;
             this.interactDisplayPages = new ArrayList<>();
             this.areaInteractEffects = new LinkedHashSet<>();
             this.interactorEffects = new LinkedHashSet<>();
             this.guardsNames = new LinkedHashSet<>();
+            this.dispenser = false;
         }
 
         protected Interactable(Builder builder) {
             if (builder == null) {
                 this.interactionRepeatable = false;
                 this.interactCount = 0;
-                this.interactArea = null;
+                this.interactAreas = new ArrayList<>();
                 this.interactUserRestrictions = null;
                 this.interactDisplayPages = new ArrayList<>();
                 this.areaInteractEffects = new LinkedHashSet<>();
                 this.interactorEffects = new LinkedHashSet<>();
                 this.guardsNames = new LinkedHashSet<>();
+                this.dispenser = false;
             } else {
                 this.interactionRepeatable = builder.isInteractionRepeatable();
                 this.interactCount = builder.getInteractCount();
-                this.interactArea = new AreaReference(builder);
+                this.interactAreas = builder.interactAreas != null ? List.copyOf(builder.interactAreas) : List.of();
                 this.interactUserRestrictions = builder.getInteractUserRestrictions() != null
                         ? new CreatureFilterQuery(builder.interactUserRestrictions)
                         : null;
@@ -578,7 +614,13 @@ public interface InteractableCapability extends ItemCapability {
                 this.interactorEffects = builder.getInteractorEffects().stream().filter(ef -> ef != null)
                         .collect(Collectors.toCollection(LinkedHashSet::new));
                 this.guardsNames = builder.guardsNames != null ? new LinkedHashSet<>(builder.guardsNames) : null;
+                this.dispenser = builder.isDispenser();
             }
+        }
+
+        @Override
+        public boolean isDispenser() {
+            return this.dispenser;
         }
 
         @Override
@@ -614,11 +656,6 @@ public interface InteractableCapability extends ItemCapability {
         }
 
         @Override
-        public Area getInteractArea() {
-            return this.interactArea != null ? this.interactArea.getReference() : null;
-        }
-
-        @Override
         public Set<RoomEffectSource> getAreaInteractEffects() {
             return this.areaInteractEffects != null ? Collections.unmodifiableSet(this.areaInteractEffects) : Set.of();
         }
@@ -630,7 +667,10 @@ public interface InteractableCapability extends ItemCapability {
 
         @Override
         public List<IExternalReference<Area>> getExternalAreaReferences() {
-            return this.interactArea != null ? List.of(this.interactArea) : List.of();
+            return this.interactAreas != null
+                    ? this.interactAreas.stream().filter(ref -> ref != null).map(ref -> (IExternalReference<Area>) ref)
+                            .toList()
+                    : List.of();
         }
 
         @Override

@@ -131,6 +131,10 @@ public interface IItem extends Examinable {
 
         public InteractableCapability getInteractableCapability();
 
+        public ItemContainerCapability getItemContainerCapability();
+
+        public CreatureContainerCapability getCreatureContainerCapability();
+
         public IItem build();
     }
 
@@ -143,6 +147,10 @@ public interface IItem extends Examinable {
     public EquipableCapability getEquipableCapability();
 
     public WeaponCapability getWeaponCapability();
+
+    public ItemContainerCapability getItemContainerCapability();
+
+    public CreatureContainerCapability getCreatureContainerCapability();
 
     public InteractableCapability getInteractableCapability();
 
