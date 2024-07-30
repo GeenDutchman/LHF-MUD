@@ -12,12 +12,13 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import com.lhf.game.IExternalReference;
-import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.dice.DiceDC;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.map.Area;
 import com.lhf.game.map.RoomEffect;
 import com.lhf.game.map.RoomEffectSource;
+import com.lhf.messages.CommandContext;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.GameEventTester;
@@ -25,9 +26,9 @@ import com.lhf.messages.events.SeeEvent.ABuilder;
 
 public interface GameEventProcessorCapability extends ItemCapability, GameEventProcessor {
 
-    public boolean isActivated();
+    public boolean isArmed();
 
-    public GameEventProcessorCapability setActivated(boolean nextState);
+    public GameEventProcessorCapability setArmed(boolean nextState);
 
     public Map<Attributes, DiceDC> getDisarmDifficulties();
 
@@ -68,6 +69,7 @@ public interface GameEventProcessorCapability extends ItemCapability, GameEventP
 
     @Override
     default void describe(ABuilder<?> seeEventBuilder) {
+        // TODO: describe if activated
         return;
     }
 
@@ -75,9 +77,37 @@ public interface GameEventProcessorCapability extends ItemCapability, GameEventP
         return new Reactor();
     }
 
+    public static boolean changeArming(CommandContext ctx, IItem myItem) {
+        if (ctx == null) {
+            return false;
+        }
+        // TODO: make a command for this?
+        final ICreature creature = ctx.getCreature();
+        if (creature == null) {
+            return false; // error message
+        }
+        final GameEventProcessorCapability capability = myItem.getGameEventProcessorCapability();
+        if (capability == null) {
+            return false;
+        }
+        final Map<Attributes, DiceDC> difficulties = capability.getDisarmDifficulties();
+        if (difficulties != null) {
+            final Attributes attr = creature.getHighestAttributeBonus(difficulties.keySet());
+            if (attr == null) {
+                return false;
+            }
+            if (creature.check(attr).getRoll() < difficulties.get(attr).rollDice().getRoll()) {
+                return false;
+            }
+            capability.setArmed(!capability.isArmed());
+            return true;
+        }
+        return false;
+    }
+
     public static final class Reactor implements GameEventProcessorCapability {
         private final GameEventProcessorID id = new GameEventProcessorID();
-        private boolean activated;
+        private boolean armed;
         private final EnumMap<Attributes, DiceDC> disarmDifficulties;
         private final Area.AreaReference eventfulArea;
         private final LinkedHashMap<GameEventTester, Set<RoomEffectSource>> triggeredAreaEffects;
@@ -86,7 +116,7 @@ public interface GameEventProcessorCapability extends ItemCapability, GameEventP
             this.disarmDifficulties = null;
             this.eventfulArea = null;
             this.triggeredAreaEffects = null;
-            this.activated = true;
+            this.armed = true;
         }
 
         @Override
@@ -154,13 +184,13 @@ public interface GameEventProcessorCapability extends ItemCapability, GameEventP
         }
 
         @Override
-        public boolean isActivated() {
-            return this.activated;
+        public boolean isArmed() {
+            return this.armed;
         }
 
         @Override
-        public Reactor setActivated(boolean nextState) {
-            this.activated = nextState;
+        public Reactor setArmed(boolean nextState) {
+            this.armed = nextState;
             return this;
         }
 

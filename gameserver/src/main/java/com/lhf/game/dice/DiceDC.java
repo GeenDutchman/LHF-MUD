@@ -4,7 +4,7 @@ public class DiceDC extends Dice {
 
     protected final Integer difficultyClass;
 
-    public DiceDC(Integer dc) {
+    public DiceDC(int dc) {
         super(0, DieType.NONE);
         this.difficultyClass = dc;
     }

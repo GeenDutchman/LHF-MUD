@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.UUID;
 
 import com.lhf.game.Lockable;
+import com.lhf.game.creature.ICreature;
+import com.lhf.messages.CommandContext;
 import com.lhf.messages.events.SeeEvent.ABuilder;
 
 public interface LockingCapability extends ItemCapability, Lockable {
@@ -26,6 +28,34 @@ public interface LockingCapability extends ItemCapability, Lockable {
         } else {
             seeEventBuilder.addExtraInfo("This item needs some type of key. ");
         }
+    }
+
+    public static boolean toggleLock(CommandContext ctx, IItem myItem) {
+        if (ctx == null) {
+            return false;
+        }
+        final ICreature creature = ctx.getCreature();
+        if (creature == null) {
+            return false;
+        }
+        if (myItem == null) {
+            return false; // TODO: error message
+        }
+        final LockingCapability capability = myItem.getLockingCapability();
+        if (capability == null) {
+            return false;
+        }
+        boolean unlocked = capability.isUnlocked();
+        if (capability.isAuthorized(creature)) {
+            if (unlocked) {
+                capability.lock();
+            } else {
+                capability.unlock();
+            }
+            return true;
+        }
+
+        return false;
     }
 
     public static final class Locking implements LockingCapability, Serializable {

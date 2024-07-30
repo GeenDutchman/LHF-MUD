@@ -135,6 +135,8 @@ public interface IItem extends Examinable {
 
         public CreatureContainerCapability getCreatureContainerCapability();
 
+        public GameEventProcessorCapability getGameEventProcessorCapability();
+
         public IItem build();
     }
 
@@ -153,5 +155,7 @@ public interface IItem extends Examinable {
     public CreatureContainerCapability getCreatureContainerCapability();
 
     public InteractableCapability getInteractableCapability();
+
+    public GameEventProcessorCapability getGameEventProcessorCapability();
 
 }

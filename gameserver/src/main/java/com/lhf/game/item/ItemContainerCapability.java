@@ -9,7 +9,9 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import com.lhf.game.ItemContainer;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.IItem.IItemBuilder;
+import com.lhf.messages.CommandContext;
 import com.lhf.messages.events.SeeEvent.ABuilder;
 
 public interface ItemContainerCapability extends ItemCapability, ItemContainer {
@@ -26,6 +28,10 @@ public interface ItemContainerCapability extends ItemCapability, ItemContainer {
 
     @Override
     default void describe(ABuilder<?> seeEventBuilder) {
+        if (seeEventBuilder == null) {
+            return;
+        }
+        // TODO: if locked, say locked, else list items
         return;
     }
 
@@ -47,6 +53,56 @@ public interface ItemContainerCapability extends ItemCapability, ItemContainer {
 
     public static ItemContainerCapability generateItemContainerCapability() {
         return new Container(new Container.Builder());
+    }
+
+    public static boolean depositItem(CommandContext ctx, IItem myItem, IItem toDeposit) {
+        if (ctx == null) {
+            return false; // error message
+        }
+        if (myItem == null || toDeposit == null) {
+            return false;
+        }
+        final ItemContainerCapability capability = myItem.getItemContainerCapability();
+        if (capability == null) {
+            return false;
+        }
+        final LockingCapability locking = myItem.getLockingCapability();
+        if (locking != null && !locking.isUnlocked()) {
+            return false; // TODO: error message
+        }
+        if (!capability.isItemDepositingAllowed()) {
+            return false;
+        }
+        return capability.addItem(toDeposit);
+    }
+
+    public static boolean withdrawItem(CommandContext ctx, IItem myItem, String itemName) {
+        if (ctx == null) {
+            return false; // error message
+        }
+        final ICreature creature = ctx.getCreature();
+        if (creature == null) {
+            return false;
+        }
+        if (myItem == null || itemName == null) {
+            return false;
+        }
+        final ItemContainerCapability capability = myItem.getItemContainerCapability();
+        if (capability == null) {
+            return false;
+        }
+        final LockingCapability locking = myItem.getLockingCapability();
+        if (locking != null && !locking.isUnlocked()) {
+            return false; // TODO: error message
+        }
+        if (!capability.isItemWithdrawalAllowed()) {
+            return false;
+        }
+        Optional<IItem> found = capability.removeItem(itemName);
+        if (found == null || found.isEmpty()) {
+            return false;
+        }
+        return creature.addItem(found.get());
     }
 
     public static final class Container implements ItemContainerCapability {

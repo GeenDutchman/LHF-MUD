@@ -190,6 +190,28 @@ public interface CreatureContainerCapability extends ItemCapability, CreatureCon
         return new CreaturePen(new CreaturePen.Builder());
     }
 
+    public static boolean joinPen(CommandContext ctx, IItem myItem) {
+        if (ctx == null) {
+            return false;
+        }
+        final ICreature creature = ctx.getCreature();
+        if (creature == null) {
+            return false;
+        }
+        final CreatureContainerCapability capability = myItem.getCreatureContainerCapability();
+        if (capability == null) {
+            return false;
+        }
+        final LockingCapability locking = myItem.getLockingCapability();
+        if (locking != null && !locking.isUnlocked()) {
+            return false;
+        }
+        if (capability.hasCapacity()) {
+            return capability.addCreature(creature);
+        }
+        return false;
+    }
+
     public static final class CreaturePen implements CreatureContainerCapability {
         protected final class PennedCreature implements Runnable, Comparable<PennedCreature> {
             protected final transient ICreature creature;
