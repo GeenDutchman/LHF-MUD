@@ -882,38 +882,11 @@ public interface CreatureContainerCapability extends ItemCapability, CreatureCon
                         final PennedCreature pennedCreature = wasPenned.get();
                         return CommandChainHandler.passUpChain(pennedCreature.successor, ctx, command);
                     }
+                    final Area ctxArea = ctx.getArea();
+                    if (ctxArea != null) {
+                        return CommandChainHandler.passUpChain(ctxArea, ctx, command);
+                    }
                     return CommandChainHandler.passUpChain(CreaturePen.this, ctx, command);
-                }
-
-            }, AMessageType.INTERACT, new ICreature.CreatureCommandHandler() {
-
-                @Override
-                public AMessageType getHandleType() {
-                    return AMessageType.INTERACT;
-                }
-
-                @Override
-                public Optional<String> getHelp(CommandContext ctx) {
-                    return Optional
-                            .of(String.format("Use the command <command>INTERACT %s</command> to get out of here.",
-                                    CreaturePen.this.getName()));
-                }
-
-                @Override
-                public CommandChainHandler getChainHandler(CommandContext ctx) {
-                    return CreaturePen.this;
-                }
-
-                @Override
-                public Reply visit(CommandContext ctx, InteractMessage command) {
-                    if (command == null) {
-                        return ctx.failhandle();
-                    }
-                    if (CreaturePen.this.getName().equalsIgnoreCase(command.getObject())) {
-                        CreaturePen.this.removeCreature(ctx.getCreature());
-                        return ctx.handled();
-                    }
-                    return ctx.failhandle();
                 }
 
             }, AMessageType.SAY, new ICreature.CreatureCommandHandler() {

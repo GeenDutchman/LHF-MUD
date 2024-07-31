@@ -72,6 +72,7 @@ public interface ItemContainer extends Examinable {
         public String className;
         public transient Class<? extends IItem> clazz;
         public Boolean visible;
+        // TODO: update this
 
         @Override
         public int hashCode() {

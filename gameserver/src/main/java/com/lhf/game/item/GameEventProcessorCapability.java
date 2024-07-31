@@ -3,6 +3,7 @@ package com.lhf.game.item;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -10,6 +11,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import com.lhf.game.IExternalReference;
 import com.lhf.game.creature.ICreature;
@@ -74,7 +76,7 @@ public interface GameEventProcessorCapability extends ItemCapability, GameEventP
     }
 
     public static GameEventProcessorCapability generateGameEventProcessorCapability() {
-        return new Reactor();
+        return new Reactor(null);
     }
 
     public static boolean changeArming(CommandContext ctx, IItem myItem) {
@@ -112,11 +114,114 @@ public interface GameEventProcessorCapability extends ItemCapability, GameEventP
         private final Area.AreaReference eventfulArea;
         private final LinkedHashMap<GameEventTester, Set<RoomEffectSource>> triggeredAreaEffects;
 
-        public Reactor() {
-            this.disarmDifficulties = null;
-            this.eventfulArea = null;
-            this.triggeredAreaEffects = null;
-            this.armed = true;
+        public static class Builder {
+            private boolean armed = true;
+            private EnumMap<Attributes, DiceDC> disarmDifficulties;
+            private Area.AreaReference eventfulArea;
+            private LinkedHashMap<GameEventTester, Set<RoomEffectSource>> triggeredAreaEffects;
+
+            public boolean isArmed() {
+                return armed;
+            }
+
+            public Builder setArmed(boolean armed) {
+                this.armed = armed;
+                return this;
+            }
+
+            public EnumMap<Attributes, DiceDC> getDisarmDifficulties() {
+                return disarmDifficulties;
+            }
+
+            public Builder setDisarmDifficulties(EnumMap<Attributes, DiceDC> disarmDifficulties) {
+                this.disarmDifficulties = disarmDifficulties;
+                return this;
+            }
+
+            public Builder addDisarmDifficulty(Attributes attr, DiceDC dc) {
+                if (attr != null && dc != null) {
+                    if (this.disarmDifficulties == null) {
+                        this.disarmDifficulties = new EnumMap<>(Attributes.class);
+                    }
+                    this.disarmDifficulties.put(attr, dc);
+                }
+                return this;
+            }
+
+            public Builder adjustDisarmDifficulties(Consumer<Map<Attributes, DiceDC>> adjustor) {
+                if (adjustor != null) {
+                    if (this.disarmDifficulties == null) {
+                        this.disarmDifficulties = new EnumMap<>(Attributes.class);
+                    }
+                    adjustor.accept(disarmDifficulties);
+                }
+                return this;
+            }
+
+            public Area.AreaReference getEventfulArea() {
+                return eventfulArea;
+            }
+
+            public Builder setEventfulArea(Area.AreaReference eventfulArea) {
+                this.eventfulArea = eventfulArea;
+                return this;
+            }
+
+            public LinkedHashMap<GameEventTester, Set<RoomEffectSource>> getTriggeredAreaEffects() {
+                return triggeredAreaEffects;
+            }
+
+            public Builder setTriggeredAreaEffects(
+                    LinkedHashMap<GameEventTester, Set<RoomEffectSource>> triggeredAreaEffects) {
+                this.triggeredAreaEffects = triggeredAreaEffects;
+                return this;
+            }
+
+            public Builder addTriggeredAreaEffects(GameEventTester tester, Set<RoomEffectSource> effects) {
+                if (tester != null && effects != null) {
+                    if (this.triggeredAreaEffects == null) {
+                        this.triggeredAreaEffects = new LinkedHashMap<>();
+                    }
+                    this.triggeredAreaEffects.put(tester, effects);
+                }
+                return this;
+            }
+
+            public Builder adjustTriggeredAreaEffects(Consumer<Map<GameEventTester, Set<RoomEffectSource>>> adjustor) {
+                if (adjustor != null) {
+                    if (this.triggeredAreaEffects == null) {
+                        this.triggeredAreaEffects = new LinkedHashMap<>();
+                    }
+                    adjustor.accept(triggeredAreaEffects);
+                }
+                return this;
+            }
+
+            public Reactor build() {
+                return new Reactor(this);
+            }
+
+        }
+
+        private Reactor(Builder builder) {
+            if (builder == null) {
+                this.disarmDifficulties = null;
+                this.eventfulArea = null;
+                this.triggeredAreaEffects = null;
+                this.armed = true;
+            } else {
+                this.disarmDifficulties = builder.disarmDifficulties != null ? new EnumMap<>(builder.disarmDifficulties)
+                        : new EnumMap<>(Attributes.class);
+                this.eventfulArea = Area.AreaReference.copy(builder.getEventfulArea());
+                this.triggeredAreaEffects = builder.triggeredAreaEffects != null
+                        ? builder.triggeredAreaEffects.entrySet().stream()
+                                .collect(Collectors.toMap(entry -> entry.getKey(),
+                                        entry -> entry.getValue() != null ? new LinkedHashSet<>(entry.getValue())
+                                                : Set.of(),
+                                        (a, b) -> b, () -> new LinkedHashMap<GameEventTester, Set<RoomEffectSource>>()))
+                        : new LinkedHashMap<>();
+                this.armed = builder.isArmed();
+            }
         }
 
         @Override

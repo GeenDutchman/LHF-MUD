@@ -377,6 +377,10 @@ public interface UsableCapability extends ItemCapability {
         private final ItemFilterQuery itemFilter;
         private int timesUsed = 0;
 
+        public static UsableBuilder getBuilder() {
+            return new UsableBuilder();
+        }
+
         public static final class UsableBuilder {
             private Set<CreatureEffectSource.Builder> useOnCreatureEffects;
             private Set<RoomEffectSource.Builder> useOnAreaEffects;

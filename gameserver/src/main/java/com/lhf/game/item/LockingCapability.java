@@ -63,9 +63,52 @@ public interface LockingCapability extends ItemCapability, Lockable {
         private boolean locked = false;
         // TODO: have a good look at the key
 
-        public Locking() {
-            this.lockUUID = UUID.randomUUID();
-            this.locked = false;
+        public static Builder getBuilder() {
+            return new Builder();
+        }
+
+        public static final class Builder {
+            private UUID lockUUID;
+            private boolean locked;
+
+            public Builder reset() {
+                this.lockUUID = null;
+                this.locked = true;
+                return this;
+            }
+
+            public UUID getLockUUID() {
+                return lockUUID != null ? lockUUID : UUID.randomUUID();
+            }
+
+            public Builder setLockUUID(UUID lockUUID) {
+                this.lockUUID = lockUUID;
+                return this;
+            }
+
+            public boolean isLocked() {
+                return locked;
+            }
+
+            public Builder setLocked(boolean locked) {
+                this.locked = locked;
+                return this;
+            }
+
+            public Locking build() {
+                return new Locking(this);
+            }
+
+        }
+
+        private Locking(Builder builder) {
+            if (builder == null) {
+                this.lockUUID = UUID.randomUUID();
+                this.locked = false;
+            } else {
+                this.lockUUID = builder.getLockUUID();
+                this.locked = builder.isLocked();
+            }
         }
 
         public Locking(UUID lockUUID, boolean locked) {

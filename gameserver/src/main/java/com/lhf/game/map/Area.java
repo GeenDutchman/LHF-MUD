@@ -269,6 +269,13 @@ public interface Area extends ItemContainer, CreatureContainer, CommandChainHand
             super(areaReference);
         }
 
+        public static AreaReference copy(IExternalReference<Area> ref) {
+            if (ref == null) {
+                return null;
+            }
+            return new AreaReference(ref);
+        }
+
     }
 
     @Override
