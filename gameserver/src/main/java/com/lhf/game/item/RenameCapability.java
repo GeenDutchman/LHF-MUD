@@ -54,6 +54,10 @@ public interface RenameCapability extends ItemCapability {
 
         @Override
         public RenameCapability rename(String newName) {
+            if (newName != null && !newName.matches(IItem.ITEM_NAMES)) {
+                throw new IllegalArgumentException(
+                        String.format("Item name must match the regex '%s', but was '%s'", IItem.ITEM_NAMES, newName));
+            }
             this.alternateName = newName;
             return this;
         }

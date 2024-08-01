@@ -78,9 +78,9 @@ public class Item implements IItem {
         public ItemBuilder setName(String naming) {
             if (naming == null) {
                 throw new IllegalArgumentException("Item name cannot be null");
-            } else if (!naming.matches("^\\w{3}$")) {
+            } else if (!naming.matches(IItem.ITEM_NAMES)) {
                 throw new IllegalArgumentException(
-                        String.format("Item name must match the regex '^\\w{3}$', but was '%s'", naming));
+                        String.format("Item name must match the regex '%s', but was '%s'", IItem.ITEM_NAMES, naming));
             }
             this.name = naming.trim();
             return this;

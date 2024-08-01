@@ -1,6 +1,5 @@
 package com.lhf.game.item;
 
-import java.util.Collection;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -9,6 +8,8 @@ import java.util.regex.PatternSyntaxException;
 import com.lhf.Examinable;
 
 public interface IItem extends Examinable {
+
+    public static final String ITEM_NAMES = "^(?:\\w{1,2} )*\\w{3,}(?: \\w+)*$";
 
     public final static class ItemID implements Comparable<ItemID> {
         private final UUID id;
