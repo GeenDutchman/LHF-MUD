@@ -9,11 +9,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import com.lhf.game.IExternalReference;
+import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.dice.DiceDC;
 import com.lhf.game.enums.Attributes;
@@ -32,7 +34,17 @@ public interface GameEventProcessorCapability extends ItemCapability, GameEventP
 
     public GameEventProcessorCapability setArmed(boolean nextState);
 
+    public Set<CreatureEffectSource> getOnDisarmFailure();
+
+    public Set<CreatureEffectSource> getOnDisarmSuccess();
+
+    public Set<CreatureEffectSource> getOnArmingFailure();
+
+    public Set<CreatureEffectSource> getOnArmingSuccess();
+
     public Map<Attributes, DiceDC> getDisarmDifficulties();
+
+    public Map<Attributes, DiceDC> getArmingDifficulties();
 
     public List<IExternalReference<Area>> getExternalAreaReferences();
 
@@ -107,16 +119,69 @@ public interface GameEventProcessorCapability extends ItemCapability, GameEventP
         return false;
     }
 
+    public static enum Delta implements Consumer<GameEventProcessorCapability> {
+        NOOP {
+            @Override
+            public void accept(GameEventProcessorCapability arg0) {
+                // does nothing
+            }
+        },
+        TOGGLE {
+            @Override
+            public void accept(GameEventProcessorCapability arg0) {
+                if (arg0 != null) {
+                    arg0.setArmed(!arg0.isArmed());
+                }
+            }
+        },
+        ARM {
+            @Override
+            public void accept(GameEventProcessorCapability arg0) {
+                if (arg0 != null) {
+                    arg0.setArmed(true);
+                }
+            }
+        },
+        DISARM {
+            @Override
+            public void accept(GameEventProcessorCapability arg0) {
+                if (arg0 != null) {
+                    arg0.setArmed(false);
+                }
+            }
+        };
+
+        @Override
+        public abstract void accept(GameEventProcessorCapability arg0);
+
+    }
+
+    public default void acceptDelta(Delta delta) {
+        if (delta != null) {
+            delta.accept(this);
+        }
+    }
+
     public static final class Reactor implements GameEventProcessorCapability {
         private final GameEventProcessorID id = new GameEventProcessorID();
         private boolean armed;
         private final EnumMap<Attributes, DiceDC> disarmDifficulties;
+        private final EnumMap<Attributes, DiceDC> armingDifficulties;
+        private final Set<CreatureEffectSource> onDisarmFailure;
+        private final Set<CreatureEffectSource> onDisarmSuccess;
+        private final Set<CreatureEffectSource> onArmingFailure;
+        private final Set<CreatureEffectSource> onArmingSuccess;
         private final Area.AreaReference eventfulArea;
         private final LinkedHashMap<GameEventTester, Set<RoomEffectSource>> triggeredAreaEffects;
 
         public static class Builder {
             private boolean armed = true;
             private EnumMap<Attributes, DiceDC> disarmDifficulties;
+            private EnumMap<Attributes, DiceDC> armingDifficulties;
+            private Set<CreatureEffectSource> onDisarmFailure;
+            private Set<CreatureEffectSource> onDisarmSuccess;
+            private Set<CreatureEffectSource> onArmingFailure;
+            private Set<CreatureEffectSource> onArmingSuccess;
             private Area.AreaReference eventfulArea;
             private LinkedHashMap<GameEventTester, Set<RoomEffectSource>> triggeredAreaEffects;
 
@@ -154,6 +219,156 @@ public interface GameEventProcessorCapability extends ItemCapability, GameEventP
                         this.disarmDifficulties = new EnumMap<>(Attributes.class);
                     }
                     adjustor.accept(disarmDifficulties);
+                }
+                return this;
+            }
+
+            public EnumMap<Attributes, DiceDC> getArmingDifficulties() {
+                return armingDifficulties;
+            }
+
+            public Builder setArmingDifficulties(EnumMap<Attributes, DiceDC> armingDifficulties) {
+                this.armingDifficulties = armingDifficulties;
+                return this;
+            }
+
+            public Builder addArmingDifficulty(Attributes attr, DiceDC dc) {
+                if (attr != null && dc != null) {
+                    if (this.armingDifficulties == null) {
+                        this.armingDifficulties = new EnumMap<>(Attributes.class);
+                    }
+                    this.armingDifficulties.put(attr, dc);
+                }
+                return this;
+            }
+
+            public Builder adjustArmingDifficulties(
+                    Function<EnumMap<Attributes, DiceDC>, EnumMap<Attributes, DiceDC>> adjustor) {
+                if (adjustor != null) {
+                    if (this.armingDifficulties == null) {
+                        this.armingDifficulties = new EnumMap<>(Attributes.class);
+                    }
+                    this.armingDifficulties = adjustor.apply(armingDifficulties);
+                }
+                return this;
+            }
+
+            public Set<CreatureEffectSource> getOnDisarmFailure() {
+                return onDisarmFailure;
+            }
+
+            public Builder setOnDisarmFailure(Set<CreatureEffectSource> onDisarmFailure) {
+                this.onDisarmFailure = onDisarmFailure;
+                return this;
+            }
+
+            public Builder addDisarmFailure(CreatureEffectSource source) {
+                if (source != null) {
+                    if (this.onDisarmFailure == null) {
+                        this.onDisarmFailure = new LinkedHashSet<>();
+                    }
+                    this.onDisarmFailure.add(source);
+                }
+                return this;
+            }
+
+            public Builder adjustDisarmFailure(
+                    Function<Set<CreatureEffectSource>, Set<CreatureEffectSource>> adjustor) {
+                if (adjustor != null) {
+                    if (this.onDisarmFailure == null) {
+                        this.onDisarmFailure = new LinkedHashSet<>();
+                    }
+                    this.onDisarmFailure = adjustor.apply(onDisarmFailure);
+                }
+                return this;
+            }
+
+            public Set<CreatureEffectSource> getOnDisarmSuccess() {
+                return onDisarmSuccess;
+            }
+
+            public Builder setOnDisarmSuccess(Set<CreatureEffectSource> onDisarmSuccess) {
+                this.onDisarmSuccess = onDisarmSuccess;
+                return this;
+            }
+
+            public Builder addDisarmSuccess(CreatureEffectSource source) {
+                if (source != null) {
+                    if (this.onDisarmSuccess == null) {
+                        this.onDisarmSuccess = new LinkedHashSet<>();
+                    }
+                    this.onDisarmSuccess.add(source);
+                }
+                return this;
+            }
+
+            public Builder adjustDisarmSuccess(
+                    Function<Set<CreatureEffectSource>, Set<CreatureEffectSource>> adjustor) {
+                if (adjustor != null) {
+                    if (this.onDisarmSuccess == null) {
+                        this.onDisarmSuccess = new LinkedHashSet<>();
+                    }
+                    this.onDisarmSuccess = adjustor.apply(onDisarmSuccess);
+                }
+                return this;
+            }
+
+            public Set<CreatureEffectSource> getOnArmingFailure() {
+                return onArmingFailure;
+            }
+
+            public Builder setOnArmingFailure(Set<CreatureEffectSource> onArmingFailure) {
+                this.onArmingFailure = onArmingFailure;
+                return this;
+            }
+
+            public Builder addArmingFailure(CreatureEffectSource source) {
+                if (source != null) {
+                    if (this.onArmingFailure == null) {
+                        this.onArmingFailure = new LinkedHashSet<>();
+                    }
+                    this.onArmingFailure.add(source);
+                }
+                return this;
+            }
+
+            public Builder adjustArmingFailure(
+                    Function<Set<CreatureEffectSource>, Set<CreatureEffectSource>> adjustor) {
+                if (adjustor != null) {
+                    if (this.onArmingFailure == null) {
+                        this.onArmingFailure = new LinkedHashSet<>();
+                    }
+                    this.onArmingFailure = adjustor.apply(onArmingFailure);
+                }
+                return this;
+            }
+
+            public Set<CreatureEffectSource> getOnArmingSuccess() {
+                return onArmingSuccess;
+            }
+
+            public Builder setOnArmingSuccess(Set<CreatureEffectSource> onArmingSuccess) {
+                this.onArmingSuccess = onArmingSuccess;
+                return this;
+            }
+
+            public Builder addArmingSuccess(CreatureEffectSource source) {
+                if (source != null) {
+                    if (this.onArmingSuccess == null) {
+                        this.onArmingSuccess = new LinkedHashSet<>();
+                    }
+                    this.onArmingSuccess.add(source);
+                }
+                return this;
+            }
+
+            public Builder adjustArmingSuccess(
+                    Function<Set<CreatureEffectSource>, Set<CreatureEffectSource>> adjustor) {
+                if (adjustor != null) {
+                    if (this.onArmingSuccess == null) {
+                        this.onArmingSuccess = new LinkedHashSet<>();
+                    }
+                    this.onArmingSuccess = adjustor.apply(onArmingSuccess);
                 }
                 return this;
             }
@@ -205,11 +420,18 @@ public interface GameEventProcessorCapability extends ItemCapability, GameEventP
 
         private Reactor(Builder builder) {
             if (builder == null) {
+                this.armingDifficulties = null;
                 this.disarmDifficulties = null;
                 this.eventfulArea = null;
                 this.triggeredAreaEffects = null;
-                this.armed = true;
+                this.armed = false;
+                this.onArmingFailure = null;
+                this.onArmingSuccess = null;
+                this.onDisarmFailure = null;
+                this.onDisarmSuccess = null;
             } else {
+                this.armingDifficulties = builder.armingDifficulties != null ? new EnumMap<>(builder.armingDifficulties)
+                        : new EnumMap<>(Attributes.class);
                 this.disarmDifficulties = builder.disarmDifficulties != null ? new EnumMap<>(builder.disarmDifficulties)
                         : new EnumMap<>(Attributes.class);
                 this.eventfulArea = Area.AreaReference.copy(builder.getEventfulArea());
@@ -221,6 +443,15 @@ public interface GameEventProcessorCapability extends ItemCapability, GameEventP
                                         (a, b) -> b, () -> new LinkedHashMap<GameEventTester, Set<RoomEffectSource>>()))
                         : new LinkedHashMap<>();
                 this.armed = builder.isArmed();
+                this.onArmingFailure = builder.onArmingFailure != null ? new LinkedHashSet<>(builder.onArmingFailure)
+                        : Set.of();
+                this.onArmingSuccess = builder.onArmingSuccess != null ? new LinkedHashSet<>(builder.onArmingSuccess)
+                        : Set.of();
+                this.onDisarmFailure = builder.onDisarmFailure != null ? new LinkedHashSet<>(builder.onDisarmFailure)
+                        : Set.of();
+                this.onDisarmSuccess = builder.onDisarmSuccess != null ? new LinkedHashSet<>(builder.onDisarmSuccess)
+                        : Set.of();
+
             }
         }
 
@@ -313,6 +544,30 @@ public interface GameEventProcessorCapability extends ItemCapability, GameEventP
         public Map<GameEventTester, Set<RoomEffectSource>> getTriggeredAreaEffects() {
             return this.triggeredAreaEffects != null ? Collections.unmodifiableMap(this.triggeredAreaEffects)
                     : Map.of();
+        }
+
+        public GameEventProcessorID getId() {
+            return id;
+        }
+
+        public Map<Attributes, DiceDC> getArmingDifficulties() {
+            return armingDifficulties != null ? Collections.unmodifiableMap(this.armingDifficulties) : Map.of();
+        }
+
+        public Set<CreatureEffectSource> getOnDisarmFailure() {
+            return onDisarmFailure;
+        }
+
+        public Set<CreatureEffectSource> getOnDisarmSuccess() {
+            return onDisarmSuccess;
+        }
+
+        public Set<CreatureEffectSource> getOnArmingFailure() {
+            return onArmingFailure;
+        }
+
+        public Set<CreatureEffectSource> getOnArmingSuccess() {
+            return onArmingSuccess;
         }
 
     }

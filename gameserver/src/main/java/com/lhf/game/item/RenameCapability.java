@@ -1,13 +1,19 @@
 package com.lhf.game.item;
 
 import java.io.Serializable;
+import java.util.Deque;
+import java.util.LinkedList;
 
 import com.lhf.messages.events.SeeEvent.ABuilder;
 
 public interface RenameCapability extends ItemCapability {
     public String getAlternateName();
 
-    public RenameCapability rename(String newName);
+    public Deque<String> getNameStack();
+
+    public String popName();
+
+    public RenameCapability addName(String newName);
 
     public RenameCapability clear();
 
@@ -36,7 +42,7 @@ public interface RenameCapability extends ItemCapability {
         }
         final RenameCapability capability = myItem.getRenameCapability();
         if (capability != null) {
-            final String alternate = capability.getAlternateName();
+            final String alternate = capability.getAlternateNames();
             if (alternate != null && !alternate.isBlank()) {
                 return alternate;
             }
@@ -45,27 +51,45 @@ public interface RenameCapability extends ItemCapability {
     }
 
     public static final class Renameable implements RenameCapability, Serializable {
-        private String alternateName;
+        private LinkedList<String> alternateNames;
 
         @Override
         public String getAlternateName() {
-            return this.alternateName;
+            return this.alternateNames != null ? this.alternateNames.peekFirst() : null;
         }
 
         @Override
-        public RenameCapability rename(String newName) {
-            if (newName != null && !newName.matches(IItem.ITEM_NAMES)) {
+        public Deque<String> getNameStack() {
+            return this.alternateNames;
+        }
+
+        @Override
+        public RenameCapability addName(String newName) {
+            if (newName == null) {
+                return this;
+            }
+            if (!newName.matches(IItem.ITEM_NAMES)) {
                 throw new IllegalArgumentException(
                         String.format("Item name must match the regex '%s', but was '%s'", IItem.ITEM_NAMES, newName));
             }
-            this.alternateName = newName;
+            if (this.alternateNames == null) {
+                this.alternateNames = new LinkedList<>();
+            }
+            this.alternateNames.addFirst(newName);
             return this;
         }
 
         @Override
         public RenameCapability clear() {
-            this.alternateName = null;
+            if (this.alternateNames != null) {
+                this.alternateNames.clear();
+            }
             return this;
+        }
+
+        @Override
+        public String popName() {
+            return this.alternateNames != null ? this.alternateNames.removeFirst() : null;
         }
 
     }
