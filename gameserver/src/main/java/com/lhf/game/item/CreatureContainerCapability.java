@@ -56,6 +56,7 @@ import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.in.ShoutMessage;
 import com.lhf.server.client.user.UserID;
 
+@Deprecated(forRemoval = true)
 public interface CreatureContainerCapability extends ItemCapability, CreatureContainer, CommandChainHandler {
 
     @Override
