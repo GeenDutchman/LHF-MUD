@@ -2,6 +2,7 @@ package com.lhf.game.item;
 
 import java.io.Serializable;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import com.lhf.game.Lockable;
 import com.lhf.game.creature.ICreature;
@@ -15,7 +16,7 @@ public interface LockingCapability extends ItemCapability, Lockable {
     }
 
     public static LockingCapability generateLockingCapability() {
-        return new Locking();
+        return new Locking(null);
     }
 
     @Override
@@ -56,6 +57,52 @@ public interface LockingCapability extends ItemCapability, Lockable {
         }
 
         return false;
+    }
+
+    public static enum Delta implements Consumer<LockingCapability> {
+        NOOP {
+            @Override
+            public void accept(LockingCapability arg0) {
+                // does nothing
+            }
+        },
+        TOGGLE {
+            @Override
+            public void accept(LockingCapability arg0) {
+                if (arg0 != null) {
+                    if (arg0.isUnlocked()) {
+                        arg0.lock();
+                    } else {
+                        arg0.unlock();
+                    }
+                }
+            }
+        },
+        LOCK {
+            @Override
+            public void accept(LockingCapability arg0) {
+                if (arg0 != null) {
+                    arg0.lock();
+                }
+            }
+        },
+        UNLOCK {
+            @Override
+            public void accept(LockingCapability arg0) {
+                if (arg0 != null) {
+                    arg0.unlock();
+                }
+            }
+        };
+
+        @Override
+        public abstract void accept(LockingCapability arg0);
+    }
+
+    public default void acceptDelta(Delta delta) {
+        if (delta != null) {
+            delta.accept(this);
+        }
     }
 
     public static final class Locking implements LockingCapability, Serializable {

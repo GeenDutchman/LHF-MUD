@@ -21,6 +21,10 @@ public interface Lockable {
 
     public void lock();
 
+    public default String generateKeyName() {
+        return "Key " + this.getLockUUID().toString();
+    }
+
     public default boolean isAuthorized(InventoryOwner attemtper) {
         String keyName = LockKey.generateKeyName(this.getLockUUID());
         Optional<IItem> retrieved = attemtper.getItem(keyName);

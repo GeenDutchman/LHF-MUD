@@ -5,4 +5,5 @@ public class ItemEffectSource {
     private InteractableCapability.Delta interactableCapabilityDelta;
     private RenameCapability.Delta renameCapabilityDelta;
     private UsableCapability.Delta usableCapabilityDelta;
+    private LockingCapability.Delta lockingCapabilityDelta;
 }
