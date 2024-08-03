@@ -3,6 +3,7 @@ package com.lhf.game.item;
 import java.io.Serializable;
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.function.Consumer;
 
 import com.lhf.messages.events.SeeEvent.ABuilder;
 
@@ -27,6 +28,55 @@ public interface RenameCapability extends ItemCapability {
         return;
     }
 
+    public static class Delta implements Consumer<RenameCapability> {
+        private final String nameToAdd;
+        private final boolean popName;
+        private final boolean clearNames;
+
+        public static Delta ofClearNames() {
+            return new Delta(null, false, true);
+        }
+
+        public static Delta ofPopName() {
+            return new Delta(null, true, false);
+        }
+
+        public static Delta ofNextName(String name) {
+            if (name == null || !name.matches(IItem.ITEM_NAMES)) {
+                return null;
+            }
+            return new Delta(name, false, false);
+        }
+
+        private Delta(String nameToAdd, boolean popName, boolean clearNames) {
+            this.nameToAdd = nameToAdd;
+            this.popName = popName;
+            this.clearNames = clearNames;
+        }
+
+        @Override
+        public void accept(RenameCapability arg0) {
+            if (arg0 != null) {
+                if (this.popName) {
+                    arg0.popName();
+                }
+                if (this.clearNames) {
+                    arg0.clear();
+                }
+                if (nameToAdd != null) {
+                    arg0.addName(nameToAdd);
+                }
+            }
+        }
+
+    }
+
+    public default void acceptDelta(Delta delta) {
+        if (delta != null) {
+            delta.accept(this);
+        }
+    }
+
     @Override
     public default ItemCapabilityNames getCapabilityName() {
         return ItemCapabilityNames.RENAMEABLE;
@@ -42,7 +92,7 @@ public interface RenameCapability extends ItemCapability {
         }
         final RenameCapability capability = myItem.getRenameCapability();
         if (capability != null) {
-            final String alternate = capability.getAlternateNames();
+            final String alternate = capability.getAlternateName();
             if (alternate != null && !alternate.isBlank()) {
                 return alternate;
             }

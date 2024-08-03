@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.lhf.RichOutput;
@@ -363,6 +364,29 @@ public interface UsableCapability extends ItemCapability {
 
     public static UsableCapability generateUsableCapability() {
         return new Usable();
+    }
+
+    public static enum Delta implements Consumer<UsableCapability> {
+        RESET_COUNT {
+            @Override
+            public void accept(UsableCapability arg0) {
+                if (arg0 != null) {
+                    final int count = arg0.getTimesUsed();
+                    arg0.adjustUses(count * -1);
+                }
+            }
+        },
+        INCREMENT {
+            @Override
+            public void accept(UsableCapability arg0) {
+                if (arg0 != null) {
+                    arg0.useOnce();
+                }
+            }
+        };
+
+        @Override
+        public abstract void accept(UsableCapability arg0);
     }
 
     public static final class Usable implements UsableCapability {

@@ -303,6 +303,34 @@ public interface InteractableCapability extends ItemCapability {
         }
     }
 
+    public static enum Delta implements Consumer<InteractableCapability> {
+        RESET_COUNT {
+            @Override
+            public void accept(InteractableCapability arg0) {
+                if (arg0 != null) {
+                    arg0.setInteractCount(0);
+                }
+            }
+        },
+        INCREMENT {
+            @Override
+            public void accept(InteractableCapability arg0) {
+                if (arg0 != null) {
+                    arg0.incrementInteractCount();
+                }
+            }
+        };
+
+        @Override
+        public abstract void accept(InteractableCapability arg0);
+    }
+
+    public default void acceptDelta(Delta delta) {
+        if (delta != null) {
+            delta.accept(this);
+        }
+    }
+
     public static InteractableCapability generateInteractableCapability() {
         return new Interactable();
     }
