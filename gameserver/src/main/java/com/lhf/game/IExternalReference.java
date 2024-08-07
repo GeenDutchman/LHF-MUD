@@ -1,6 +1,7 @@
 package com.lhf.game;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.function.BiFunction;
 
 public interface IExternalReference<T> extends Serializable, Comparable<IExternalReference<T>> {
@@ -87,6 +88,29 @@ public interface IExternalReference<T> extends Serializable, Comparable<IExterna
         public ExternalReference<R> setReference(R reference) {
             this.reference = reference;
             return this;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(locality, referenceName);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof ExternalReference))
+                return false;
+            ExternalReference<?> other = (ExternalReference<?>) obj;
+            return Objects.equals(locality, other.locality) && Objects.equals(referenceName, other.referenceName);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("ExternalReference [locality=").append(locality).append(", referenceName=")
+                    .append(referenceName).append(", referencePresent=").append(this.reference != null).append("]");
+            return builder.toString();
         }
 
     }
