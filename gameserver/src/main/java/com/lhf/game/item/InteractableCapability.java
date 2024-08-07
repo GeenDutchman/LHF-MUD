@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
@@ -319,10 +320,44 @@ public interface InteractableCapability extends ItemCapability {
                     arg0.incrementInteractCount();
                 }
             }
+        },
+        DECREMENT {
+
+            @Override
+            public void accept(InteractableCapability arg0) {
+                if (arg0 != null) {
+                    int count = arg0.getInteractCount() - 1;
+                    arg0.setInteractCount(Integer.max(count, 0));
+                }
+            }
+
+        },
+        NOOP {
+
+            @Override
+            public void accept(InteractableCapability arg0) {
+                // does nothing
+            }
+
         };
 
         @Override
         public abstract void accept(InteractableCapability arg0);
+
+        public Delta invert() {
+            switch (this) {
+            case DECREMENT:
+                return INCREMENT;
+            case INCREMENT:
+                return DECREMENT;
+            case RESET_COUNT:
+                return RESET_COUNT;
+            case NOOP:
+            default:
+                return NOOP;
+
+            }
+        }
     }
 
     public default void acceptDelta(Delta delta) {
@@ -603,6 +638,19 @@ public interface InteractableCapability extends ItemCapability {
                 return new Interactable(this);
             }
 
+            @Override
+            public String toString() {
+                StringBuilder builder = new StringBuilder();
+                builder.append("Builder [interactionRepeatable=").append(interactionRepeatable)
+                        .append(", interactCount=").append(interactCount).append(", interactUserRestrictions=")
+                        .append(interactUserRestrictions).append(", interactDisplayPages=").append(interactDisplayPages)
+                        .append(", areaInteractEffects=").append(areaInteractEffects).append(", interactorEffects=")
+                        .append(interactorEffects).append(", interactAreas=").append(interactAreas)
+                        .append(", guardsNames=").append(guardsNames).append(", dispenser=").append(dispenser)
+                        .append("]");
+                return builder.toString();
+            }
+
         }
 
         protected Interactable() {
@@ -704,6 +752,54 @@ public interface InteractableCapability extends ItemCapability {
         @Override
         public Set<String> getGuardsNames() {
             return this.guardsNames;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(interactionRepeatable, interactUserRestrictions, interactDisplayPages,
+                    areaInteractEffects, interactorEffects, interactAreas, dispenser);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof Interactable))
+                return false;
+            Interactable other = (Interactable) obj;
+            return interactionRepeatable == other.interactionRepeatable
+                    && Objects.equals(interactUserRestrictions, other.interactUserRestrictions)
+                    && Objects.equals(interactDisplayPages, other.interactDisplayPages)
+                    && Objects.equals(areaInteractEffects, other.areaInteractEffects)
+                    && Objects.equals(interactorEffects, other.interactorEffects)
+                    && Objects.equals(interactAreas, other.interactAreas) && dispenser == other.dispenser;
+        }
+
+        @Override
+        public String toString() {
+            StringJoiner sj = new StringJoiner(", ", "Interactable [", "]");
+            sj.add("interactionRepeatable=" + Boolean.toString(interactionRepeatable));
+            sj.add("interactCount=" + Integer.toString(interactCount));
+            sj.add("dispenser=" + Boolean.toString(dispenser));
+            if (interactUserRestrictions != null) {
+                sj.add("interactUserRestrictions=" + interactUserRestrictions.toString());
+            }
+            if (interactDisplayPages != null) {
+                sj.add("interactDisplayPages=" + interactDisplayPages.toString());
+            }
+            if (areaInteractEffects != null) {
+                sj.add("areaInteractEffects=" + areaInteractEffects.toString());
+            }
+            if (interactorEffects != null) {
+                sj.add("interactorEffects=" + interactorEffects.toString());
+            }
+            if (guardsNames != null) {
+                sj.add("guardsNames=" + guardsNames.toString());
+            }
+            if (interactAreas != null) {
+                sj.add("interactAreas=" + interactAreas.toString());
+            }
+            return sj.toString();
         }
 
     }

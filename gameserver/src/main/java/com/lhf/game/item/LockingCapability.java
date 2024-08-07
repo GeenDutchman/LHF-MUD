@@ -1,6 +1,7 @@
 package com.lhf.game.item;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -97,6 +98,20 @@ public interface LockingCapability extends ItemCapability, Lockable {
 
         @Override
         public abstract void accept(LockingCapability arg0);
+
+        public Delta invert() {
+            switch (this) {
+            case LOCK:
+                return UNLOCK;
+            case TOGGLE:
+                return TOGGLE;
+            case UNLOCK:
+                return LOCK;
+            case NOOP:
+            default:
+                return NOOP;
+            }
+        }
     }
 
     public default void acceptDelta(Delta delta) {
@@ -146,6 +161,13 @@ public interface LockingCapability extends ItemCapability, Lockable {
                 return new Locking(this);
             }
 
+            @Override
+            public String toString() {
+                StringBuilder builder = new StringBuilder();
+                builder.append("Builder [lockUUID=").append(lockUUID).append(", locked=").append(locked).append("]");
+                return builder.toString();
+            }
+
         }
 
         private Locking(Builder builder) {
@@ -187,5 +209,18 @@ public interface LockingCapability extends ItemCapability, Lockable {
         public void lock() {
             this.locked = true;
         }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(lockUUID);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder2 = new StringBuilder();
+            builder2.append("Locking [lockUUID=").append(lockUUID).append(", locked=").append(locked).append("]");
+            return builder2.toString();
+        }
+
     }
 }

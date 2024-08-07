@@ -3,6 +3,7 @@ package com.lhf.game.item;
 import java.io.Serializable;
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import com.lhf.messages.events.SeeEvent.ABuilder;
@@ -28,7 +29,7 @@ public interface RenameCapability extends ItemCapability {
         return;
     }
 
-    public static class Delta implements Consumer<RenameCapability> {
+    public static final class Delta implements Consumer<RenameCapability> {
         private final String nameToAdd;
         private final boolean popName;
         private final boolean clearNames;
@@ -67,6 +68,47 @@ public interface RenameCapability extends ItemCapability {
                     arg0.addName(nameToAdd);
                 }
             }
+        }
+
+        public Delta invert() {
+            // can't really invert this, but here's a default
+            return new Delta(null, !popName, !clearNames);
+        }
+
+        public String getNameToAdd() {
+            return nameToAdd;
+        }
+
+        public boolean isPopName() {
+            return popName;
+        }
+
+        public boolean isClearNames() {
+            return clearNames;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("Delta [nameToAdd=").append(nameToAdd).append(", popName=").append(popName)
+                    .append(", clearNames=").append(clearNames).append("]");
+            return builder.toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(nameToAdd, popName, clearNames);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof Delta))
+                return false;
+            Delta other = (Delta) obj;
+            return Objects.equals(nameToAdd, other.nameToAdd) && popName == other.popName
+                    && clearNames == other.clearNames;
         }
 
     }
@@ -140,6 +182,13 @@ public interface RenameCapability extends ItemCapability {
         @Override
         public String popName() {
             return this.alternateNames != null ? this.alternateNames.removeFirst() : null;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("Renameable [alternateNames=").append(alternateNames).append("]");
+            return builder.toString();
         }
 
     }

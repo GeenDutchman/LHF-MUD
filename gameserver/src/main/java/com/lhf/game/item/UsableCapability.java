@@ -383,10 +383,40 @@ public interface UsableCapability extends ItemCapability {
                     arg0.useOnce();
                 }
             }
+        },
+        DECREMENT {
+            @Override
+            public void accept(UsableCapability arg0) {
+                if (arg0 != null) {
+                    final int count = arg0.getTimesUsed();
+                    arg0.adjustUses(count - 1 < 0 ? 0 : count - 1);
+                }
+            }
+        },
+        NOOP {
+            @Override
+            public void accept(UsableCapability arg0) {
+                // does nothing
+            }
         };
 
         @Override
         public abstract void accept(UsableCapability arg0);
+
+        public Delta invert() {
+            switch (this) {
+            case DECREMENT:
+                return INCREMENT;
+            case INCREMENT:
+                return DECREMENT;
+            case RESET_COUNT:
+                return RESET_COUNT;
+            case NOOP:
+            default:
+                return NOOP;
+
+            }
+        }
     }
 
     public static final class Usable implements UsableCapability {
@@ -753,14 +783,31 @@ public interface UsableCapability extends ItemCapability {
 
         @Override
         public String toString() {
-            StringBuilder builder = new StringBuilder();
-            builder.append("Usable [useOnCreatureEffects=").append(useOnCreatureEffects).append(", useOnAreaEffects=")
-                    .append(useOnAreaEffects).append(", useDisplayPages=").append(useDisplayPages)
-                    .append(", totalNumberUsableTimes=").append(totalNumberUsableTimes).append(", equippingRequired=")
-                    .append(equippingRequired).append(", selfOnly=").append(selfOnly).append(", userRestrictions=")
-                    .append(userRestrictions).append(", creatureFilter=").append(creatureFilter).append(", itemFilter=")
-                    .append(itemFilter).append(", timesUsed=").append(timesUsed).append("]");
-            return builder.toString();
+            StringJoiner sj = new StringJoiner(", ", "Usable [", "]");
+            sj.add("timesUsed=" + Integer.toString(timesUsed));
+            sj.add("totalNumberUsableTimes=" + Integer.toString(totalNumberUsableTimes));
+            sj.add("equippingRequired=" + Boolean.toString(equippingRequired));
+            sj.add("selfOnly=" + Boolean.toString(selfOnly));
+            if (this.useOnCreatureEffects != null) {
+                sj.add("useOnCreatureEffects=" + useOnCreatureEffects.toString());
+            }
+            if (this.useOnAreaEffects != null) {
+                sj.add("useOnAreaEffects=" + useOnAreaEffects.toString());
+            }
+            if (this.useDisplayPages != null) {
+                sj.add("useDisplayPages=" + this.useDisplayPages.toString());
+            }
+            if (this.userRestrictions != null) {
+                sj.add("userRestrictions=" + this.userRestrictions.toString());
+            }
+            if (this.creatureFilter != null) {
+                sj.add("creatureFilter=" + this.creatureFilter.toString());
+            }
+            if (this.itemFilter != null) {
+                sj.add("itemFilter=" + this.itemFilter.toString());
+            }
+
+            return sj.toString();
         }
 
         @Override

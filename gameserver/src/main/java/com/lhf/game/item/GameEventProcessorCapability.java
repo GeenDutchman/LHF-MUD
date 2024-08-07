@@ -7,7 +7,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -153,6 +155,22 @@ public interface GameEventProcessorCapability extends ItemCapability, GameEventP
 
         @Override
         public abstract void accept(GameEventProcessorCapability arg0);
+
+        public Delta invert() {
+            switch (this) {
+            case ARM:
+                return DISARM;
+            case DISARM:
+                return ARM;
+            case NOOP:
+                return NOOP;
+            case TOGGLE:
+                return TOGGLE;
+            default:
+                return NOOP;
+
+            }
+        }
 
     }
 
@@ -412,6 +430,19 @@ public interface GameEventProcessorCapability extends ItemCapability, GameEventP
                 return this;
             }
 
+            @Override
+            public String toString() {
+                StringBuilder builder = new StringBuilder();
+                builder.append("Builder [armed=").append(armed).append(", disarmDifficulties=")
+                        .append(disarmDifficulties).append(", armingDifficulties=").append(armingDifficulties)
+                        .append(", onDisarmFailure=").append(onDisarmFailure).append(", onDisarmSuccess=")
+                        .append(onDisarmSuccess).append(", onArmingFailure=").append(onArmingFailure)
+                        .append(", onArmingSuccess=").append(onArmingSuccess).append(", eventfulArea=")
+                        .append(eventfulArea).append(", triggeredAreaEffects=").append(triggeredAreaEffects)
+                        .append("]");
+                return builder.toString();
+            }
+
             public Reactor build() {
                 return new Reactor(this);
             }
@@ -568,6 +599,61 @@ public interface GameEventProcessorCapability extends ItemCapability, GameEventP
 
         public Set<CreatureEffectSource> getOnArmingSuccess() {
             return onArmingSuccess;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(id, armed, disarmDifficulties, armingDifficulties, onDisarmFailure, onDisarmSuccess,
+                    onArmingFailure, onArmingSuccess, eventfulArea, triggeredAreaEffects);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof Reactor))
+                return false;
+            Reactor other = (Reactor) obj;
+            return Objects.equals(id, other.id) && armed == other.armed
+                    && Objects.equals(disarmDifficulties, other.disarmDifficulties)
+                    && Objects.equals(armingDifficulties, other.armingDifficulties)
+                    && Objects.equals(onDisarmFailure, other.onDisarmFailure)
+                    && Objects.equals(onDisarmSuccess, other.onDisarmSuccess)
+                    && Objects.equals(onArmingFailure, other.onArmingFailure)
+                    && Objects.equals(onArmingSuccess, other.onArmingSuccess)
+                    && Objects.equals(eventfulArea, other.eventfulArea)
+                    && Objects.equals(triggeredAreaEffects, other.triggeredAreaEffects);
+        }
+
+        @Override
+        public String toString() {
+            StringJoiner sj = new StringJoiner(", ", "Reactor [", "]");
+            if (id != null) {
+                sj.add("id=" + id.toString());
+            }
+            sj.add("armed=" + Boolean.toString(armed));
+            if (disarmDifficulties != null && !disarmDifficulties.isEmpty()) {
+                sj.add("disarmDifficulties=" + disarmDifficulties.toString());
+            }
+            if (armingDifficulties != null && !armingDifficulties.isEmpty()) {
+                sj.add("amringDifficulties=" + armingDifficulties.toString());
+            }
+            if (onDisarmFailure != null && !onDisarmFailure.isEmpty()) {
+                sj.add("onDisarmFailure=" + onDisarmFailure.toString());
+            }
+            if (onDisarmSuccess != null && !onDisarmSuccess.isEmpty()) {
+                sj.add("onDisarmSuccess=" + onDisarmSuccess.toString());
+            }
+            if (onArmingFailure != null && !onArmingFailure.isEmpty()) {
+                sj.add("onArmingFailure=" + onArmingFailure.toString());
+            }
+            if (triggeredAreaEffects != null && !triggeredAreaEffects.isEmpty()) {
+                sj.add("triggeredAreaEffects=" + triggeredAreaEffects.toString());
+            }
+            if (eventfulArea != null) {
+                sj.add("eventfulArea=" + eventfulArea.toString());
+            }
+            return sj.toString();
         }
 
     }
