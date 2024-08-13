@@ -6,8 +6,9 @@ import java.util.logging.Logger;
 import java.util.regex.PatternSyntaxException;
 
 import com.lhf.Examinable;
+import com.lhf.game.AffectableEntity;
 
-public interface IItem extends Examinable {
+public interface IItem extends Examinable, AffectableEntity<ItemEffect> {
 
     public static final String ITEM_NAMES = "^(?:\\w{1,2} )*\\w{3,}(?: \\w+)*$";
 

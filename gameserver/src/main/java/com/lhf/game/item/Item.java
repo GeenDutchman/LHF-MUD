@@ -5,6 +5,7 @@ import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.regex.PatternSyntaxException;
 
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.ItemAffectedEvent;
 
@@ -617,6 +618,18 @@ public class Item implements IItem {
         // They do not have any persistant effects
         this.getLogger().warning("Items do not currently support reversable ItemEffects like " + effect.toString());
         return null;
+    }
+
+    @Override
+    public void tick(GameEvent tickEvent) {
+        if (tickEvent == null) {
+            return;
+        }
+        if (gameEventProcessorCapability != null) {
+            GameEventProcessor.eventAccepter.accept(gameEventProcessorCapability, tickEvent);
+            GameEventProcessor.eventAccepter.accept(creatureContainerCapability, tickEvent);
+        }
+        IItem.super.tick(tickEvent);
     }
 
 }

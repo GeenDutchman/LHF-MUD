@@ -1,5 +1,6 @@
 package com.lhf.game.item;
 
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.messages.events.SeeEvent;
 
 public interface ItemCapability {
@@ -12,4 +13,8 @@ public interface ItemCapability {
     public void describe(SeeEvent.ABuilder<?> seeEventBuilder);
 
     public boolean isStateful();
+
+    public static interface ICapabilityDelta {
+        public void buildOutput(RichOutputBuilder builder);
+    }
 }

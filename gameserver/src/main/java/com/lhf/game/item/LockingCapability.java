@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.Lockable;
 import com.lhf.game.creature.ICreature;
 import com.lhf.messages.CommandContext;
@@ -60,7 +61,7 @@ public interface LockingCapability extends ItemCapability, Lockable {
         return false;
     }
 
-    public static enum Delta implements Consumer<LockingCapability> {
+    public static enum Delta implements ICapabilityDelta, Consumer<LockingCapability> {
         NOOP {
             @Override
             public void accept(LockingCapability arg0) {
@@ -110,6 +111,32 @@ public interface LockingCapability extends ItemCapability, Lockable {
             case NOOP:
             default:
                 return NOOP;
+            }
+        }
+
+        @Override
+        public void buildOutput(RichOutputBuilder builder) {
+            if (builder == null) {
+                return;
+            }
+            builder.appendString("After application, the locking capability is");
+            switch (this) {
+            case LOCK:
+                builder.appendString("locked.");
+                break;
+            case UNLOCK:
+                builder.appendString("unlocked.");
+                break;
+            case NOOP:
+                builder.appendString("unchanged.");
+                break;
+            case TOGGLE:
+                builder.appendString("toggled.");
+                break;
+            default:
+                builder.appendString("unchanged.");
+                break;
+
             }
         }
     }

@@ -4,8 +4,10 @@ import java.io.Serializable;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.function.Consumer;
 
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.messages.events.SeeEvent.ABuilder;
 
 public interface RenameCapability extends ItemCapability {
@@ -29,7 +31,7 @@ public interface RenameCapability extends ItemCapability {
         return;
     }
 
-    public static final class Delta implements Consumer<RenameCapability> {
+    public static final class Delta implements ICapabilityDelta, Consumer<RenameCapability> {
         private final String nameToAdd;
         private final boolean popName;
         private final boolean clearNames;
@@ -73,6 +75,18 @@ public interface RenameCapability extends ItemCapability {
         public Delta invert() {
             // can't really invert this, but here's a default
             return new Delta(null, !popName, !clearNames);
+        }
+
+        @Override
+        public void buildOutput(RichOutputBuilder builder) {
+            if (builder == null) {
+                return;
+            }
+            builder.appendString("After application, the renaming capability");
+            StringJoiner sj = new StringJoiner(", ");
+            if (this.popName) {
+                builder.appendString(nameToAdd)
+            }
         }
 
         public String getNameToAdd() {

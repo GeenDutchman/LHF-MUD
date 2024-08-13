@@ -16,6 +16,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.IExternalReference;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.ICreature;
@@ -121,7 +122,7 @@ public interface GameEventProcessorCapability extends ItemCapability, GameEventP
         return false;
     }
 
-    public static enum Delta implements Consumer<GameEventProcessorCapability> {
+    public static enum Delta implements ICapabilityDelta, Consumer<GameEventProcessorCapability> {
         NOOP {
             @Override
             public void accept(GameEventProcessorCapability arg0) {
@@ -168,6 +169,32 @@ public interface GameEventProcessorCapability extends ItemCapability, GameEventP
                 return TOGGLE;
             default:
                 return NOOP;
+
+            }
+        }
+
+        @Override
+        public void buildOutput(RichOutputBuilder builder) {
+            if (builder == null) {
+                return;
+            }
+            builder.appendString("After application, the event processing capability is");
+            switch (this) {
+            case ARM:
+                builder.appendString("armed.");
+                break;
+            case DISARM:
+                builder.appendString("disarmed.");
+                break;
+            case NOOP:
+                builder.appendString("unchanged.");
+                break;
+            case TOGGLE:
+                builder.appendString("toggled.");
+                break;
+            default:
+                builder.appendString("unchanged.");
+                break;
 
             }
         }

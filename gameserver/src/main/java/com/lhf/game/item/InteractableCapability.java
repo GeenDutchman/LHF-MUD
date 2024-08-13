@@ -304,7 +304,7 @@ public interface InteractableCapability extends ItemCapability {
         }
     }
 
-    public static enum Delta implements Consumer<InteractableCapability> {
+    public static enum Delta implements ICapabilityDelta, Consumer<InteractableCapability> {
         RESET_COUNT {
             @Override
             public void accept(InteractableCapability arg0) {
@@ -356,6 +356,31 @@ public interface InteractableCapability extends ItemCapability {
             default:
                 return NOOP;
 
+            }
+        }
+
+        @Override
+        public void buildOutput(RichOutputBuilder builder) {
+            if (builder == null) {
+                return;
+            }
+            builder.appendString("After application, the interactable capability is");
+            switch (this) {
+            case DECREMENT:
+                builder.appendString("decremented.");
+                break;
+            case INCREMENT:
+                builder.appendString("incremented.");
+                break;
+            case NOOP:
+                builder.appendString("unchanged.");
+                break;
+            case RESET_COUNT:
+                builder.appendString("reset.");
+                break;
+            default:
+                builder.appendString("unchanged.");
+                break;
             }
         }
     }
