@@ -1,9 +1,12 @@
 package com.lhf.game.item;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.NavigableSet;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.regex.PatternSyntaxException;
+
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.ItemAffectedEvent;
 
 public class Item implements IItem {
 
@@ -29,6 +32,7 @@ public class Item implements IItem {
     private final ItemContainerCapability itemContainerCapability;
     private final CreatureContainerCapability creatureContainerCapability;
     private final GameEventProcessorCapability gameEventProcessorCapability;
+    private transient NavigableSet<ItemEffect> effects;
 
     public static class ItemBuilder implements IItem.IItemBuilder {
         private String name = "item";
@@ -324,7 +328,8 @@ public class Item implements IItem {
             return this.renameableCapability;
         }
 
-        public ItemBuilder adjustRenameableCapability(Function<RenameCapability, RenameCapability> adjustor) {
+        public ItemBuilder adjustRenameableCapability(
+                Function<RenameCapability.Renameable, RenameCapability.Renameable> adjustor) {
             if (adjustor != null) {
                 if (this.renameableCapability == null) {
                     this.renameableCapability = new RenameCapability.Renameable();
@@ -344,6 +349,7 @@ public class Item implements IItem {
     public Item(ItemBuilder builder) {
         this.itemID = new ItemID();
         this.className = this.getClass().getName();
+        this.effects = new TreeSet<>();
         if (builder == null) {
             this.objectName = "item";
             this.visible = true;
@@ -549,6 +555,68 @@ public class Item implements IItem {
 
     public GameEventProcessorCapability getGameEventProcessorCapability() {
         return gameEventProcessorCapability;
+    }
+
+    @Override
+    public NavigableSet<ItemEffect> getMutableEffects() {
+        if (this.effects == null) {
+            this.effects = new TreeSet<>();
+        }
+        return this.effects;
+    }
+
+    @Override
+    public GameEvent processEffectApplication(ItemEffect effect) {
+        if (effect == null) {
+            return null;
+        }
+        if (gameEventProcessorCapability != null) {
+            final GameEventProcessorCapability.Delta gameEventProcessorCapabilityDelta = effect
+                    .getGameEventProcessorCapabilityDelta();
+            if (gameEventProcessorCapabilityDelta != null) {
+                gameEventProcessorCapabilityDelta.accept(gameEventProcessorCapability);
+            }
+        }
+        if (interactableCapability != null) {
+            final InteractableCapability.Delta interactableDelta = effect.getInteractableCapabilityDelta();
+            if (interactableDelta != null) {
+                interactableDelta.accept(interactableCapability);
+            }
+        }
+        if (renameCapability != null) {
+            final RenameCapability.Delta renameDelta = effect.getRenameCapabilityDelta();
+            if (renameDelta != null) {
+                renameDelta.accept(renameCapability);
+            }
+        }
+        if (usableCapability != null) {
+            final UsableCapability.Delta usableDelta = effect.getUsableCapabilityDelta();
+            if (usableDelta != null) {
+                usableDelta.accept(usableCapability);
+            }
+        }
+        if (lockingCapability != null) {
+            final LockingCapability.Delta lockingDelta = effect.getLockingCapabilityDelta();
+            if (lockingDelta != null) {
+                lockingDelta.accept(lockingCapability);
+            }
+        }
+        return ItemAffectedEvent.getBuilder().setItemEffected(this).setEffect(effect).Build();
+    }
+
+    @Override
+    public GameEvent processEffectEvent(ItemEffect effect, GameEvent event) {
+        if (effect == null) {
+            this.getLogger().warning("Cannot process null effect for any event");
+        }
+        return null;
+    }
+
+    @Override
+    public GameEvent processEffectRemoval(ItemEffect effect) {
+        // They do not have any persistant effects
+        this.getLogger().warning("Items do not currently support reversable ItemEffects like " + effect.toString());
+        return null;
     }
 
 }
