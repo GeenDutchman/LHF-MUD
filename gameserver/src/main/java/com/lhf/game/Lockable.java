@@ -5,12 +5,26 @@ import java.util.UUID;
 
 import com.lhf.game.creature.inventory.InventoryOwner;
 import com.lhf.game.item.IItem;
+import com.lhf.game.item.Item;
 import com.lhf.game.item.concrete.LockKey;
 
 public interface Lockable {
-    public default LockKey generateKey() {
-        this.lock();
-        return new LockKey(this.getLockUUID());
+    public default IItem generateKey() {
+        if (this.isUnlocked()) {
+            this.lock();
+        }
+        IItem.IItemBuilder builder = this.generateKeyBuilder();
+        return builder != null ? builder.build() : null;
+    }
+
+    public default IItem.IItemBuilder generateKeyBuilder() {
+        if (this.isUnlocked()) {
+            this.lock();
+        }
+        IItem.IItemBuilder builder = new Item.ItemBuilder().setName(this.generateKeyName()).setTakeable(true)
+                .setVisible(true).setDescriptionString("A key for ... something.")
+                .adjustUsableCapability(usable -> usable.setTotalNumberUsableTimes(1));
+        return builder;
     }
 
     public UUID getLockUUID();
