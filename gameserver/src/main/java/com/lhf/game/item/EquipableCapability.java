@@ -24,7 +24,9 @@ public interface EquipableCapability extends ItemCapability {
 
     public List<EquipmentSlots> getEquipmentSlots();
 
-    // TODO: list of ItemEffectSource to happen to the item when equipped
+    public List<ItemEffectSource> getEquipChanges();
+
+    public List<ItemEffectSource> getUnequipChanges();
 
     public List<CreatureEffectSource> getEquipEffects();
 
@@ -94,6 +96,13 @@ public interface EquipableCapability extends ItemCapability {
                         equipper.applyEffect(new CreatureEffect(effector, equipper, thisItem)));
             }
         }
+        final List<ItemEffectSource> equipChanges = capability.getEquipChanges();
+        if (equipChanges != null) {
+            for (ItemEffectSource effector : equipChanges) {
+                ICreature.eventAccepter.accept(equipper,
+                        thisItem.applyEffect(new ItemEffect(effector, equipper, thisItem)));
+            }
+        }
     }
 
     public static void onUnequippedBy(ICreature unequipper, IItem thisItem) {
@@ -129,6 +138,13 @@ public interface EquipableCapability extends ItemCapability {
                 }
             }
         }
+        final List<ItemEffectSource> unequipChanges = capability.getUnequipChanges();
+        if (unequipChanges != null) {
+            for (ItemEffectSource effector : unequipChanges) {
+                ICreature.eventAccepter.accept(unequipper,
+                        thisItem.applyEffect(new ItemEffect(effector, unequipper, thisItem)));
+            }
+        }
     }
 
     public static EquipableCapability generateEquipableCapability() {
@@ -138,13 +154,16 @@ public interface EquipableCapability extends ItemCapability {
     public static final class Equipable implements EquipableCapability {
         private final List<EquipmentTypes> equipmentTypes;
         private final List<EquipmentSlots> equipmentSlots;
-        // TODO: list of ItemEffectSource to happen to the item when equipped
+        private final List<ItemEffectSource> equipChanges;
+        private final List<ItemEffectSource> unequipChanges;
         private final List<CreatureEffectSource> equipEffects;
         private final List<CreatureEffectSource> hiddenEquipEffects;
 
         public static class EquipableBuilder {
             private List<EquipmentTypes> equipmentTypes;
             private List<EquipmentSlots> equipmentSlots;
+            private List<ItemEffectSource.Builder> equipChanges;
+            private List<ItemEffectSource.Builder> unequipChanges;
             private List<CreatureEffectSource.Builder> equipEffects;
             private List<CreatureEffectSource.Builder> hiddenEquipEffects;
 
@@ -203,6 +222,62 @@ public interface EquipableCapability extends ItemCapability {
             public EquipableBuilder clearEquipmentSlots() {
                 if (this.equipmentSlots != null) {
                     this.equipmentSlots.clear();
+                }
+                return this;
+            }
+
+            public List<ItemEffectSource> getEquipChanges() {
+                return equipChanges == null ? null
+                        : this.equipChanges.stream().filter(builder -> builder != null).map(builder -> builder.build())
+                                .toList();
+            }
+
+            public EquipableBuilder setEquipChanges(List<ItemEffectSource.Builder> equipChanges) {
+                this.equipChanges = equipChanges;
+                return this;
+            }
+
+            public EquipableBuilder addEquipChange(ItemEffectSource.Builder builder) {
+                if (builder != null) {
+                    if (this.equipChanges == null) {
+                        this.equipChanges = new ArrayList<>();
+                    }
+                    this.equipChanges.add(builder);
+                }
+                return this;
+            }
+
+            public EquipableBuilder clearEquipChanges() {
+                if (this.equipChanges != null) {
+                    this.equipChanges.clear();
+                }
+                return this;
+            }
+
+            public List<ItemEffectSource> getUnquipChanges() {
+                return unequipChanges == null ? null
+                        : this.unequipChanges.stream().filter(builder -> builder != null)
+                                .map(builder -> builder.build()).toList();
+            }
+
+            public EquipableBuilder setUnequipChanges(List<ItemEffectSource.Builder> unequipChanges) {
+                this.unequipChanges = unequipChanges;
+                return this;
+            }
+
+            public EquipableBuilder addUnequipChange(ItemEffectSource.Builder builder) {
+                if (builder != null) {
+                    if (this.unequipChanges == null) {
+                        this.unequipChanges = new ArrayList<>();
+                    }
+                    this.unequipChanges.add(builder);
+                }
+                return this;
+            }
+
+            public EquipableBuilder clearUnequipChanges() {
+                if (this.unequipChanges != null) {
+                    this.unequipChanges.clear();
                 }
                 return this;
             }
@@ -279,6 +354,12 @@ public interface EquipableCapability extends ItemCapability {
                 if (equipmentTypes != null && !equipmentTypes.isEmpty()) {
                     sj.add("equipmentTypes=" + equipmentTypes.toString());
                 }
+                if (equipChanges != null && !equipChanges.isEmpty()) {
+                    sj.add("equipChanges=" + equipChanges.toString());
+                }
+                if (unequipChanges != null && !unequipChanges.isEmpty()) {
+                    sj.add("unequipChanges=" + unequipChanges.toString());
+                }
                 if (equipEffects != null && !equipEffects.isEmpty()) {
                     sj.add("equipEffects=" + equipEffects.toString());
                 }
@@ -293,6 +374,8 @@ public interface EquipableCapability extends ItemCapability {
         private Equipable() {
             this.equipmentTypes = List.of();
             this.equipmentSlots = List.of();
+            this.equipChanges = List.of();
+            this.unequipChanges = List.of();
             this.equipEffects = List.of();
             this.hiddenEquipEffects = List.of();
         }
@@ -301,11 +384,15 @@ public interface EquipableCapability extends ItemCapability {
             if (builder == null) {
                 this.equipmentTypes = List.of();
                 this.equipmentSlots = List.of();
+                this.equipChanges = List.of();
+                this.unequipChanges = List.of();
                 this.equipEffects = List.of();
                 this.hiddenEquipEffects = List.of();
             } else {
                 this.equipmentTypes = builder.getEquipmentTypes();
                 this.equipmentSlots = builder.getEquipmentSlots();
+                this.equipChanges = builder.getEquipChanges();
+                this.unequipChanges = builder.getUnquipChanges();
                 this.equipEffects = builder.getEquipEffects();
                 this.hiddenEquipEffects = builder.getHiddenEquipEffects();
             }
@@ -322,6 +409,16 @@ public interface EquipableCapability extends ItemCapability {
         }
 
         @Override
+        public List<ItemEffectSource> getEquipChanges() {
+            return this.equipChanges == null ? null : Collections.unmodifiableList(this.equipChanges);
+        }
+
+        @Override
+        public List<ItemEffectSource> getUnequipChanges() {
+            return this.unequipChanges == null ? null : Collections.unmodifiableList(this.unequipChanges);
+        }
+
+        @Override
         public List<CreatureEffectSource> getEquipEffects() {
             return this.equipEffects == null ? null : Collections.unmodifiableList(this.equipEffects);
         }
@@ -333,7 +430,8 @@ public interface EquipableCapability extends ItemCapability {
 
         @Override
         public int hashCode() {
-            return Objects.hash(equipmentTypes, equipmentSlots, equipEffects, hiddenEquipEffects);
+            return Objects.hash(equipmentTypes, equipmentSlots, equipChanges, unequipChanges, equipEffects,
+                    hiddenEquipEffects);
         }
 
         @Override
@@ -345,6 +443,8 @@ public interface EquipableCapability extends ItemCapability {
             Equipable other = (Equipable) obj;
             return Objects.equals(equipmentTypes, other.equipmentTypes)
                     && Objects.equals(equipmentSlots, other.equipmentSlots)
+                    && Objects.equals(equipChanges, other.equipChanges)
+                    && Objects.equals(unequipChanges, other.unequipChanges)
                     && Objects.equals(equipEffects, other.equipEffects)
                     && Objects.equals(hiddenEquipEffects, other.hiddenEquipEffects);
         }
@@ -357,6 +457,12 @@ public interface EquipableCapability extends ItemCapability {
             }
             if (equipmentTypes != null && !equipmentTypes.isEmpty()) {
                 sj.add("equipmentTypes=" + equipmentTypes.toString());
+            }
+            if (equipChanges != null && !equipChanges.isEmpty()) {
+                sj.add("equipChanges=" + equipChanges.toString());
+            }
+            if (unequipChanges != null && !unequipChanges.isEmpty()) {
+                sj.add("unequipChanges=" + unequipChanges.toString());
             }
             if (equipEffects != null && !equipEffects.isEmpty()) {
                 sj.add("equipEffects=" + equipEffects.toString());

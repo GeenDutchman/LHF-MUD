@@ -121,6 +121,15 @@ public interface IItem extends Examinable, AffectableEntity<ItemEffect> {
     }
 
     public interface IItemBuilderAdapter {
+
+        /**
+         * Sets the name on the builder
+         * 
+         * @param name
+         * @return fluent builder
+         */
+        public IItemBuilderAdapter setName(String name);
+
         /**
          * Resets the builder
          * 
@@ -152,7 +161,6 @@ public interface IItem extends Examinable, AffectableEntity<ItemEffect> {
          * 
          * @return fluent builder
          */
-        @Override
         public IItemBuilder reset();
 
         /**

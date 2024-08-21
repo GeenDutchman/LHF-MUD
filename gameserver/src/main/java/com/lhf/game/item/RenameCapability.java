@@ -83,10 +83,17 @@ public interface RenameCapability extends ItemCapability {
                 return;
             }
             builder.appendString("After application, the renaming capability");
-            StringJoiner sj = new StringJoiner(", ");
+            StringJoiner sj = new StringJoiner(", ").setEmptyValue("will not have changed much at all");
             if (this.popName) {
-                builder.appendString(nameToAdd)
+                sj.add("will have the top temporary name removed");
             }
+            if (this.clearNames) {
+                sj.add("will have all temporary names removed");
+            }
+            if (this.nameToAdd != null) {
+                sj.add("will have the temporary name '" + this.nameToAdd + "' added");
+            }
+            builder.appendString(sj.toString() + ".");
         }
 
         public String getNameToAdd() {
@@ -170,7 +177,7 @@ public interface RenameCapability extends ItemCapability {
         }
 
         @Override
-        public RenameCapability addName(String newName) {
+        public Renameable addName(String newName) {
             if (newName == null) {
                 return this;
             }
@@ -186,7 +193,7 @@ public interface RenameCapability extends ItemCapability {
         }
 
         @Override
-        public RenameCapability clear() {
+        public Renameable clear() {
             if (this.alternateNames != null) {
                 this.alternateNames.clear();
             }

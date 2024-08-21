@@ -11,10 +11,17 @@ public class RoomEffectSource extends EntityEffectSource {
     protected final INPCBuildInfo npcToSummon;
     protected final MonsterBuildInfo monsterToSummon;
 
+    public enum ShowHidden {
+        TO_NONE, TO_USER_ONLY, TO_AREA;
+    }
+
+    protected final ShowHidden showHidden;
+
     public static abstract class AbstractBuilder<AB extends AbstractBuilder<AB>>
             extends EntityEffectSource.Builder<AB> {
         private INPCBuildInfo npcToSummon;
         private MonsterBuildInfo monsterToSummon;
+        private ShowHidden showHidden = ShowHidden.TO_NONE;
 
         protected AbstractBuilder(String name) {
             super(name);
@@ -35,6 +42,15 @@ public class RoomEffectSource extends EntityEffectSource {
 
         public AB setMonsterToSummon(MonsterBuildInfo monsterToSummon) {
             this.monsterToSummon = monsterToSummon;
+            return getThis();
+        }
+
+        public ShowHidden getShowHidden() {
+            return showHidden;
+        }
+
+        public AB setShowHidden(ShowHidden showHidden) {
+            this.showHidden = showHidden;
             return getThis();
         }
 
@@ -61,6 +77,7 @@ public class RoomEffectSource extends EntityEffectSource {
         super(builder);
         this.npcToSummon = builder.getNpcToSummon();
         this.monsterToSummon = builder.getMonsterToSummon();
+        this.showHidden = builder.getShowHidden();
     }
 
     public INPCBuildInfo getNpcToSummon() {
@@ -93,7 +110,27 @@ public class RoomEffectSource extends EntityEffectSource {
             sb.append("\r\nWill summon the following NPC:\r\n");
             sb.append(this.npcToSummon.toString());
         }
+        if (this.showHidden != null) {
+            switch (this.showHidden) {
+            case TO_AREA:
+                sb.append("\r\nWill broadcast the presence of hidden things to the area.");
+                break;
+            case TO_USER_ONLY:
+                sb.append("\r\nWill show hidden things to the user.");
+                break;
+            case TO_NONE:
+                break;
+            default:
+                break;
+
+            }
+        }
+
         return sb.toString();
+    }
+
+    public ShowHidden getShowHidden() {
+        return showHidden;
     }
 
 }

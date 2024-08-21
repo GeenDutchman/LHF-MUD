@@ -539,6 +539,20 @@ public class Room implements Area {
         if (summoned != null) {
             this.addCreatures(summoned, false);
         }
+        RoomEffectSource.ShowHidden showHidden = roomEffect.getShowHidden();
+        if (showHidden != null) {
+            switch (showHidden) {
+            case TO_USER_ONLY:
+                ICreature.eventAccepter.accept(roomEffect.creatureResponsible(), this.produceMessage(true, true));
+                break;
+            case TO_AREA:
+                Area.eventAccepter.accept(this, this.produceMessage(true, true));
+                break;
+            case TO_NONE:
+            default:
+                break;
+            }
+        }
         return RoomAffectedEvent.getBuilder().setRoom(this).setEffect(roomEffect).Build();
     }
 

@@ -69,8 +69,9 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
         public Integer nameRegexLen;
         public CreatureFaction faction;
         public VocationName vocation;
-        public transient Class<? extends ICreature> clazz;
+        public transient Class<? extends ICreature> clazz; // TODO: replace with SPECIES enum
         public Boolean isBattling;
+        // TODO: filter by health percentage, health number
 
         public CreatureFilterQuery() {
         }

@@ -6,6 +6,8 @@ import com.lhf.game.enums.HealType;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.IItem.IItemBuilder;
+import com.lhf.game.item.IItem.IItemBuilderAdapter;
+import com.lhf.server.interfaces.NotNull;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.UsableCapability;
 
@@ -21,19 +23,21 @@ public final class PotionBuilder implements IItem.IItemBuilderAdapter {
      * @see HealType
      * @return ItemBuilder after the template
      */
-    public PotionBuilder healPotionTemplate(HealType type) {
-        if (type == null) {
-            type = HealType.Regular;
-        }
+    public PotionBuilder healPotionTemplate(@NotNull final HealType type) {
         final String name = String.format("%s Potion of Healing", type);
         this.inner.setName(name);
         inner.adjustUsableCapability(usable -> {
             if (usable == null) {
                 usable = UsableCapability.Usable.getBuilder();
             }
-            usable.addUseOnCreatureEffect(CreatureEffectSource.getCreatureEffectBuilder(name).instantPersistence()
-                    .setOnApplication(new Deltas().setStatChange(Stats.CURRENTHP, type.produceStaticBonus())
-                            .addDamage(type.produceDamageType())));
+            usable.addUseOnCreatureEffect(
+                    CreatureEffectSource.getCreatureEffectBuilder(name).instantPersistence()
+                            .setOnApplication(new Deltas()
+                                    .setStatChange(Stats.CURRENTHP,
+                                            type != null ? type.produceStaticBonus()
+                                                    : HealType.Regular.produceStaticBonus())
+                                    .addDamage(type != null ? type.produceDamageType()
+                                            : HealType.Regular.produceDamageType())));
             return usable;
         });
 
@@ -54,6 +58,12 @@ public final class PotionBuilder implements IItem.IItemBuilderAdapter {
     }
 
     @Override
+    public PotionBuilder setName(String name) {
+        this.inner.setName(name);
+        return this;
+    }
+
+    @Override
     public PotionBuilder reset() {
         this.inner.reset();
         return this;
@@ -67,6 +77,13 @@ public final class PotionBuilder implements IItem.IItemBuilderAdapter {
     @Override
     public IItem build() {
         return this.inner.build();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("PotionBuilder [inner=").append(inner).append("]");
+        return builder.toString();
     }
 
 }

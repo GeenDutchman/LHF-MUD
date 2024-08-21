@@ -13,6 +13,7 @@ import com.lhf.game.creature.INonPlayerCharacter.INPCBuildInfo;
 import com.lhf.game.creature.MonsterBuildInfo;
 import com.lhf.game.creature.SummonedMonster;
 import com.lhf.game.creature.SummonedNPC;
+import com.lhf.game.map.RoomEffectSource.ShowHidden;
 import com.lhf.server.interfaces.NotNull;
 
 public class RoomEffect extends EntityEffect {
@@ -105,4 +106,9 @@ public class RoomEffect extends EntityEffect {
         this.getSummonedNPC(factory);
         return factory.getBuiltCreatures().getICreatures();
     }
+
+    public ShowHidden getShowHidden() {
+        return this.getSource().getShowHidden();
+    }
+
 }
