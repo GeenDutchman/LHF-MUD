@@ -120,6 +120,29 @@ public interface IItem extends Examinable, AffectableEntity<ItemEffect> {
         return "item";
     }
 
+    public interface IItemBuilderAdapter {
+        /**
+         * Resets the builder
+         * 
+         * @return fluent builder
+         */
+        public IItemBuilderAdapter reset();
+
+        /**
+         * Get the inner itembuilder
+         * 
+         * @return
+         */
+        public IItemBuilder getItemBuilder();
+
+        /**
+         * Builds the IItem as intended
+         * 
+         * @return the new IItem
+         */
+        public IItem build();
+    }
+
     /**
      * This interface defines what items are needed to build an IItem
      */
@@ -129,6 +152,7 @@ public interface IItem extends Examinable, AffectableEntity<ItemEffect> {
          * 
          * @return fluent builder
          */
+        @Override
         public IItemBuilder reset();
 
         /**

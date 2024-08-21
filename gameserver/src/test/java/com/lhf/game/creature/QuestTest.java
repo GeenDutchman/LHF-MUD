@@ -22,15 +22,11 @@ public class QuestTest {
         final Integer beginInt = npc.getNPC().getAttributes().getMod(Attributes.INT);
         Truth.assertThat(maxhp).isGreaterThan(0);
         QuestEffect effect = new QuestEffect(
-                new QuestSource.Builder("questy quest")
-                        .setPersistence(new EffectPersistence(2, TickType.ACTION))
+                new BookBuilder.Builder("questy quest").setPersistence(new EffectPersistence(2, TickType.ACTION))
                         .setDescription("A test quest")
-                        .setOnApplication(
-                                new Deltas().setAttributeBonusChange(Attributes.INT, 2))
+                        .setOnApplication(new Deltas().setAttributeBonusChange(Attributes.INT, 2))
                         .setSuccessDeltas(new Deltas().setStatChange(Stats.MAXHP, 1))
-                        .setFailureDeltas(new Deltas().setStatChange(Stats.MAXHP,
-                                (-1 * maxhp) + 1))
-                        .build(),
+                        .setFailureDeltas(new Deltas().setStatChange(Stats.MAXHP, (-1 * maxhp) + 1)).build(),
                 null, null);
         npc.getNPC().applyEffect(effect);
         Truth.assertThat(npc.getNPC().getAttributes().getMod(Attributes.INT)).isEqualTo(beginInt + 2);
@@ -46,15 +42,11 @@ public class QuestTest {
         AIComBundle npc = new AIComBundle();
         final Integer maxhp = npc.getNPC().getStats().getOrDefault(Stats.MAXHP, 0);
         QuestEffect effect = new QuestEffect(
-                new QuestSource.Builder("questy quest")
-                        .setPersistence(new EffectPersistence(2, TickType.ACTION))
+                new BookBuilder.Builder("questy quest").setPersistence(new EffectPersistence(2, TickType.ACTION))
                         .setDescription("A test quest")
-                        .setOnApplication(
-                                new Deltas().setAttributeBonusChange(Attributes.INT, 2))
+                        .setOnApplication(new Deltas().setAttributeBonusChange(Attributes.INT, 2))
                         .setSuccessDeltas(new Deltas().setStatChange(Stats.MAXHP, 1))
-                        .setFailureDeltas(new Deltas().setStatChange(Stats.MAXHP,
-                                (-1 * maxhp) + 1))
-                        .build(),
+                        .setFailureDeltas(new Deltas().setStatChange(Stats.MAXHP, (-1 * maxhp) + 1)).build(),
                 null, null);
         npc.getNPC().applyEffect(effect);
         SeeEvent produced = npc.getNPC().produceMessage();
@@ -68,15 +60,11 @@ public class QuestTest {
         final Integer beginInt = npc.getNPC().getAttributes().getMod(Attributes.INT);
         Truth.assertThat(maxhp).isGreaterThan(0);
         QuestEffect effect = new QuestEffect(
-                new QuestSource.Builder("questy quest")
-                        .setPersistence(new EffectPersistence(2, TickType.ACTION))
+                new BookBuilder.Builder("questy quest").setPersistence(new EffectPersistence(2, TickType.ACTION))
                         .setDescription("A test quest")
-                        .setOnApplication(
-                                new Deltas().setAttributeBonusChange(Attributes.INT, 2))
+                        .setOnApplication(new Deltas().setAttributeBonusChange(Attributes.INT, 2))
                         .setSuccessDeltas(new Deltas().setStatChange(Stats.MAXHP, 1))
-                        .setFailureDeltas(new Deltas().setStatChange(Stats.MAXHP,
-                                (-1 * maxhp) + 1))
-                        .build(),
+                        .setFailureDeltas(new Deltas().setStatChange(Stats.MAXHP, (-1 * maxhp) + 1)).build(),
                 null, null);
         npc.getNPC().applyEffect(effect);
         Truth.assertThat(npc.getNPC().getAttributes().getMod(Attributes.INT)).isEqualTo(beginInt + 2);
@@ -94,21 +82,16 @@ public class QuestTest {
         final Integer beginInt = npc.getNPC().getAttributes().getMod(Attributes.INT);
         Truth.assertThat(maxhp).isGreaterThan(0);
         QuestEffect effect = new QuestEffect(
-                new QuestSource.Builder("questy quest")
-                        .setPersistence(new EffectPersistence(2, TickType.ACTION))
+                new BookBuilder.Builder("questy quest").setPersistence(new EffectPersistence(2, TickType.ACTION))
                         .setDescription("A test quest")
-                        .setOnApplication(
-                                new Deltas().setAttributeBonusChange(Attributes.INT, 2))
+                        .setOnApplication(new Deltas().setAttributeBonusChange(Attributes.INT, 2))
                         .setSuccessDeltas(new Deltas().setStatChange(Stats.MAXHP, 1))
-                        .setFailureDeltas(new Deltas().setStatChange(Stats.MAXHP,
-                                (-1 * maxhp) + 1))
-                        .build(),
+                        .setFailureDeltas(new Deltas().setStatChange(Stats.MAXHP, (-1 * maxhp) + 1)).build(),
                 null, null);
         npc.getNPC().applyEffect(effect);
         Truth.assertThat(npc.getNPC().getAttributes().getMod(Attributes.INT)).isEqualTo(beginInt + 2);
         ICreature.eventAccepter.accept(npc.getNPC(),
-                ItemInteractionEvent.getBuilder().setPerformed().setDescription("questy quest test")
-                        .Build());
+                ItemInteractionEvent.getBuilder().setPerformed().setDescription("questy quest test").Build());
         Truth.assertThat(npc.getNPC().getAttributes().getMod(Attributes.INT)).isEqualTo(beginInt + 2);
         Truth.assertThat(npc.getNPC().getStats().getOrDefault(Stats.MAXHP, 0)).isEqualTo(maxhp);
     }

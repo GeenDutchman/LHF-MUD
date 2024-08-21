@@ -6,7 +6,9 @@ import java.util.UUID;
 import com.lhf.game.creature.inventory.InventoryOwner;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.Item;
-import com.lhf.game.item.concrete.LockKey;
+import com.lhf.game.item.ItemEffectSource;
+import com.lhf.game.item.LockingCapability;
+import com.lhf.game.item.UsableCapability;
 
 public interface Lockable {
     public default IItem generateKey() {
@@ -21,9 +23,12 @@ public interface Lockable {
         if (this.isUnlocked()) {
             this.lock();
         }
+        // TODO: does this need an ItemFilterQuery?
         IItem.IItemBuilder builder = new Item.ItemBuilder().setName(this.generateKeyName()).setTakeable(true)
                 .setVisible(true).setDescriptionString("A key for ... something.")
-                .adjustUsableCapability(usable -> usable.setTotalNumberUsableTimes(1));
+                .adjustUsableCapability(usable -> usable.setTotalNumberUsableTimes(1)
+                        .addUseOnItemEffect(ItemEffectSource.getItemEffectBuilder("Turn Key").instantPersistence()
+                                .setLockingCapabilityDelta(LockingCapability.Delta.TOGGLE)));
         return builder;
     }
 
@@ -40,22 +45,27 @@ public interface Lockable {
     }
 
     public default boolean isAuthorized(InventoryOwner attemtper) {
-        String keyName = LockKey.generateKeyName(this.getLockUUID());
-        Optional<IItem> retrieved = attemtper.getItem(keyName);
-        if (attemtper == null || retrieved.isEmpty()) {
+        if (attemtper == null) {
             return false;
         }
-        if (retrieved.get() instanceof LockKey retrievedKey) {
-            if (!retrievedKey.hasUsesLeft()) {
-                attemtper.removeItem(retrievedKey);
-                return false;
-            }
-            if (!retrievedKey.useOnce()) {
-                attemtper.removeItem(retrievedKey);
-            }
-            return true;
+        final String keyName = this.generateKeyName();
+        final Optional<IItem> retrieved = attemtper.getItem(keyName);
+        if (retrieved == null || retrieved.isEmpty()) {
+            return false;
         }
-        return false;
+        final IItem keyItem = retrieved.get();
+        final UsableCapability capability = keyItem.getUsableCapability();
+        if (capability == null) {
+            return false;
+        }
+        if (!capability.hasUsesRemaining()) {
+            attemtper.removeItem(keyItem);
+            return false;
+        }
+        if (!capability.useOnce()) {
+            attemtper.removeItem(keyItem);
+        }
+        return true;
     }
 
     public default boolean canAccess(InventoryOwner attempter) {

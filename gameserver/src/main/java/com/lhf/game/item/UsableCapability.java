@@ -60,10 +60,11 @@ public interface UsableCapability extends ItemCapability {
 
     public ItemFilterQuery affectsItemsLike();
 
+    public Set<ItemEffectSource> getUseOnItemEffects();
+
     // how to search Areas?? with concrete attributes?
     public Set<CreatureEffectSource> getUseOnCreatureEffects();
 
-    // TODO: concrete way to describe effects on items?
     public Set<RoomEffectSource> getUseOnAreaEffects();
 
     @Override
@@ -243,17 +244,15 @@ public interface UsableCapability extends ItemCapability {
                     .setMessage("You cannot use this for some reason.").Build());
             return false;
         }
+        final ItemFilterQuery targetRestirctions = capability.affectsItemsLike();
+        if (targetRestirctions != null && !targetRestirctions.test(targetedItem)) {
+            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
+                    .setMessage("You cannot use this to affect that item.").Build());
+            return false;
+        }
         UsableCapability.sendNotice(ctx, myUser, capability.getItemUseBuilder(ctx, myItem, targetedItem));
+        UsableCapability.applyItemEffects(ctx, myItem, targetedItem);
 
-        // TODO: some way to declare what I'm doing to the item
-
-        // TODO: dealing with keys and lockables
-        // final Consumer<IItem> visitor = capability.produceItemConsumer(ctx);
-        // if (visitor == null) {
-        // ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());
-        // return false;
-        // }
-        // visitor.accept(targetedItem);
         return true;
     }
 
@@ -326,6 +325,24 @@ public interface UsableCapability extends ItemCapability {
         }
     }
 
+    private static void applyItemEffects(CommandContext ctx, IItem item, IItem target) {
+        if (target == null || item == null) {
+            return;
+        }
+        UsableCapability capability = item.getUsableCapability();
+        if (capability == null) {
+            return;
+        }
+        final Set<ItemEffectSource> effects = capability.getUseOnItemEffects();
+        if (effects == null || effects.isEmpty()) {
+            return;
+        }
+        for (final ItemEffectSource source : effects) {
+            final ItemEffect effect = new ItemEffect(source, ctx.getCreature(), item);
+            UsableCapability.sendNotice(ctx, ctx.getCreature(), target.applyEffect(effect));
+        }
+    }
+
     private static void applyCreatureEffects(CommandContext ctx, IItem item, ICreature creature) {
         if (creature == null || item == null) {
             return;
@@ -340,7 +357,7 @@ public interface UsableCapability extends ItemCapability {
         }
         for (final CreatureEffectSource source : effects) {
             final CreatureEffect effect = new CreatureEffect(source, ctx.getCreature(), item);
-            UsableCapability.sendNotice(ctx, creature, creature.applyEffect(effect));
+            UsableCapability.sendNotice(ctx, ctx.getCreature(), creature.applyEffect(effect));
         }
     }
 
@@ -420,6 +437,7 @@ public interface UsableCapability extends ItemCapability {
     }
 
     public static final class Usable implements UsableCapability {
+        private final Set<ItemEffectSource> useOnItemEffects;
         private final Set<CreatureEffectSource> useOnCreatureEffects;
         private final Set<RoomEffectSource> useOnAreaEffects;
         private final List<RichOutput> useDisplayPages;
@@ -436,6 +454,7 @@ public interface UsableCapability extends ItemCapability {
         }
 
         public static final class UsableBuilder {
+            private Set<ItemEffectSource.Builder> useOnItemEffects;
             private Set<CreatureEffectSource.Builder> useOnCreatureEffects;
             private Set<RoomEffectSource.Builder> useOnAreaEffects;
             private List<RichOutputBuilder> useDisplayPages;
@@ -446,6 +465,34 @@ public interface UsableCapability extends ItemCapability {
             private CreatureFilterQuery creatureFilter;
             private ItemFilterQuery itemFilter;
             private int timesUsed = 0;
+
+            public Set<ItemEffectSource> getUseOnItemEffects() {
+                return useOnItemEffects == null ? null
+                        : this.useOnItemEffects.stream().filter(builder -> builder != null)
+                                .map(builder -> builder.build()).collect(Collectors.toCollection(LinkedHashSet::new));
+            }
+
+            public UsableBuilder setUseOnItemEffects(Set<ItemEffectSource.Builder> useOnItemEffects) {
+                this.useOnItemEffects = useOnItemEffects;
+                return this;
+            }
+
+            public UsableBuilder addUseOnItemEffect(ItemEffectSource.Builder builder) {
+                if (builder != null) {
+                    if (this.useOnItemEffects == null) {
+                        this.useOnItemEffects = new LinkedHashSet<>();
+                    }
+                    this.useOnItemEffects.add(builder);
+                }
+                return this;
+            }
+
+            public UsableBuilder clearUseOnItemEffects() {
+                if (this.useOnItemEffects != null) {
+                    this.useOnItemEffects.clear();
+                }
+                return this;
+            }
 
             public Set<CreatureEffectSource> getUseOnCreatureEffects() {
                 return useOnCreatureEffects == null ? null
@@ -520,6 +567,43 @@ public interface UsableCapability extends ItemCapability {
                         this.useDisplayPages = new ArrayList<>();
                     }
                     this.useDisplayPages.add(nextPage);
+                }
+                return this;
+            }
+
+            public UsableBuilder addUseDisplayPage(String nextPage) {
+                if (nextPage != null) {
+                    RichOutput.RichOutputBuilder nextPageBuilder = new RichOutputBuilder().appendString(nextPage);
+                    return this.addUseDisplayPage(nextPageBuilder);
+                }
+                return this;
+            }
+
+            public UsableBuilder addUseDisplayPage(Consumer<RichOutputBuilder> pageBuilder) {
+                if (pageBuilder != null) {
+                    RichOutputBuilder builder = new RichOutputBuilder();
+                    this.addUseDisplayPage(builder);
+                    pageBuilder.accept(builder);
+                }
+                return this;
+            }
+
+            public RichOutputBuilder createOrGetPage(int index) {
+                if (this.useDisplayPages == null) {
+                    this.useDisplayPages = new ArrayList<>();
+                }
+                if (index < 0 || index >= this.useDisplayPages.size()) {
+                    RichOutputBuilder page = new RichOutputBuilder();
+                    this.useDisplayPages.add(page);
+                    return page;
+                }
+                return this.useDisplayPages.get(index);
+            }
+
+            public UsableBuilder createOrEditPage(int index, Consumer<RichOutputBuilder> pageEditor) {
+                RichOutputBuilder pageBuilder = this.createOrGetPage(index);
+                if (pageBuilder != null && pageEditor != null) {
+                    pageEditor.accept(pageBuilder);
                 }
                 return this;
             }
@@ -626,6 +710,7 @@ public interface UsableCapability extends ItemCapability {
         }
 
         private Usable() {
+            this.useOnItemEffects = null;
             this.totalNumberUsableTimes = -1;
             this.useOnAreaEffects = null;
             this.useOnCreatureEffects = null;
@@ -640,6 +725,7 @@ public interface UsableCapability extends ItemCapability {
 
         protected Usable(UsableBuilder builder) {
             if (builder == null) {
+                this.useOnItemEffects = null;
                 this.totalNumberUsableTimes = -1;
                 this.useOnAreaEffects = null;
                 this.useOnCreatureEffects = null;
@@ -651,6 +737,7 @@ public interface UsableCapability extends ItemCapability {
                 this.creatureFilter = null;
                 this.itemFilter = null;
             } else {
+                this.useOnItemEffects = builder.getUseOnItemEffects();
                 this.useOnCreatureEffects = builder.getUseOnCreatureEffects();
                 this.useOnAreaEffects = builder.getUseOnAreaEffects();
                 this.useDisplayPages = builder.getUseDisplayPages();
@@ -666,6 +753,7 @@ public interface UsableCapability extends ItemCapability {
 
         public Usable(UsableCapability usable) {
             if (usable == null) {
+                this.useOnItemEffects = null;
                 this.totalNumberUsableTimes = -1;
                 this.useOnAreaEffects = null;
                 this.useOnCreatureEffects = null;
@@ -677,6 +765,7 @@ public interface UsableCapability extends ItemCapability {
                 this.creatureFilter = null;
                 this.itemFilter = null;
             } else {
+                this.useOnItemEffects = usable.getUseOnItemEffects();
                 this.totalNumberUsableTimes = usable.getTotalNumberUsableTimes();
                 this.useOnAreaEffects = usable.getUseOnAreaEffects();
                 this.useOnCreatureEffects = usable.getUseOnCreatureEffects();
@@ -699,6 +788,12 @@ public interface UsableCapability extends ItemCapability {
             sj.add("This item can be usable.");
             if (this.timesUsed != 0) {
                 sj.add("This item looks to have been used before.");
+            }
+            if (this.useOnItemEffects != null || !this.useOnItemEffects.isEmpty()) {
+                sj.add("When used on an applicable Item, it has the following effects:");
+                for (final ItemEffectSource source : this.useOnItemEffects) {
+                    sj.add(source.getDescription());
+                }
             }
             if (this.useOnCreatureEffects != null || !this.useOnCreatureEffects.isEmpty()) {
                 sj.add("When used on a Creature, it has the following effects:");
@@ -763,6 +858,11 @@ public interface UsableCapability extends ItemCapability {
         @Override
         public ItemFilterQuery affectsItemsLike() {
             return this.itemFilter;
+        }
+
+        @Override
+        public Set<ItemEffectSource> getUseOnItemEffects() {
+            return this.useOnItemEffects == null ? Set.of() : Collections.unmodifiableSet(this.useOnItemEffects);
         }
 
         @Override
