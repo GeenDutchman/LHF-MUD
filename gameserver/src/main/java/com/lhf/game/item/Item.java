@@ -73,13 +73,6 @@ public class Item implements IItem {
             return name == null ? "item" : name;
         }
 
-        public ItemBuilder applyTemplate(ItemTemplate template) {
-            if (template != null) {
-                return template.applyTemplate(this);
-            }
-            return this;
-        }
-
         public ItemBuilder setName(String naming) {
             if (naming == null) {
                 throw new IllegalArgumentException("Item name cannot be null");

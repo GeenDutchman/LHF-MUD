@@ -6,10 +6,9 @@ import com.lhf.game.enums.HealType;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.IItem.IItemBuilder;
-import com.lhf.game.item.IItem.IItemBuilderAdapter;
-import com.lhf.server.interfaces.NotNull;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.UsableCapability;
+import com.lhf.server.interfaces.NotNull;
 
 public final class PotionBuilder implements IItem.IItemBuilderAdapter {
     private final Item.ItemBuilder inner = new Item.ItemBuilder().setName("Potion").setDescriptionString("A potion.")
