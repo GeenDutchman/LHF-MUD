@@ -47,10 +47,11 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
+import com.lhf.game.item.IItem;
+import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
-import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.game.magic.concrete.PlotArmor;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.CreatureAffectedEvent;
@@ -104,32 +105,19 @@ public interface INonPlayerCharacter extends ICreature {
      * as bypassing any resistance like {@link com.lhf.game.enums.Stats#AC Armor
      * Class}.
      */
-    public static class BlessedFist extends Weapon {
-        private final static CreatureEffectSource source = new CreatureEffectSource.Builder("Blessed Punch")
+    public static Item.ItemBuilder generateBlessedFist() {
+        Item.ItemBuilder builder = ICreature.generateFist().setName("Blessed Fist")
+                .setDescriptionString("This is a Fist attached to a Creature who is blessed");
+        Deltas blessedDeltas = new Deltas();
+        for (DamageFlavor df : DamageFlavor.values()) {
+            blessedDeltas.addDamage(new DamageDice(1, DieType.FOUR, df));
+        }
+        CreatureEffectSource.Builder source = new CreatureEffectSource.Builder("Blessed Punch")
                 .setPersistence(new EffectPersistence(TickType.INSTANT))
                 .setResistance(new EffectResistance(EnumSet.allOf(Attributes.class), Stats.AC))
-                .setDescription("A blessed fist punches harder.").setOnApplication(new Deltas()).build();
-
-        private final static String description = "This is a Fist attached to a Creature who is blessed\n";
-
-        BlessedFist() {
-            super("Blessed Fist", BlessedFist.description, Set.of(BlessedFist.source), DamageFlavor.MAGICAL_BLUDGEONING,
-                    WeaponSubtype.CREATUREPART);
-            if (BlessedFist.source.onApplication.getDamages().size() == 0) {
-                for (DamageFlavor df : DamageFlavor.values()) {
-                    BlessedFist.source.onApplication.addDamage(new DamageDice(1, DieType.FOUR, df));
-                }
-            }
-
-            this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MONSTERPART);
-            this.slots = List.of(EquipmentSlots.WEAPON);
-
-        }
-
-        @Override
-        public BlessedFist makeCopy() {
-            return this;
-        }
+                .setDescription("A blessed fist punches harder.").setOnApplication(blessedDeltas);
+        builder.adjustWeaponCapability(weaponized -> weaponized.addHitEffectSource(source));
+        return builder;
     }
 
     /**
@@ -139,7 +127,7 @@ public interface INonPlayerCharacter extends ICreature {
      * {@link com.lhf.game.magic.concrete.PlotArmor Blessing} from the
      * {@link com.lhf.game.creature.DungeonMaster DungeonMaster}.
      */
-    public static final BlessedFist blessedFist = new BlessedFist();
+    public static final IItem blessedFist = INonPlayerCharacter.generateBlessedFist().build();
 
     /**
      * HarmMemories are meant to be used in a battle to remember things like: "Who

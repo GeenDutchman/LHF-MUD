@@ -47,8 +47,11 @@ import com.lhf.game.item.Equipable;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.ItemVisitor;
 import com.lhf.game.item.Weapon;
+import com.lhf.game.item.IItem.IItemBuilder;
+import com.lhf.game.item.Item;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.WeaponSubtype;
+import com.lhf.game.item.templateAdapters.weapons.WeaponBuilder;
 import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
@@ -131,35 +134,21 @@ public interface ICreature extends InventoryOwner, EquipmentOwner, Comparable<IC
      * A Fist is a weapon that most Creatures can be assumed to have. Does some
      * small {@link com.lhf.game.enums.DamageFlavor#BLUDGEONING Bludgeoning} damage.
      */
-    public static class Fist extends Weapon {
-        private static final String description = "This is a Fist attached to a Creature \n";
-
-        Fist() {
-            super("Fist", Fist.description,
-                    Set.of(CreatureEffectSource.getCreatureEffectBuilder("Punch").instantPersistence()
-                            .setResistance(new EffectResistance(EnumSet.of(Attributes.STR, Attributes.DEX), Stats.AC))
-                            .setDescription("Fists punch things")
-                            .setOnApplication(
-                                    new Deltas().addDamage(new DamageDice(1, DieType.TWO, DamageFlavor.BLUDGEONING)))
-                            .build()),
-                    DamageFlavor.BLUDGEONING, WeaponSubtype.CREATUREPART);
-
-            this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MONSTERPART);
-            this.slots = List.of(EquipmentSlots.WEAPON);
-        }
-
-        @Override
-        public Fist makeCopy() {
-            return this;
-        }
-
+    public static Item.ItemBuilder generateFist() {
+        WeaponBuilder builder = new WeaponBuilder();
+        builder.addHitEffect(CreatureEffectSource.getCreatureEffectBuilder("Punch").instantPersistence()
+                .setResistance(new EffectResistance(EnumSet.of(Attributes.STR, Attributes.DEX), Stats.AC))
+                .setDescription("Fists punch things")
+                .setOnApplication(new Deltas().addDamage(new DamageDice(1, DieType.TWO, DamageFlavor.BLUDGEONING))));
+        builder.setMainDamageFlavor(DamageFlavor.BLUDGEONING).setWeaponSubtype(WeaponSubtype.CREATUREPART);
+        builder.addEquipmentType(EquipmentTypes.SIMPLEMELEEWEAPONS).addEquipmentType(EquipmentTypes.MONSTERPART);
+        return builder.getItemBuilder();
     }
 
     /**
-     * The default {@link com.lhf.game.item.Weapon Weapon} for a Creature, a
-     * {@link com.lhf.game.creature.ICreature.Fist Fist}!
+     * The default Weapon for a Creature, a Fist!
      */
-    public static final Fist defaultFist = new Fist();
+    public static final IItem defaultFist = ICreature.generateFist().build();
 
     /**
      * Returns some default {@link com.lhf.game.item.Weapon Weapon} for the

@@ -49,7 +49,7 @@ public final class ShieldBuilder implements IItem.IItemBuilderAdapter {
     }
 
     @Override
-    public IItemBuilder getItemBuilder() {
+    public Item.ItemBuilder getItemBuilder() {
         return this.inner;
     }
 

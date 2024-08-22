@@ -45,7 +45,7 @@ public class Item implements IItem {
         private UsableCapability.Usable.UsableBuilder usableCapability;
         private LockingCapability.Locking.Builder lockingCapability;
         private EquipableCapability.Equipable.EquipableBuilder equipableCapability;
-        private WeaponCapability.Weapon.WeaponBuilder weaponCapability;
+        private WeaponCapability.Weaponized.WeaponizedBuilder weaponCapability;
         private InteractableCapability.Interactable.Builder interactableCapability;
         private ItemContainerCapability.Container.Builder itemContainerCapability;
         private CreatureContainerCapability.CreaturePen.Builder creatureContainerCapability;
@@ -208,16 +208,16 @@ public class Item implements IItem {
             return weaponCapability == null ? null : weaponCapability.build();
         }
 
-        public ItemBuilder setWeaponCapability(WeaponCapability.Weapon.WeaponBuilder weaponCapability) {
+        public ItemBuilder setWeaponCapability(WeaponCapability.Weaponized.WeaponizedBuilder weaponCapability) {
             this.weaponCapability = weaponCapability;
             return this;
         }
 
         public ItemBuilder adjustWeaponCapability(
-                Function<WeaponCapability.Weapon.WeaponBuilder, WeaponCapability.Weapon.WeaponBuilder> adjustor) {
+                Function<WeaponCapability.Weaponized.WeaponizedBuilder, WeaponCapability.Weaponized.WeaponizedBuilder> adjustor) {
             if (adjustor != null) {
                 if (this.weaponCapability == null) {
-                    this.weaponCapability = new WeaponCapability.Weapon.WeaponBuilder();
+                    this.weaponCapability = new WeaponCapability.Weaponized.WeaponizedBuilder();
                 }
                 this.weaponCapability = adjustor.apply(weaponCapability);
             }

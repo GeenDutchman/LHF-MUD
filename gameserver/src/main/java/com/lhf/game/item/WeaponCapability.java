@@ -92,10 +92,10 @@ public interface WeaponCapability extends ItemCapability {
     }
 
     public static WeaponCapability generateWeaponCapability() {
-        return new Weapon();
+        return new Weaponized();
     }
 
-    public static final class Weapon implements WeaponCapability, Serializable {
+    public static final class Weaponized implements WeaponCapability, Serializable {
         private final DamageFlavor mainDamageFlavor;
         private final WeaponSubtype weaponSubtype;
         private final int toHitBonus;
@@ -103,7 +103,7 @@ public interface WeaponCapability extends ItemCapability {
         private final Set<CreatureEffectSource> burstEffectSources;
         private final int burstChance;
 
-        public static final class WeaponBuilder implements Serializable {
+        public static final class WeaponizedBuilder implements Serializable {
             private DamageFlavor mainDamageFlavor;
             private WeaponSubtype weaponSubtype;
             private int toHitBonus = 0;
@@ -115,7 +115,7 @@ public interface WeaponCapability extends ItemCapability {
                 return mainDamageFlavor;
             }
 
-            public WeaponBuilder setMainDamageFlavor(DamageFlavor mainDamageFlavor) {
+            public WeaponizedBuilder setMainDamageFlavor(DamageFlavor mainDamageFlavor) {
                 this.mainDamageFlavor = mainDamageFlavor;
                 return this;
             }
@@ -124,7 +124,7 @@ public interface WeaponCapability extends ItemCapability {
                 return weaponSubtype;
             }
 
-            public WeaponBuilder setWeaponSubtype(WeaponSubtype weaponSubtype) {
+            public WeaponizedBuilder setWeaponSubtype(WeaponSubtype weaponSubtype) {
                 this.weaponSubtype = weaponSubtype;
                 return this;
             }
@@ -133,7 +133,7 @@ public interface WeaponCapability extends ItemCapability {
                 return toHitBonus;
             }
 
-            public WeaponBuilder setToHitBonus(int toHitBonus) {
+            public WeaponizedBuilder setToHitBonus(int toHitBonus) {
                 this.toHitBonus = toHitBonus;
                 return this;
             }
@@ -144,12 +144,12 @@ public interface WeaponCapability extends ItemCapability {
                                 .collect(Collectors.toCollection(LinkedHashSet::new));
             }
 
-            public WeaponBuilder setHitEffectSources(Set<CreatureEffectSource.Builder> hitEffectSources) {
+            public WeaponizedBuilder setHitEffectSources(Set<CreatureEffectSource.Builder> hitEffectSources) {
                 this.hitEffectSources = hitEffectSources;
                 return this;
             }
 
-            public WeaponBuilder addHitEffectSource(CreatureEffectSource.Builder builder) {
+            public WeaponizedBuilder addHitEffectSource(CreatureEffectSource.Builder builder) {
                 if (builder != null) {
                     if (this.hitEffectSources == null) {
                         this.hitEffectSources = new LinkedHashSet<>();
@@ -159,7 +159,7 @@ public interface WeaponCapability extends ItemCapability {
                 return this;
             }
 
-            public WeaponBuilder clearHitEffectSources() {
+            public WeaponizedBuilder clearHitEffectSources() {
                 if (this.hitEffectSources != null) {
                     this.hitEffectSources.clear();
                 }
@@ -172,12 +172,12 @@ public interface WeaponCapability extends ItemCapability {
                                 .collect(Collectors.toCollection(LinkedHashSet::new));
             }
 
-            public WeaponBuilder setBurstEffectSources(Set<CreatureEffectSource.Builder> burstEffectSources) {
+            public WeaponizedBuilder setBurstEffectSources(Set<CreatureEffectSource.Builder> burstEffectSources) {
                 this.burstEffectSources = burstEffectSources;
                 return this;
             }
 
-            public WeaponBuilder addBurstEffectSource(CreatureEffectSource.Builder builder) {
+            public WeaponizedBuilder addBurstEffectSource(CreatureEffectSource.Builder builder) {
                 if (builder != null) {
                     if (this.burstEffectSources == null) {
                         this.burstEffectSources = new LinkedHashSet<>();
@@ -187,7 +187,7 @@ public interface WeaponCapability extends ItemCapability {
                 return this;
             }
 
-            public WeaponBuilder clearBurstEffectSources() {
+            public WeaponizedBuilder clearBurstEffectSources() {
                 if (this.burstEffectSources != null) {
                     this.burstEffectSources.clear();
                 }
@@ -198,18 +198,18 @@ public interface WeaponCapability extends ItemCapability {
                 return burstChance;
             }
 
-            public WeaponBuilder setBurstChance(int burstChance) {
+            public WeaponizedBuilder setBurstChance(int burstChance) {
                 this.burstChance = burstChance;
                 return this;
             }
 
-            public Weapon build() {
-                return new Weapon(this);
+            public Weaponized build() {
+                return new Weaponized(this);
             }
 
         }
 
-        private Weapon() {
+        private Weaponized() {
             this.mainDamageFlavor = DamageFlavor.BLUDGEONING;
             this.weaponSubtype = WeaponSubtype.CREATUREPART;
             this.toHitBonus = 0;
@@ -218,7 +218,7 @@ public interface WeaponCapability extends ItemCapability {
             this.burstChance = 0;
         }
 
-        protected Weapon(WeaponBuilder builder) {
+        protected Weaponized(WeaponizedBuilder builder) {
             if (builder == null) {
                 this.mainDamageFlavor = DamageFlavor.BLUDGEONING;
                 this.weaponSubtype = WeaponSubtype.CREATUREPART;

@@ -29,7 +29,7 @@ public final class BookBuilder implements IItem.IItemBuilderAdapter {
     }
 
     @Override
-    public IItemBuilder getItemBuilder() {
+    public Item.ItemBuilder getItemBuilder() {
         return this.inner;
     }
 

@@ -18,7 +18,6 @@ import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.EquipableCapability;
 import com.lhf.game.item.IItem;
-import com.lhf.game.item.IItem.IItemBuilder;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.WeaponCapability;
 import com.lhf.game.item.interfaces.WeaponSubtype;
@@ -28,7 +27,7 @@ public final class WeaponBuilder implements IItem.IItemBuilderAdapter {
             .setDescriptionString("If you choose to use it, most weapons can deal harm to your enemies.")
             .adjustEquipableCapability(WeaponBuilder.basicEquipable(null))
             .adjustWeaponCapability(
-                    weaponized -> weaponized != null ? weaponized : new WeaponCapability.Weapon.WeaponBuilder())
+                    weaponized -> weaponized != null ? weaponized : new WeaponCapability.Weaponized.WeaponizedBuilder())
             .setTakeable(true);
 
     private static final UnaryOperator<EquipableCapability.Equipable.EquipableBuilder> basicEquipable(
@@ -52,7 +51,7 @@ public final class WeaponBuilder implements IItem.IItemBuilderAdapter {
         builder.inner.setName("Rusty Dagger").setDescriptionString("Rusty Dagger to stab monsters with.");
         builder.inner.adjustWeaponCapability(weaponized -> {
             if (weaponized == null) {
-                weaponized = new WeaponCapability.Weapon.WeaponBuilder();
+                weaponized = new WeaponCapability.Weaponized.WeaponizedBuilder();
             }
             weaponized.setMainDamageFlavor(DamageFlavor.PIERCING).setWeaponSubtype(WeaponSubtype.PRECISE);
             weaponized.addHitEffectSource(new CreatureEffectSource.Builder("Stab").instantPersistence()
@@ -72,7 +71,7 @@ public final class WeaponBuilder implements IItem.IItemBuilderAdapter {
                 "This is a nice, short, shiny sword with a leather grip.  It's a bit simple though...");
         builder.inner.adjustWeaponCapability(weaponized -> {
             if (weaponized == null) {
-                weaponized = new WeaponCapability.Weapon.WeaponBuilder();
+                weaponized = new WeaponCapability.Weaponized.WeaponizedBuilder();
             }
             weaponized.setMainDamageFlavor(DamageFlavor.SLASHING).setWeaponSubtype(WeaponSubtype.MARTIAL);
             weaponized.addHitEffectSource(new CreatureEffectSource.Builder("Slash").instantPersistence()
@@ -92,7 +91,7 @@ public final class WeaponBuilder implements IItem.IItemBuilderAdapter {
                 .setDescriptionString("This is a nice, long, shiny sword.  It's a bit simple though...");
         builder.inner.adjustWeaponCapability(weaponized -> {
             if (weaponized == null) {
-                weaponized = new WeaponCapability.Weapon.WeaponBuilder();
+                weaponized = new WeaponCapability.Weaponized.WeaponizedBuilder();
             }
             weaponized.setMainDamageFlavor(DamageFlavor.SLASHING).setWeaponSubtype(WeaponSubtype.MARTIAL);
             weaponized.addHitEffectSource(new CreatureEffectSource.Builder("Slash").instantPersistence()
@@ -112,7 +111,7 @@ public final class WeaponBuilder implements IItem.IItemBuilderAdapter {
                 .setDescriptionString("This is a large club, it seems a bit rusty... wait that is not rust...");
         builder.inner.adjustWeaponCapability(weaponized -> {
             if (weaponized == null) {
-                weaponized = new WeaponCapability.Weapon.WeaponBuilder();
+                weaponized = new WeaponCapability.Weaponized.WeaponizedBuilder();
             }
             weaponized.setMainDamageFlavor(DamageFlavor.BLUDGEONING).setWeaponSubtype(WeaponSubtype.MARTIAL);
             weaponized.addHitEffectSource(new CreatureEffectSource.Builder("Bash").instantPersistence()
@@ -134,7 +133,7 @@ public final class WeaponBuilder implements IItem.IItemBuilderAdapter {
                         + "care about what it does to other people...it's a whimsystick.");
         builder.inner.adjustWeaponCapability(weaponized -> {
             if (weaponized == null) {
-                weaponized = new WeaponCapability.Weapon.WeaponBuilder();
+                weaponized = new WeaponCapability.Weaponized.WeaponizedBuilder();
             }
             weaponized.setMainDamageFlavor(DamageFlavor.SLASHING).setWeaponSubtype(WeaponSubtype.MARTIAL);
             weaponized.addHitEffectSource(new CreatureEffectSource.Builder("Bonk").instantPersistence()
@@ -166,7 +165,7 @@ public final class WeaponBuilder implements IItem.IItemBuilderAdapter {
                 .setDescriptionString("This is a nice, long, shiny scythe.  It's super powerful...");
         builder.inner.adjustWeaponCapability(weaponized -> {
             if (weaponized == null) {
-                weaponized = new WeaponCapability.Weapon.WeaponBuilder();
+                weaponized = new WeaponCapability.Weaponized.WeaponizedBuilder();
             }
             weaponized.setMainDamageFlavor(DamageFlavor.NECROTIC).setWeaponSubtype(WeaponSubtype.FINESSE);
             weaponized.addHitEffectSource(new CreatureEffectSource.Builder("Scythe").instantPersistence()
@@ -187,6 +186,63 @@ public final class WeaponBuilder implements IItem.IItemBuilderAdapter {
         return builder;
     }
 
+    public WeaponBuilder setMainDamageFlavor(DamageFlavor flavor) {
+        if (flavor == null) {
+            return this;
+        }
+        this.inner.adjustWeaponCapability(weaponized -> {
+            if (weaponized == null) {
+                weaponized = new WeaponCapability.Weaponized.WeaponizedBuilder();
+            }
+            weaponized.setMainDamageFlavor(flavor);
+            return weaponized;
+        });
+        return this;
+    }
+
+    public WeaponBuilder setWeaponSubtype(WeaponSubtype subtype) {
+        if (subtype == null) {
+            return this;
+        }
+        this.inner.adjustWeaponCapability(weaponized -> {
+            if (weaponized == null) {
+                weaponized = new WeaponCapability.Weaponized.WeaponizedBuilder();
+            }
+            weaponized.setWeaponSubtype(subtype);
+            return weaponized;
+        });
+        return this;
+    }
+
+    public WeaponBuilder addHitEffect(CreatureEffectSource.Builder hitBuilder) {
+        if (hitBuilder == null) {
+            return this;
+        }
+        this.inner.adjustWeaponCapability(weaponized -> {
+            if (weaponized == null) {
+                weaponized = new WeaponCapability.Weaponized.WeaponizedBuilder();
+            }
+            weaponized.addHitEffectSource(hitBuilder);
+            return weaponized;
+        });
+        return this;
+    }
+
+    public WeaponBuilder addEquipmentType(EquipmentTypes equipmentType) {
+        if (equipmentType == null) {
+            return this;
+        }
+        this.inner.adjustEquipableCapability(equipable -> {
+            if (equipable == null) {
+                equipable = new EquipableCapability.Equipable.EquipableBuilder(EquipmentSlots.WEAPON);
+            }
+            equipable.addEquipmentSlot(EquipmentSlots.WEAPON);
+            equipable.addEquipmentType(equipmentType);
+            return equipable;
+        });
+        return this;
+    }
+
     @Override
     public WeaponBuilder setName(String name) {
         this.inner.setName(name);
@@ -200,13 +256,20 @@ public final class WeaponBuilder implements IItem.IItemBuilderAdapter {
     }
 
     @Override
-    public IItemBuilder getItemBuilder() {
+    public Item.ItemBuilder getItemBuilder() {
         return this.inner;
     }
 
     @Override
     public IItem build() {
         return this.inner.build();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("WeaponBuilder [inner=").append(inner).append("]");
+        return builder.toString();
     }
 
 }
