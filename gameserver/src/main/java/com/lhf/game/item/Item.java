@@ -448,40 +448,6 @@ public class Item implements IItem {
     }
 
     @Override
-    public boolean checkName(String name) {
-        return this.getName().equalsIgnoreCase(name.trim());
-    }
-
-    @Override
-    public boolean CheckNameRegex(String possName, Integer minimumLength) {
-        Integer min = minimumLength;
-        if (min < 0) {
-            min = 0;
-        }
-        if (this.getName().length() < min) {
-            min = this.getName().length();
-        }
-        if (min > this.getName().length()) {
-            min = this.getName().length();
-        }
-        if (possName.length() < min || possName.length() > this.getName().length()) {
-            return false;
-        }
-        if (this.checkName(possName)) {
-            return true;
-        }
-        if (possName.matches("[^ a-zA-Z_-]") || possName.contains("*")) {
-            return false;
-        }
-        try {
-            return this.getName().matches("(?i).*" + possName + ".*");
-        } catch (PatternSyntaxException pse) {
-            pse.printStackTrace();
-            return false;
-        }
-    }
-
-    @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof Item)) {
             return false;

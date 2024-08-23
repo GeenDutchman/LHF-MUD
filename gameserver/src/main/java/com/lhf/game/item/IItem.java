@@ -80,38 +80,6 @@ public interface IItem extends Examinable, AffectableEntity<ItemEffect> {
         return Logger.getLogger(String.format("%s.%s.%s", this.getClass().getName(), itemID, name));
     }
 
-    default boolean checkName(String name) {
-        return this.getName().equalsIgnoreCase(name);
-    }
-
-    default boolean CheckNameRegex(String possName, Integer minimumLength) {
-        Integer min = minimumLength;
-        if (min < 0) {
-            min = 0;
-        }
-        if (this.getName().length() < min) {
-            min = this.getName().length();
-        }
-        if (min > this.getName().length()) {
-            min = this.getName().length();
-        }
-        if (possName.length() < min || possName.length() > this.getName().length()) {
-            return false;
-        }
-        if (this.checkName(possName)) {
-            return true;
-        }
-        if (possName.matches("[^ a-zA-Z_-]") || possName.contains("*")) {
-            return false;
-        }
-        try {
-            return this.getName().matches("(?i).*" + possName + ".*");
-        } catch (PatternSyntaxException pse) {
-            pse.printStackTrace();
-            return false;
-        }
-    }
-
     /**
      * Gets the tag name for the item
      */
