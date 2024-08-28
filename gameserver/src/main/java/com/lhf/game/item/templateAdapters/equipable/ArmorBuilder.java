@@ -9,8 +9,6 @@ import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.EquipableCapability;
 import com.lhf.game.item.IItem;
-import com.lhf.game.item.IItem.IItemBuilder;
-import com.lhf.game.item.IItem.IItemBuilderAdapter;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.RenameCapability;
 
@@ -125,8 +123,14 @@ public final class ArmorBuilder implements IItem.IItemBuilderAdapter {
     }
 
     @Override
-    public IItemBuilderAdapter setName(String name) {
+    public ArmorBuilder setName(String name) {
         this.inner.setName(name);
+        return this;
+    }
+
+    @Override
+    public ArmorBuilder setDescriptionString(String descriptionString) {
+        this.inner.setDescriptionString(descriptionString);
         return this;
     }
 

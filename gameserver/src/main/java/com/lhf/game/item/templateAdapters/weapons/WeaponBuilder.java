@@ -250,6 +250,12 @@ public final class WeaponBuilder implements IItem.IItemBuilderAdapter {
     }
 
     @Override
+    public WeaponBuilder setDescriptionString(String descriptionString) {
+        this.inner.setDescriptionString(descriptionString);
+        return this;
+    }
+
+    @Override
     public WeaponBuilder reset() {
         this.inner.reset();
         return this;

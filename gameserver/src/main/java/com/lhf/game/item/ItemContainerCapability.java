@@ -224,16 +224,18 @@ public interface ItemContainerCapability extends ItemCapability, ItemContainer {
                 return itemDepositingAllowed;
             }
 
-            public void setItemDepositingAllowed(boolean itemDepositingAllowed) {
+            public Builder setItemDepositingAllowed(boolean itemDepositingAllowed) {
                 this.itemDepositingAllowed = itemDepositingAllowed;
+                return this;
             }
 
             public boolean isItemWithdrawalAllowed() {
                 return itemWithdrawalAllowed;
             }
 
-            public void setItemWithdrawalAllowed(boolean itemWithdrawalAllowed) {
+            public Builder setItemWithdrawalAllowed(boolean itemWithdrawalAllowed) {
                 this.itemWithdrawalAllowed = itemWithdrawalAllowed;
+                return this;
             }
 
             public Container build() {
@@ -299,13 +301,14 @@ public interface ItemContainerCapability extends ItemCapability, ItemContainer {
             if (!this.isItemWithdrawalAllowed()) {
                 return Optional.empty();
             }
+            final ItemFilterQuery query = new ItemFilterQuery(name, true);
             for (final Iterator<IItem> iterator = this.items.iterator(); iterator.hasNext();) {
                 final IItem item = iterator.next();
                 if (item == null) {
                     iterator.remove();
                     continue;
                 }
-                if (item.CheckNameRegex(name, 3)) {
+                if (query.test(item)) {
                     iterator.remove();
                     return Optional.of(item);
                 }

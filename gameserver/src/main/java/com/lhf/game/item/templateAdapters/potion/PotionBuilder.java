@@ -5,7 +5,6 @@ import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.enums.HealType;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.IItem;
-import com.lhf.game.item.IItem.IItemBuilder;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.UsableCapability;
 import com.lhf.server.interfaces.NotNull;
@@ -59,6 +58,12 @@ public final class PotionBuilder implements IItem.IItemBuilderAdapter {
     @Override
     public PotionBuilder setName(String name) {
         this.inner.setName(name);
+        return this;
+    }
+
+    @Override
+    public PotionBuilder setDescriptionString(String descriptionString) {
+        this.inner.setDescriptionString(descriptionString);
         return this;
     }
 

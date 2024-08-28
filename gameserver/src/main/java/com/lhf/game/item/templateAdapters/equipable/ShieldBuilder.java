@@ -9,7 +9,6 @@ import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.EquipableCapability;
 import com.lhf.game.item.IItem;
-import com.lhf.game.item.IItem.IItemBuilder;
 import com.lhf.game.item.Item;
 
 public final class ShieldBuilder implements IItem.IItemBuilderAdapter {
@@ -62,6 +61,12 @@ public final class ShieldBuilder implements IItem.IItemBuilderAdapter {
     @Override
     public ShieldBuilder setName(String name) {
         this.inner.setName(name);
+        return this;
+    }
+
+    @Override
+    public ShieldBuilder setDescriptionString(String descriptionString) {
+        this.inner.setDescriptionString(descriptionString);
         return this;
     }
 

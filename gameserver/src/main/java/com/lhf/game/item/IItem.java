@@ -3,7 +3,6 @@ package com.lhf.game.item;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Logger;
-import java.util.regex.PatternSyntaxException;
 
 import com.lhf.Examinable;
 import com.lhf.game.AffectableEntity;
@@ -97,6 +96,14 @@ public interface IItem extends Examinable, AffectableEntity<ItemEffect> {
          * @return fluent builder
          */
         public IItemBuilderAdapter setName(String name);
+
+        /**
+         * Sets the description on the builder
+         * 
+         * @param descriptionString
+         * @return fluent builder
+         */
+        public IItemBuilderAdapter setDescriptionString(String descriptionString);
 
         /**
          * Resets the builder

@@ -8,10 +8,9 @@ import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.EquipableCapability;
 import com.lhf.game.item.IItem;
-import com.lhf.game.item.IItem.IItemBuilder;
-import com.lhf.game.map.RoomEffectSource;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.UsableCapability;
+import com.lhf.game.map.RoomEffectSource;
 
 public final class RingBuilder implements IItem.IItemBuilderAdapter {
     private final Item.ItemBuilder inner = new Item.ItemBuilder().setName("Ring")
@@ -50,6 +49,12 @@ public final class RingBuilder implements IItem.IItemBuilderAdapter {
     @Override
     public RingBuilder setName(String name) {
         this.inner.setName(name);
+        return this;
+    }
+
+    @Override
+    public RingBuilder setDescriptionString(String descriptionString) {
+        this.inner.setDescriptionString(descriptionString);
         return this;
     }
 
