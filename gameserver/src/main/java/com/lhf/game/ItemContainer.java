@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -66,46 +67,183 @@ public interface ItemContainer extends Examinable {
     }
 
     public static final class ItemFilterQuery implements Predicate<IItem> {
-        private String objectName;
-        private boolean searchNameUseRegex = false;
+        private String searchName;
+        private ArrayList<String> searchNameRegexes = new ArrayList<>();
         private EnumMap<ItemCapability.ItemCapabilityNames, Boolean> capabilityChecks = new EnumMap<>(
                 ItemCapability.ItemCapabilityNames.class);
         private Boolean visible = true;
         private boolean checkMainNameOnly = false;
-        private String toStringRegex;
+        private ArrayList<String> toStringRegexes = new ArrayList<>();
+
+        private ItemFilterQuery() {
+        }
 
         public ItemFilterQuery(String objectName, boolean searchNameUseRegex) {
-            this.objectName = objectName;
-            this.searchNameUseRegex = searchNameUseRegex;
+            if (searchNameUseRegex && objectName != null) {
+                this.searchNameRegexes.add(objectName);
+            } else {
+                this.searchName = objectName;
+            }
         }
 
         public ItemFilterQuery(String objectName, boolean searchNameUseRegex,
                 EnumMap<ItemCapabilityNames, Boolean> capabilities) {
-            this.objectName = objectName;
-            this.searchNameUseRegex = searchNameUseRegex;
+            this(objectName, searchNameUseRegex);
             this.capabilityChecks = capabilities != null ? new EnumMap<>(capabilities) : null;
         }
 
         public ItemFilterQuery(String objectName, boolean searchNameUseRegex,
                 EnumMap<ItemCapabilityNames, Boolean> capabilities, Boolean visible, boolean checkMainNameOnly,
                 String toStringRegex) {
-            this.objectName = objectName;
-            this.searchNameUseRegex = searchNameUseRegex;
-            this.capabilityChecks = capabilities != null ? new EnumMap<>(capabilities) : null;
+            this(objectName, searchNameUseRegex, capabilities);
             this.visible = visible;
             this.checkMainNameOnly = checkMainNameOnly;
-            this.toStringRegex = toStringRegex;
+            if (toStringRegex != null) {
+                this.toStringRegexes.add(toStringRegex);
+            }
+        }
+
+        // Helper methods to merge attributes according to AND logic
+        private <T> T combineAnd(T value1, T value2) {
+            if (value1 == null)
+                return value2;
+            if (value2 == null)
+                return value1;
+            return value1.equals(value2) ? value1 : null; // Both must match, otherwise null
+        }
+
+        // Helper methods to merge attributes according to OR logic
+        private <T> T combineOr(T value1, T value2) {
+            return (value1 != null) ? value1 : value2; // At least one must be non-null
+        }
+
+        public ItemFilterQuery and(ItemFilterQuery other) {
+            if (other == null) {
+                return this;
+            } else if (other == this) {
+                return this;
+            }
+            ItemFilterQuery next = new ItemFilterQuery();
+            next.setSearchName(this.combineAnd(this.searchName, other.searchName));
+            if (this.searchNameRegexes != null) {
+                next.searchNameRegexes.addAll(this.searchNameRegexes);
+            }
+            if (other.searchNameRegexes != null) {
+                next.searchNameRegexes.addAll(other.searchNameRegexes);
+            }
+            final EnumMap<ItemCapabilityNames, Boolean> mycapabilities = this.getCapabilityChecks();
+            final EnumMap<ItemCapabilityNames, Boolean> othercapabilities = other.getCapabilityChecks();
+            for (ItemCapabilityNames name : ItemCapabilityNames.values()) {
+                next.capabilityChecks.put(name, this.combineAnd(mycapabilities.get(name), othercapabilities.get(name)));
+            }
+            other.visible = this.combineAnd(this.visible, other.visible);
+            other.checkMainNameOnly = this.combineAnd(this.checkMainNameOnly, other.checkMainNameOnly);
+            if (this.toStringRegexes != null) {
+                next.toStringRegexes.addAll(this.toStringRegexes);
+            }
+            if (other.toStringRegexes != null) {
+                next.toStringRegexes.addAll(other.toStringRegexes);
+            }
+            return next;
+        }
+
+        public ItemFilterQuery or(ItemFilterQuery other) {
+            if (other == null) {
+                return this;
+            } else if (other == this) {
+                return this;
+            }
+            ItemFilterQuery next = new ItemFilterQuery();
+            next.setSearchName(this.combineOr(this.searchName, other.searchName));
+            if (this.searchNameRegexes != null) {
+                next.searchNameRegexes.addAll(this.searchNameRegexes);
+            }
+            if (other.searchNameRegexes != null) {
+                if (!next.searchNameRegexes.isEmpty()) {
+                    next.searchNameRegexes.addAll(other.searchNameRegexes);
+                } else {
+                    for (int i = 0; i < next.searchNameRegexes.size(); i++) {
+                        String regex = next.searchNameRegexes.get(i);
+                        if (regex == null) {
+                            continue;
+                        }
+                        for (final String addedRegex : other.searchNameRegexes) {
+                            if (regex != null) {
+                                continue;
+                            }
+                            next.searchNameRegexes.set(i, regex + "|" + addedRegex);
+                        }
+                    }
+                }
+            }
+            final EnumMap<ItemCapabilityNames, Boolean> mycapabilities = this.getCapabilityChecks();
+            final EnumMap<ItemCapabilityNames, Boolean> othercapabilities = other.getCapabilityChecks();
+            for (ItemCapabilityNames name : ItemCapabilityNames.values()) {
+                next.capabilityChecks.put(name, this.combineOr(mycapabilities.get(name), othercapabilities.get(name)));
+            }
+            other.visible = this.combineOr(this.visible, other.visible);
+            other.checkMainNameOnly = this.combineOr(this.checkMainNameOnly, other.checkMainNameOnly);
+            if (this.toStringRegexes != null) {
+                next.toStringRegexes.addAll(this.toStringRegexes);
+            }
+            if (other.toStringRegexes != null) {
+                if (!next.toStringRegexes.isEmpty()) {
+                    next.toStringRegexes.addAll(other.toStringRegexes);
+                } else {
+                    for (int i = 0; i < next.toStringRegexes.size(); i++) {
+                        String regex = next.toStringRegexes.get(i);
+                        if (regex == null) {
+                            continue;
+                        }
+                        for (final String addedRegex : other.toStringRegexes) {
+                            if (regex != null) {
+                                continue;
+                            }
+                            next.toStringRegexes.set(i, regex + "|" + addedRegex);
+                        }
+                    }
+                }
+            }
+            return next;
         }
 
         public ItemFilterQuery setSearchName(String searchName) {
-            this.objectName = searchName;
-            this.searchNameUseRegex = false;
+            this.searchName = searchName;
+            if (searchName == null && this.searchNameRegexes != null) {
+                this.searchNameRegexes.clear();
+            }
             return this;
         }
 
-        public ItemFilterQuery setSearchNameRegex(String searchName) {
-            this.objectName = searchName;
-            this.searchNameUseRegex = true;
+        public ItemFilterQuery addSearchNameRegex(String searchNameRegex) {
+            if (this.searchNameRegexes == null) {
+                this.searchNameRegexes = new ArrayList<>();
+            }
+            if (searchNameRegex != null) {
+                this.searchNameRegexes.add(searchNameRegex);
+            }
+            return this;
+        }
+
+        public ItemFilterQuery setSearchNameRegexes(List<String> regexes) {
+            if (this.searchNameRegexes == null) {
+                this.searchNameRegexes = new ArrayList<>();
+            }
+            if (regexes == null || regexes.isEmpty()) {
+                return this;
+            }
+            for (final String regex : regexes) {
+                if (regex != null) {
+                    this.searchNameRegexes.add(regex);
+                }
+            }
+            return this;
+        }
+
+        public ItemFilterQuery clearSearchNameRegexes() {
+            if (this.searchNameRegexes != null) {
+                this.searchNameRegexes.clear();
+            }
             return this;
         }
 
@@ -149,39 +287,88 @@ public interface ItemContainer extends Examinable {
             return this;
         }
 
-        public ItemFilterQuery setToStringRegex(String regex) {
-            this.toStringRegex = regex;
+        public EnumMap<ItemCapability.ItemCapabilityNames, Boolean> getCapabilityChecks() {
+            if (this.capabilityChecks == null) {
+                this.capabilityChecks = new EnumMap<>(ItemCapability.ItemCapabilityNames.class);
+            }
+            return capabilityChecks;
+        }
+
+        public ItemFilterQuery addToStringRegex(String regex) {
+            if (this.toStringRegexes == null) {
+                this.toStringRegexes = new ArrayList<>();
+            }
+            if (regex != null) {
+                this.toStringRegexes.add(regex);
+            }
+            return this;
+        }
+
+        public ItemFilterQuery setToStringRegexes(List<String> regexes) {
+            if (this.toStringRegexes == null) {
+                this.toStringRegexes = new ArrayList<>();
+            }
+            if (regexes == null || regexes.isEmpty()) {
+                return this;
+            }
+            for (final String regex : regexes) {
+                if (regex != null) {
+                    this.toStringRegexes.add(regex);
+                }
+            }
+            return this;
+        }
+
+        public ItemFilterQuery clearToStringRegexes() {
+            if (this.toStringRegexes != null) {
+                this.toStringRegexes.clear();
+            }
             return this;
         }
 
         @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
-            builder.append("ItemFilterQuery [objectName=").append(objectName).append(", searchNameUseRegex=")
-                    .append(searchNameUseRegex).append(", capabilityChecks=").append(capabilityChecks)
+            builder.append("ItemFilterQuery [searchName=").append(searchName).append(", searchNameRegexes=")
+                    .append(searchNameRegexes).append(", capabilityChecks=").append(capabilityChecks)
                     .append(", visible=").append(visible).append(", checkMainNameOnly=").append(checkMainNameOnly)
-                    .append(", toStringRegex=").append(toStringRegex).append("]");
+                    .append(", toStringRegexes=").append(toStringRegexes).append("]");
             return builder.toString();
         }
 
         private boolean testNames(IItem item) {
-            if (item == null || this.objectName == null) {
+            if (item == null || this.searchName == null) {
                 return false;
             }
             if (checkMainNameOnly) {
-                if (this.searchNameUseRegex) {
-                    return Pattern.matches(this.objectName, item.getName());
-                } else {
-                    return this.objectName.equalsIgnoreCase(item.getName());
+                if (this.searchName != null) {
+                    return this.searchName.equalsIgnoreCase(item.getName());
+                } else if (this.searchNameRegexes != null) {
+                    for (final String regex : this.searchNameRegexes) {
+                        if (regex == null) {
+                            continue;
+                        }
+                        if (!Pattern.matches(regex, item.getName())) {
+                            return false;
+                        }
+                    }
                 }
             } else {
                 final String displayName = RenameCapability.displayName(item);
-                if (this.searchNameUseRegex) {
-                    return Pattern.matches(this.objectName, displayName);
-                } else {
-                    return this.objectName.equalsIgnoreCase(displayName);
+                if (this.searchName != null) {
+                    return this.searchName.equalsIgnoreCase(displayName);
+                } else if (this.searchNameRegexes != null) {
+                    for (final String regex : this.searchNameRegexes) {
+                        if (regex == null) {
+                            continue;
+                        }
+                        if (!Pattern.matches(regex, displayName)) {
+                            return false;
+                        }
+                    }
                 }
             }
+            return true;
         }
 
         @Override
@@ -192,7 +379,7 @@ public interface ItemContainer extends Examinable {
             if (visible != null && item.isVisible() != visible) {
                 return false;
             }
-            if (objectName != null && !this.testNames(item)) {
+            if (searchName != null && !this.testNames(item)) {
                 return false;
             }
             if (this.capabilityChecks != null) {
@@ -247,8 +434,16 @@ public interface ItemContainer extends Examinable {
                     }
                 }
             }
-            if (this.toStringRegex != null && !Pattern.matches(toStringRegex, item.toString())) {
-                return false;
+            if (this.toStringRegexes != null) {
+                final String asString = item.toString();
+                for (final String regex : this.toStringRegexes) {
+                    if (regex == null) {
+                        continue;
+                    }
+                    if (!Pattern.matches(regex, asString)) {
+                        return false;
+                    }
+                }
             }
             return true;
         }
