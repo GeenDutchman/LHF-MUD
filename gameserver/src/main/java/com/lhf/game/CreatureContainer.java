@@ -1,20 +1,24 @@
 package com.lhf.game;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.lhf.Examinable;
 import com.lhf.game.creature.CreatureVisitor;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
-import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.GameEventProcessor;
@@ -49,49 +53,315 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
         NAME, FACTION, VOCATION, TYPE, BATTLING;
     }
 
-    public default Collection<ICreature> filterCreatures(EnumSet<CreatureFilters> filters, String name,
-            Integer nameRegexLen, CreatureFaction faction, VocationName vocation, Class<? extends ICreature> clazz,
-            Boolean isBattling) {
-        CreatureFilterQuery query = new CreatureFilterQuery();
-        query.filters = filters;
-        query.name = name;
-        query.nameRegexLen = nameRegexLen;
-        query.faction = faction;
-        query.vocation = vocation;
-        query.clazz = clazz;
-        query.isBattling = isBattling;
+    public default Collection<ICreature> filterCreatures(String name, List<String> nameRegexes, CreatureFaction faction,
+            VocationName vocation, Class<? extends ICreature> clazz, Boolean isBattling) {
+        CreatureFilterQuery query = new CreatureFilterQuery().setName(name).setNameRegexes(nameRegexes)
+                .needFaction(faction).needVocation(vocation).needClassname(clazz).setBattling(isBattling);
         return this.filterCreatures(query);
     }
 
-    public static class CreatureFilterQuery implements Predicate<ICreature> {
-        public EnumSet<CreatureFilters> filters = EnumSet.noneOf(CreatureFilters.class);
-        public String name;
-        public Integer nameRegexLen;
-        public CreatureFaction faction;
-        public VocationName vocation;
-        public transient Class<? extends ICreature> clazz; // TODO: replace with SPECIES enum
-        public Boolean isBattling;
-        // TODO: filter by health percentage, health number
+    public static final class CreatureFilterQuery implements Predicate<ICreature> {
+        private String name;
+        private ArrayList<String> nameRegexes = new ArrayList<>();
+        private TreeMap<CreatureFaction, Boolean> factions = new TreeMap<>();
+        private TreeMap<VocationName, Boolean> vocations = new TreeMap<>();
+        private TreeMap<String, Boolean> classNames = new TreeMap<>(); // TODO: replace with SPECIES enum?
+        private Boolean isBattling;
+        // TODO: filter by health percentage, health number, check result vs DC
 
         public CreatureFilterQuery() {
         }
 
         public CreatureFilterQuery(CreatureFilterQuery copy) {
             if (copy != null) {
-                this.filters = copy.filters != null ? EnumSet.copyOf(copy.filters)
-                        : EnumSet.noneOf(CreatureFilters.class);
                 this.name = copy.name;
-                this.nameRegexLen = copy.nameRegexLen;
-                this.faction = copy.faction;
-                this.vocation = copy.vocation;
-                this.clazz = copy.clazz;
+                if (copy.nameRegexes != null) {
+                    this.nameRegexes.addAll(copy.nameRegexes);
+                }
+                if (copy.factions != null) {
+                    this.factions.putAll(copy.factions);
+                }
+                if (copy.classNames != null) {
+                    this.classNames.putAll(copy.classNames);
+                }
                 this.isBattling = copy.isBattling;
             }
         }
 
+        private <T> T combineAnd(T value1, T value2) {
+            if (value1 == null)
+                return value2;
+            if (value2 == null)
+                return value1;
+            return value1.equals(value2) ? value1 : null; // Both must match, otherwise null
+        }
+
+        // Helper methods to merge attributes according to OR logic
+        private <T> T combineOr(T value1, T value2) {
+            return (value1 != null) ? value1 : value2; // At least one must be non-null
+        }
+
+        private ArrayList<String> combineRegexesAnd(List<String> firstRegex, List<String> secondRegex) {
+            ArrayList<String> list = new ArrayList<>();
+            if (firstRegex != null) {
+                list.addAll(firstRegex);
+            }
+            if (secondRegex != null) {
+                list.addAll(secondRegex);
+            }
+            return list;
+        }
+
+        private ArrayList<String> combineRegexesOr(List<String> firstRegex, List<String> secondRegex) {
+            ArrayList<String> list = new ArrayList<>();
+            if (firstRegex != null && secondRegex == null) {
+                list.addAll(firstRegex);
+            } else if (firstRegex == null && secondRegex != null) {
+                list.addAll(secondRegex);
+            } else if (firstRegex != null && secondRegex != null) {
+                for (final String first : firstRegex) {
+                    if (first == null) {
+                        continue;
+                    }
+                    for (final String second : secondRegex) {
+                        if (second != null) {
+                            list.add(first + "|" + second);
+                        }
+                    }
+                }
+            }
+            return list;
+        }
+
+        private <T> TreeMap<T, Boolean> combineMapsAnd(Map<T, Boolean> firstMap, Map<T, Boolean> secondMap) {
+            TreeMap<T, Boolean> next = null;
+            if (firstMap == null && secondMap == null) {
+                return next;
+            } else if (firstMap != null && secondMap == null) {
+                next = new TreeMap<>(firstMap);
+            } else if (firstMap == null && secondMap != null) {
+                next = new TreeMap<>(secondMap);
+            } else if (firstMap != null && secondMap != null) {
+                next = new TreeMap<>(firstMap);
+                for (Map.Entry<T, Boolean> entry : secondMap.entrySet()) {
+                    next.put(entry.getKey(), this.combineAnd(entry.getValue(), firstMap.get(entry.getKey())));
+                }
+            }
+            return next;
+        }
+
+        private <T> TreeMap<T, Boolean> combineMapsOr(Map<T, Boolean> firstMap, Map<T, Boolean> secondMap) {
+            TreeMap<T, Boolean> next = null;
+            if (firstMap == null && secondMap == null) {
+                return next;
+            } else if (firstMap != null && secondMap == null) {
+                next = new TreeMap<>(firstMap);
+            } else if (firstMap == null && secondMap != null) {
+                next = new TreeMap<>(secondMap);
+            } else if (firstMap != null && secondMap != null) {
+                next = new TreeMap<>(firstMap);
+                for (Map.Entry<T, Boolean> entry : secondMap.entrySet()) {
+                    next.put(entry.getKey(), this.combineOr(entry.getValue(), firstMap.get(entry.getKey())));
+                }
+            }
+            return next;
+        }
+
+        public CreatureFilterQuery and(CreatureFilterQuery other) {
+            if (other == null) {
+                return this;
+            } else if (other == this) {
+                return this;
+            }
+            CreatureFilterQuery next = new CreatureFilterQuery();
+            next.setName(this.combineAnd(this.name, other.name));
+            next.nameRegexes = this.combineRegexesAnd(this.nameRegexes, other.nameRegexes);
+            next.factions = this.combineMapsAnd(this.factions, other.factions);
+            next.vocations = this.combineMapsAnd(this.vocations, other.vocations);
+            next.classNames = this.combineMapsAnd(this.classNames, other.classNames);
+            next.isBattling = this.combineAnd(this.isBattling, other.isBattling);
+            return next;
+        }
+
+        public CreatureFilterQuery or(CreatureFilterQuery other) {
+            if (other == null) {
+                return this;
+            } else if (other == this) {
+                return this;
+            }
+            CreatureFilterQuery next = new CreatureFilterQuery();
+            next.setName(this.combineOr(this.name, other.name));
+            next.nameRegexes = this.combineRegexesOr(this.nameRegexes, other.nameRegexes);
+            next.factions = this.combineMapsOr(this.factions, other.factions);
+            next.vocations = this.combineMapsOr(this.vocations, other.vocations);
+            next.classNames = this.combineMapsOr(this.classNames, other.classNames);
+            next.isBattling = this.combineOr(this.isBattling, other.isBattling);
+            return next;
+        }
+
+        public CreatureFilterQuery setName(String name) {
+            this.name = name;
+            if (name != null && nameRegexes != null) {
+                this.nameRegexes.clear();
+            }
+            return this;
+        }
+
+        public CreatureFilterQuery addNameRegex(String regex) {
+            if (this.nameRegexes == null) {
+                this.nameRegexes = new ArrayList<>();
+            }
+            if (regex != null) {
+                this.nameRegexes.add(regex);
+                this.name = null;
+            }
+            return this;
+        }
+
+        public CreatureFilterQuery setNameRegexes(List<String> regexes) {
+            if (this.nameRegexes == null) {
+                this.nameRegexes = new ArrayList<>();
+            }
+            if (regexes == null || regexes.isEmpty()) {
+                return this;
+            }
+            this.nameRegexes = new ArrayList<>(regexes);
+            this.name = null;
+            return this;
+        }
+
+        public CreatureFilterQuery needFaction(CreatureFaction faction) {
+            if (faction == null) {
+                return this;
+            }
+            if (factions == null) {
+                this.factions = new TreeMap<>();
+            }
+            this.factions.put(faction, true);
+            return this;
+        }
+
+        public CreatureFilterQuery forbiddenFaction(CreatureFaction faction) {
+            if (faction == null) {
+                return this;
+            }
+            if (factions == null) {
+                this.factions = new TreeMap<>();
+            }
+            this.factions.put(faction, false);
+            return this;
+        }
+
+        public CreatureFilterQuery clearFactions() {
+            if (factions != null) {
+                this.factions.clear();
+            }
+            return this;
+        }
+
+        public CreatureFilterQuery needVocation(VocationName name) {
+            if (name == null) {
+                return this;
+            }
+            if (this.vocations == null) {
+                this.vocations = new TreeMap<>();
+            }
+            this.vocations.put(name, true);
+            return this;
+        }
+
+        public CreatureFilterQuery forbiddenVocation(VocationName name) {
+            if (name == null) {
+                return this;
+            }
+            if (this.vocations == null) {
+                this.vocations = new TreeMap<>();
+            }
+            this.vocations.put(name, false);
+            return this;
+        }
+
+        public CreatureFilterQuery clearVocations() {
+            if (vocations != null) {
+                this.vocations.clear();
+            }
+            return this;
+        }
+
+        public CreatureFilterQuery needClassname(Class<? extends ICreature> clazz) {
+            if (clazz == null) {
+                return this;
+            }
+            if (this.classNames == null) {
+                this.classNames = new TreeMap<>();
+            }
+            this.classNames.put(clazz.getName(), true);
+            return this;
+        }
+
+        public CreatureFilterQuery needClassname(ICreature creature) {
+            if (creature == null) {
+                return this;
+            }
+            if (this.classNames == null) {
+                this.classNames = new TreeMap<>();
+            }
+            this.classNames.put(creature.getClass().getName(), true);
+            return this;
+        }
+
+        public CreatureFilterQuery forbiddenClassname(Class<? extends ICreature> clazz) {
+            if (clazz == null) {
+                return this;
+            }
+            if (this.classNames == null) {
+                this.classNames = new TreeMap<>();
+            }
+            this.classNames.put(clazz.getName(), false);
+            return this;
+        }
+
+        public CreatureFilterQuery forbiddenClassname(ICreature creature) {
+            if (creature == null) {
+                return this;
+            }
+            if (this.classNames == null) {
+                this.classNames = new TreeMap<>();
+            }
+            this.classNames.put(creature.getClass().getName(), false);
+            return this;
+        }
+
+        public CreatureFilterQuery clearClassnames() {
+            if (classNames != null) {
+                this.classNames.clear();
+            }
+            return this;
+        }
+
+        public CreatureFilterQuery battlingRequired() {
+            this.isBattling = true;
+            return this;
+        }
+
+        public CreatureFilterQuery battlingForbidden() {
+            this.isBattling = false;
+            return this;
+        }
+
+        public CreatureFilterQuery battlingNotMatter() {
+            this.isBattling = null;
+            return this;
+        }
+
+        public CreatureFilterQuery setBattling(Boolean battling) {
+            this.isBattling = battling;
+            return this;
+        }
+
         @Override
         public int hashCode() {
-            return Objects.hash(filters, name, nameRegexLen, faction, vocation, clazz, isBattling);
+            return Objects.hash(name, nameRegexes, factions, vocations, classNames, isBattling);
         }
 
         @Override
@@ -101,20 +371,58 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
             if (!(obj instanceof CreatureFilterQuery))
                 return false;
             CreatureFilterQuery other = (CreatureFilterQuery) obj;
-            return Objects.equals(filters, other.filters) && Objects.equals(name, other.name)
-                    && Objects.equals(nameRegexLen, other.nameRegexLen) && faction == other.faction
-                    && vocation == other.vocation && Objects.equals(clazz, other.clazz)
-                    && Objects.equals(isBattling, other.isBattling);
+            return Objects.equals(name, other.name) && Objects.equals(nameRegexes, other.nameRegexes)
+                    && Objects.equals(factions, other.factions) && Objects.equals(vocations, other.vocations)
+                    && Objects.equals(classNames, other.classNames) && Objects.equals(isBattling, other.isBattling);
         }
 
         @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
-            builder.append("CreatureFilterQuery [filters=").append(filters).append(", name=").append(name)
-                    .append(", nameRegexLen=").append(nameRegexLen).append(", faction=").append(faction)
-                    .append(", vocation=").append(vocation).append(", clazz=").append(clazz).append(", isBattling=")
-                    .append(isBattling).append("]");
+            builder.append("CreatureFilterQuery [name=").append(name).append(", nameRegexes=").append(nameRegexes)
+                    .append(", factions=").append(factions).append(", vocations=").append(vocations)
+                    .append(", classNames=").append(classNames).append(", isBattling=").append(isBattling).append("]");
             return builder.toString();
+        }
+
+        private boolean testNames(final ICreature creature) {
+            if (creature == null || this.name == null) {
+                return false;
+            }
+            if (this.name != null) {
+                return this.name.equalsIgnoreCase(creature.getName());
+            } else if (this.nameRegexes != null) {
+                for (final String regex : this.nameRegexes) {
+                    if (regex == null) {
+                        continue;
+                    }
+                    if (!Pattern.matches(regex, creature.getName())) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        private <T> boolean testMap(final T creatureAttribute, final Map<T, Boolean> mapping) {
+            if (mapping == null) {
+                return false;
+            }
+            for (final Map.Entry<T, Boolean> entry : mapping.entrySet()) {
+                Boolean value = entry.getValue();
+                if (value == null) {
+                    continue;
+                }
+                if (creatureAttribute == null) {
+                    return false;
+                }
+                if (value && !creatureAttribute.equals(entry.getKey())) {
+                    return false;
+                } else if (!value && creatureAttribute.equals(entry.getKey())) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         @Override
@@ -122,28 +430,20 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
             if (creature == null) {
                 return false;
             }
-            if (filters == null || filters.isEmpty()) {
-                return true;
-            }
-            if (filters.contains(CreatureFilters.NAME) && name != null
-                    && !(nameRegexLen != null ? creature.CheckNameRegex(name, nameRegexLen)
-                            : creature.checkName(name))) {
+            if (!this.testNames(creature)) {
                 return false;
             }
-            if (filters.contains(CreatureFilters.FACTION)
-                    && (faction != null ? !faction.equals(creature.getFaction()) : creature.getFaction() != null)) {
+            if (!this.testMap(creature.getVocation() != null ? creature.getVocation().getVocationName() : null,
+                    this.vocations)) {
                 return false;
             }
-            final Vocation cVocation = creature.getVocation();
-            if (filters.contains(CreatureFilters.VOCATION)
-                    && (cVocation == null ? vocation != null : !vocation.equals(cVocation.getVocationName()))) {
+            if (!this.testMap(creature.getFaction(), this.factions)) {
                 return false;
             }
-            if (filters.contains(CreatureFilters.TYPE) && clazz != null && !clazz.isInstance(creature)) {
+            if (!this.testMap(creature.getClass().getName(), this.classNames)) {
                 return false;
             }
-            if (filters.contains(CreatureFilters.BATTLING) && isBattling != null
-                    && isBattling != creature.isInBattle()) {
+            if (isBattling != null && !isBattling.equals(creature.isInBattle())) {
                 return false;
             }
             return true;
@@ -172,16 +472,15 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
     }
 
     public default Optional<ICreature> getCreature(String name) {
-        return this.filterCreatures(EnumSet.of(CreatureFilters.NAME), name, null, null, null, null, null).stream()
-                .findFirst();
+        return this.filterCreatures(name, null, null, null, null, null).stream().findFirst();
     }
 
     public default Collection<ICreature> getCreaturesLike(String name) {
-        return this.filterCreatures(EnumSet.of(CreatureFilters.NAME), name, null, null, null, null, null);
+        return this.filterCreatures(name, null, null, null, null, null);
     }
 
     public default Collection<ICreature> getPlayers() {
-        return this.filterCreatures(EnumSet.of(CreatureFilters.TYPE), null, null, null, null, Player.class, null);
+        return this.filterCreatures(null, null, null, null, Player.class, null);
     }
 
     public default Optional<Player> getPlayer(UserID id) {
@@ -195,21 +494,21 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
     }
 
     public default Optional<Player> getPlayer(String name) {
-        Optional<ICreature> asCreature = this.filterCreatures(EnumSet.of(CreatureFilters.TYPE, CreatureFilters.NAME),
-                name, null, null, null, Player.class, null).stream().findFirst();
+        Optional<ICreature> asCreature = this.filterCreatures(name, null, null, null, Player.class, null).stream()
+                .findFirst();
         if (asCreature.isPresent()) {
             return Optional.of((Player) asCreature.get());
         }
         return Optional.empty();
     }
 
-    public default boolean hasCreature(String name, Integer minimumLength) {
-        return this.filterCreatures(EnumSet.of(CreatureFilters.NAME), name, minimumLength, null, null, null, null)
+    public default boolean hasCreature(String name, boolean asRegex) {
+        return this.filterCreatures(asRegex ? null : name, asRegex ? List.of(name) : null, null, null, null, null)
                 .size() > 0;
     }
 
     public default boolean hasCreature(String name) {
-        return this.hasCreature(name, 3);
+        return this.hasCreature(name, false);
     }
 
     public default boolean hasCreature(ICreature creature) {

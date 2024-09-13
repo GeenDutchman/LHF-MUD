@@ -6,8 +6,10 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -69,8 +71,7 @@ public interface ItemContainer extends Examinable {
     public static final class ItemFilterQuery implements Predicate<IItem> {
         private String searchName;
         private ArrayList<String> searchNameRegexes = new ArrayList<>();
-        private EnumMap<ItemCapability.ItemCapabilityNames, Boolean> capabilityChecks = new EnumMap<>(
-                ItemCapability.ItemCapabilityNames.class);
+        private TreeMap<ItemCapability.ItemCapabilityNames, Boolean> capabilityChecks = new TreeMap<>();
         private Boolean visible = true;
         private boolean checkMainNameOnly = false;
         private ArrayList<String> toStringRegexes = new ArrayList<>();
@@ -89,7 +90,7 @@ public interface ItemContainer extends Examinable {
         public ItemFilterQuery(String objectName, boolean searchNameUseRegex,
                 EnumMap<ItemCapabilityNames, Boolean> capabilities) {
             this(objectName, searchNameUseRegex);
-            this.capabilityChecks = capabilities != null ? new EnumMap<>(capabilities) : null;
+            this.capabilityChecks = capabilities != null ? new TreeMap<>(capabilities) : null;
         }
 
         public ItemFilterQuery(String objectName, boolean searchNameUseRegex,
@@ -117,6 +118,72 @@ public interface ItemContainer extends Examinable {
             return (value1 != null) ? value1 : value2; // At least one must be non-null
         }
 
+        private ArrayList<String> combineRegexesAnd(List<String> firstRegex, List<String> secondRegex) {
+            ArrayList<String> list = new ArrayList<>();
+            if (firstRegex != null) {
+                list.addAll(firstRegex);
+            }
+            if (secondRegex != null) {
+                list.addAll(secondRegex);
+            }
+            return list;
+        }
+
+        private ArrayList<String> combineRegexesOr(List<String> firstRegex, List<String> secondRegex) {
+            ArrayList<String> list = new ArrayList<>();
+            if (firstRegex != null && secondRegex == null) {
+                list.addAll(firstRegex);
+            } else if (firstRegex == null && secondRegex != null) {
+                list.addAll(secondRegex);
+            } else if (firstRegex != null && secondRegex != null) {
+                for (final String first : firstRegex) {
+                    if (first == null) {
+                        continue;
+                    }
+                    for (final String second : secondRegex) {
+                        if (second != null) {
+                            list.add(first + "|" + second);
+                        }
+                    }
+                }
+            }
+            return list;
+        }
+
+        private <T> TreeMap<T, Boolean> combineMapsAnd(Map<T, Boolean> firstMap, Map<T, Boolean> secondMap) {
+            TreeMap<T, Boolean> next = null;
+            if (firstMap == null && secondMap == null) {
+                return next;
+            } else if (firstMap != null && secondMap == null) {
+                next = new TreeMap<>(firstMap);
+            } else if (firstMap == null && secondMap != null) {
+                next = new TreeMap<>(secondMap);
+            } else if (firstMap != null && secondMap != null) {
+                next = new TreeMap<>(firstMap);
+                for (Map.Entry<T, Boolean> entry : secondMap.entrySet()) {
+                    next.put(entry.getKey(), this.combineAnd(entry.getValue(), firstMap.get(entry.getKey())));
+                }
+            }
+            return next;
+        }
+
+        private <T> TreeMap<T, Boolean> combineMapsOr(Map<T, Boolean> firstMap, Map<T, Boolean> secondMap) {
+            TreeMap<T, Boolean> next = null;
+            if (firstMap == null && secondMap == null) {
+                return next;
+            } else if (firstMap != null && secondMap == null) {
+                next = new TreeMap<>(firstMap);
+            } else if (firstMap == null && secondMap != null) {
+                next = new TreeMap<>(secondMap);
+            } else if (firstMap != null && secondMap != null) {
+                next = new TreeMap<>(firstMap);
+                for (Map.Entry<T, Boolean> entry : secondMap.entrySet()) {
+                    next.put(entry.getKey(), this.combineOr(entry.getValue(), firstMap.get(entry.getKey())));
+                }
+            }
+            return next;
+        }
+
         public ItemFilterQuery and(ItemFilterQuery other) {
             if (other == null) {
                 return this;
@@ -125,25 +192,11 @@ public interface ItemContainer extends Examinable {
             }
             ItemFilterQuery next = new ItemFilterQuery();
             next.setSearchName(this.combineAnd(this.searchName, other.searchName));
-            if (this.searchNameRegexes != null) {
-                next.searchNameRegexes.addAll(this.searchNameRegexes);
-            }
-            if (other.searchNameRegexes != null) {
-                next.searchNameRegexes.addAll(other.searchNameRegexes);
-            }
-            final EnumMap<ItemCapabilityNames, Boolean> mycapabilities = this.getCapabilityChecks();
-            final EnumMap<ItemCapabilityNames, Boolean> othercapabilities = other.getCapabilityChecks();
-            for (ItemCapabilityNames name : ItemCapabilityNames.values()) {
-                next.capabilityChecks.put(name, this.combineAnd(mycapabilities.get(name), othercapabilities.get(name)));
-            }
-            other.visible = this.combineAnd(this.visible, other.visible);
-            other.checkMainNameOnly = this.combineAnd(this.checkMainNameOnly, other.checkMainNameOnly);
-            if (this.toStringRegexes != null) {
-                next.toStringRegexes.addAll(this.toStringRegexes);
-            }
-            if (other.toStringRegexes != null) {
-                next.toStringRegexes.addAll(other.toStringRegexes);
-            }
+            next.searchNameRegexes = this.combineRegexesAnd(this.searchNameRegexes, other.searchNameRegexes);
+            next.capabilityChecks = this.combineMapsAnd(this.capabilityChecks, other.capabilityChecks);
+            next.visible = this.combineAnd(this.visible, other.visible);
+            next.checkMainNameOnly = this.combineAnd(this.checkMainNameOnly, other.checkMainNameOnly);
+            next.toStringRegexes = this.combineRegexesAnd(this.toStringRegexes, other.toStringRegexes);
             return next;
         }
 
@@ -155,61 +208,17 @@ public interface ItemContainer extends Examinable {
             }
             ItemFilterQuery next = new ItemFilterQuery();
             next.setSearchName(this.combineOr(this.searchName, other.searchName));
-            if (this.searchNameRegexes != null) {
-                next.searchNameRegexes.addAll(this.searchNameRegexes);
-            }
-            if (other.searchNameRegexes != null) {
-                if (!next.searchNameRegexes.isEmpty()) {
-                    next.searchNameRegexes.addAll(other.searchNameRegexes);
-                } else {
-                    for (int i = 0; i < next.searchNameRegexes.size(); i++) {
-                        String regex = next.searchNameRegexes.get(i);
-                        if (regex == null) {
-                            continue;
-                        }
-                        for (final String addedRegex : other.searchNameRegexes) {
-                            if (regex != null) {
-                                continue;
-                            }
-                            next.searchNameRegexes.set(i, regex + "|" + addedRegex);
-                        }
-                    }
-                }
-            }
-            final EnumMap<ItemCapabilityNames, Boolean> mycapabilities = this.getCapabilityChecks();
-            final EnumMap<ItemCapabilityNames, Boolean> othercapabilities = other.getCapabilityChecks();
-            for (ItemCapabilityNames name : ItemCapabilityNames.values()) {
-                next.capabilityChecks.put(name, this.combineOr(mycapabilities.get(name), othercapabilities.get(name)));
-            }
-            other.visible = this.combineOr(this.visible, other.visible);
-            other.checkMainNameOnly = this.combineOr(this.checkMainNameOnly, other.checkMainNameOnly);
-            if (this.toStringRegexes != null) {
-                next.toStringRegexes.addAll(this.toStringRegexes);
-            }
-            if (other.toStringRegexes != null) {
-                if (!next.toStringRegexes.isEmpty()) {
-                    next.toStringRegexes.addAll(other.toStringRegexes);
-                } else {
-                    for (int i = 0; i < next.toStringRegexes.size(); i++) {
-                        String regex = next.toStringRegexes.get(i);
-                        if (regex == null) {
-                            continue;
-                        }
-                        for (final String addedRegex : other.toStringRegexes) {
-                            if (regex != null) {
-                                continue;
-                            }
-                            next.toStringRegexes.set(i, regex + "|" + addedRegex);
-                        }
-                    }
-                }
-            }
+            next.searchNameRegexes = this.combineRegexesOr(this.searchNameRegexes, other.searchNameRegexes);
+            next.capabilityChecks = this.combineMapsOr(this.capabilityChecks, other.capabilityChecks);
+            next.visible = this.combineOr(this.visible, other.visible);
+            next.checkMainNameOnly = this.combineOr(this.checkMainNameOnly, other.checkMainNameOnly);
+            next.toStringRegexes = this.combineRegexesOr(this.toStringRegexes, other.toStringRegexes);
             return next;
         }
 
         public ItemFilterQuery setSearchName(String searchName) {
             this.searchName = searchName;
-            if (searchName == null && this.searchNameRegexes != null) {
+            if (searchName != null && this.searchNameRegexes != null) {
                 this.searchNameRegexes.clear();
             }
             return this;
@@ -221,6 +230,7 @@ public interface ItemContainer extends Examinable {
             }
             if (searchNameRegex != null) {
                 this.searchNameRegexes.add(searchNameRegex);
+                this.searchName = null;
             }
             return this;
         }
@@ -287,9 +297,9 @@ public interface ItemContainer extends Examinable {
             return this;
         }
 
-        public EnumMap<ItemCapability.ItemCapabilityNames, Boolean> getCapabilityChecks() {
+        public Map<ItemCapability.ItemCapabilityNames, Boolean> getCapabilityChecks() {
             if (this.capabilityChecks == null) {
-                this.capabilityChecks = new EnumMap<>(ItemCapability.ItemCapabilityNames.class);
+                this.capabilityChecks = new TreeMap<>();
             }
             return capabilityChecks;
         }
