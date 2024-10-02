@@ -145,6 +145,36 @@ public abstract class Dice implements Taggable, Comparable<Dice> {
             };
         }
 
+        public static RollResult advantage(RollResult first, RollResult second) {
+            if (first != null && second == null) {
+                return first;
+            } else if (first == null && second != null) {
+                return second;
+            } else if (first != null && second != null) {
+                if (first.getRoll() > second.getRoll()) {
+                    return first;
+                }
+                return second;
+            }
+            // if both null
+            return null;
+        }
+
+        public static RollResult disadvantage(RollResult first, RollResult second) {
+            if (first != null && second == null) {
+                return first;
+            } else if (first == null && second != null) {
+                return second;
+            } else if (first != null && second != null) {
+                if (first.getRoll() < second.getRoll()) {
+                    return first;
+                }
+                return second;
+            }
+            // if both null
+            return null;
+        }
+
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();

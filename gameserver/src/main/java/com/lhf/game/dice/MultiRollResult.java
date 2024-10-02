@@ -138,6 +138,36 @@ public class MultiRollResult implements Taggable, Iterable<RollResult> {
         return sum;
     }
 
+    public static MultiRollResult advantage(MultiRollResult first, MultiRollResult second) {
+        if (first != null && second == null) {
+            return first;
+        } else if (first == null && second != null) {
+            return second;
+        } else if (first != null && second != null) {
+            if (first.getRoll() > second.getRoll()) {
+                return first;
+            }
+            return second;
+        }
+        // if both null
+        return null;
+    }
+
+    public static MultiRollResult disadvantage(MultiRollResult first, MultiRollResult second) {
+        if (first != null && second == null) {
+            return first;
+        } else if (first == null && second != null) {
+            return second;
+        } else if (first != null && second != null) {
+            if (first.getRoll() < second.getRoll()) {
+                return first;
+            }
+            return second;
+        }
+        // if both null
+        return null;
+    }
+
     public String toString() {
         StringJoiner sj = new StringJoiner(" + ");
         int sum = 0;

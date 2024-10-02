@@ -21,6 +21,9 @@ import com.lhf.game.creature.CreatureVisitor;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
+import com.lhf.game.dice.Dice;
+import com.lhf.game.dice.MultiRollResult;
+import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.GameEventProcessorHub;
@@ -70,6 +73,7 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
         private Boolean isBattling;
         private ItemFilterQuery hasItem;
         private ItemFilterQuery hasItemEquipped;
+        private TreeMap<Attributes, MultiRollResult> beatsCheck = new TreeMap<>();
         // TODO: filter by health percentage, health number, check result vs DC
 
         public CreatureFilterQuery() {
@@ -90,6 +94,9 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
                 this.isBattling = copy.isBattling;
                 this.hasItem = copy.hasItem != null ? new ItemFilterQuery(copy.hasItem) : null;
                 this.hasItemEquipped = copy.hasItemEquipped != null ? new ItemFilterQuery(copy.hasItemEquipped) : null;
+                if (copy.beatsCheck != null) {
+                    this.beatsCheck.putAll(copy.beatsCheck);
+                }
             }
         }
 
@@ -172,6 +179,43 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
             return next;
         }
 
+        private TreeMap<Attributes, MultiRollResult> combineChecksAnd(Map<Attributes, MultiRollResult> firstMap,
+                Map<Attributes, MultiRollResult> secondMap) {
+            TreeMap<Attributes, MultiRollResult> next = null;
+            if (firstMap == null && secondMap == null) {
+                return next;
+            } else if (firstMap != null && secondMap == null) {
+                next = new TreeMap<>(firstMap);
+            } else if (firstMap == null && secondMap != null) {
+                next = new TreeMap<>(secondMap);
+            } else if (firstMap != null && secondMap != null) {
+                next = new TreeMap<>(firstMap);
+                for (Map.Entry<Attributes, MultiRollResult> entry : secondMap.entrySet()) {
+                    next.put(entry.getKey(), MultiRollResult.advantage(entry.getValue(), firstMap.get(entry.getKey())));
+                }
+            }
+            return next;
+        }
+
+        private TreeMap<Attributes, MultiRollResult> combineChecksOr(Map<Attributes, MultiRollResult> firstMap,
+                Map<Attributes, MultiRollResult> secondMap) {
+            TreeMap<Attributes, MultiRollResult> next = null;
+            if (firstMap == null && secondMap == null) {
+                return next;
+            } else if (firstMap != null && secondMap == null) {
+                next = new TreeMap<>(firstMap);
+            } else if (firstMap == null && secondMap != null) {
+                next = new TreeMap<>(secondMap);
+            } else if (firstMap != null && secondMap != null) {
+                next = new TreeMap<>(firstMap);
+                for (Map.Entry<Attributes, MultiRollResult> entry : secondMap.entrySet()) {
+                    next.put(entry.getKey(),
+                            MultiRollResult.disadvantage(entry.getValue(), firstMap.get(entry.getKey())));
+                }
+            }
+            return next;
+        }
+
         public CreatureFilterQuery and(CreatureFilterQuery other) {
             if (other == null) {
                 return this;
@@ -195,6 +239,7 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
             } else if (other.hasItemEquipped != null) {
                 next.hasItemEquipped = other.hasItemEquipped.and(other.hasItemEquipped);
             }
+            next.beatsCheck = this.combineChecksAnd(this.beatsCheck, other.beatsCheck);
             return next;
         }
 
@@ -221,6 +266,7 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
             } else if (other.hasItemEquipped != null) {
                 next.hasItemEquipped = other.hasItemEquipped.or(other.hasItemEquipped);
             }
+            next.beatsCheck = this.combineChecksOr(this.beatsCheck, other.beatsCheck);
             return next;
         }
 
