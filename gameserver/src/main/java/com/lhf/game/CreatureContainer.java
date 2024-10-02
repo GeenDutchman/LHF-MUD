@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.lhf.Examinable;
+import com.lhf.game.ItemContainer.ItemFilterQuery;
 import com.lhf.game.creature.CreatureVisitor;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
@@ -67,6 +68,8 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
         private TreeMap<VocationName, Boolean> vocations = new TreeMap<>();
         private TreeMap<String, Boolean> classNames = new TreeMap<>(); // TODO: replace with SPECIES enum?
         private Boolean isBattling;
+        private ItemFilterQuery hasItem;
+        private ItemFilterQuery hasItemEquipped;
         // TODO: filter by health percentage, health number, check result vs DC
 
         public CreatureFilterQuery() {
@@ -85,6 +88,8 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
                     this.classNames.putAll(copy.classNames);
                 }
                 this.isBattling = copy.isBattling;
+                this.hasItem = copy.hasItem != null ? new ItemFilterQuery(copy.hasItem) : null;
+                this.hasItemEquipped = copy.hasItemEquipped != null ? new ItemFilterQuery(copy.hasItemEquipped) : null;
             }
         }
 
@@ -180,6 +185,16 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
             next.vocations = this.combineMapsAnd(this.vocations, other.vocations);
             next.classNames = this.combineMapsAnd(this.classNames, other.classNames);
             next.isBattling = this.combineAnd(this.isBattling, other.isBattling);
+            if (this.hasItem != null) {
+                next.hasItem = this.hasItem.and(other.hasItem);
+            } else if (other.hasItem != null) {
+                next.hasItem = other.hasItem.and(other.hasItem);
+            }
+            if (this.hasItemEquipped != null) {
+                next.hasItemEquipped = this.hasItemEquipped.and(other.hasItemEquipped);
+            } else if (other.hasItemEquipped != null) {
+                next.hasItemEquipped = other.hasItemEquipped.and(other.hasItemEquipped);
+            }
             return next;
         }
 
@@ -196,6 +211,16 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
             next.vocations = this.combineMapsOr(this.vocations, other.vocations);
             next.classNames = this.combineMapsOr(this.classNames, other.classNames);
             next.isBattling = this.combineOr(this.isBattling, other.isBattling);
+            if (this.hasItem != null) {
+                next.hasItem = this.hasItem.or(other.hasItem);
+            } else if (other.hasItem != null) {
+                next.hasItem = other.hasItem.or(other.hasItem);
+            }
+            if (this.hasItemEquipped != null) {
+                next.hasItemEquipped = this.hasItemEquipped.or(other.hasItemEquipped);
+            } else if (other.hasItemEquipped != null) {
+                next.hasItemEquipped = other.hasItemEquipped.or(other.hasItemEquipped);
+            }
             return next;
         }
 
@@ -359,9 +384,20 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
             return this;
         }
 
+        public CreatureFilterQuery mustHaveItemLike(ItemFilterQuery query) {
+            this.hasItem = query;
+            return this;
+        }
+
+        public CreatureFilterQuery mustHaveItemEquippedLike(ItemFilterQuery query) {
+            this.hasItemEquipped = query;
+            return this;
+        }
+
         @Override
         public int hashCode() {
-            return Objects.hash(name, nameRegexes, factions, vocations, classNames, isBattling);
+            return Objects.hash(name, nameRegexes, factions, vocations, classNames, isBattling, hasItem,
+                    hasItemEquipped);
         }
 
         @Override
@@ -373,7 +409,8 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
             CreatureFilterQuery other = (CreatureFilterQuery) obj;
             return Objects.equals(name, other.name) && Objects.equals(nameRegexes, other.nameRegexes)
                     && Objects.equals(factions, other.factions) && Objects.equals(vocations, other.vocations)
-                    && Objects.equals(classNames, other.classNames) && Objects.equals(isBattling, other.isBattling);
+                    && Objects.equals(classNames, other.classNames) && Objects.equals(isBattling, other.isBattling)
+                    && Objects.equals(hasItem, other.hasItem) && Objects.equals(hasItemEquipped, other.hasItemEquipped);
         }
 
         @Override
@@ -381,7 +418,9 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
             StringBuilder builder = new StringBuilder();
             builder.append("CreatureFilterQuery [name=").append(name).append(", nameRegexes=").append(nameRegexes)
                     .append(", factions=").append(factions).append(", vocations=").append(vocations)
-                    .append(", classNames=").append(classNames).append(", isBattling=").append(isBattling).append("]");
+                    .append(", classNames=").append(classNames).append(", isBattling=").append(isBattling)
+                    .append(", hasItem=").append(hasItem).append(", hasItemEquipped=").append(hasItemEquipped)
+                    .append("]");
             return builder.toString();
         }
 
@@ -444,6 +483,13 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
                 return false;
             }
             if (isBattling != null && !isBattling.equals(creature.isInBattle())) {
+                return false;
+            }
+            if (hasItem != null && creature.filterItems(hasItem).isEmpty()) {
+                return false;
+            }
+            if (hasItemEquipped != null
+                    && creature.getEquipmentSlots().values().stream().filter(hasItemEquipped).findAny().isEmpty()) {
                 return false;
             }
             return true;
