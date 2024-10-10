@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -65,42 +66,122 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
     }
 
     public static final class CreatureFilterQuery implements Predicate<ICreature> {
-        private String name;
-        private ArrayList<String> nameRegexes = new ArrayList<>();
-        private TreeMap<CreatureFaction, Boolean> factions = new TreeMap<>();
-        private TreeMap<VocationName, Boolean> vocations = new TreeMap<>();
-        private TreeMap<String, Boolean> classNames = new TreeMap<>(); // TODO: replace with SPECIES enum?
-        private Boolean isBattling;
-        private ItemFilterQuery hasItem;
-        private ItemFilterQuery hasItemEquipped;
-        private TreeMap<Attributes, MultiRollResult> beatsCheck = new TreeMap<>();
+        private final String name;
+        private final List<String> nameRegexes;
+        private final NavigableMap<CreatureFaction, Boolean> factions;
+        private final NavigableMap<VocationName, Boolean> vocations;
+        private final NavigableMap<String, Boolean> classNames; // TODO: replace with SPECIES enum?
+        private final Boolean isBattling;
+        private final ItemFilterQuery hasItem;
+        private final ItemFilterQuery hasItemEquipped;
+        private final NavigableMap<Attributes, MultiRollResult> beatsCheck;
         // TODO: filter by health percentage, health number, check result vs DC
 
-        public CreatureFilterQuery() {
+        private CreatureFilterQuery() {
+            this.name = null;
+            this.nameRegexes = null;
+            this.factions = null;
+            this.vocations = null;
+            this.classNames = null;
+            this.isBattling = null;
+            this.hasItem = null;
+            this.hasItemEquipped = null;
+            this.beatsCheck = null;
         }
 
         public CreatureFilterQuery(CreatureFilterQuery copy) {
             if (copy != null) {
                 this.name = copy.name;
                 if (copy.nameRegexes != null) {
-                    this.nameRegexes.addAll(copy.nameRegexes);
+                    this.nameRegexes = Collections.unmodifiableList(copy.nameRegexes);
+                } else {
+                    this.nameRegexes = null;
                 }
                 if (copy.factions != null) {
-                    this.factions.putAll(copy.factions);
+                    this.factions = Collections.unmodifiableNavigableMap(copy.factions);
+                } else {
+                    this.factions = null;
+                }
+                if (copy.vocations != null) {
+                    this.vocations = Collections.unmodifiableNavigableMap(copy.vocations);
+                } else {
+                    this.vocations = null;
                 }
                 if (copy.classNames != null) {
-                    this.classNames.putAll(copy.classNames);
+                    this.classNames = Collections.unmodifiableNavigableMap(copy.classNames);
+                } else {
+                    this.classNames = null;
                 }
                 this.isBattling = copy.isBattling;
                 this.hasItem = copy.hasItem != null ? new ItemFilterQuery(copy.hasItem) : null;
                 this.hasItemEquipped = copy.hasItemEquipped != null ? new ItemFilterQuery(copy.hasItemEquipped) : null;
                 if (copy.beatsCheck != null) {
-                    this.beatsCheck.putAll(copy.beatsCheck);
+                    this.beatsCheck = Collections.unmodifiableNavigableMap(copy.beatsCheck);
+                } else {
+                    this.beatsCheck = null;
                 }
+            } else {
+                this.name = null;
+                this.nameRegexes = null;
+                this.factions = null;
+                this.vocations = null;
+                this.classNames = null;
+                this.isBattling = null;
+                this.hasItem = null;
+                this.hasItemEquipped = null;
+                this.beatsCheck = null;
             }
         }
 
-        private <T> T combineAnd(T value1, T value2) {
+        public CreatureFilterQuery(String name, List<String> nameRegexes, Map<CreatureFaction, Boolean> factions,
+                Map<VocationName, Boolean> vocations, Map<String, Boolean> classNames, Boolean isBattling,
+                ItemFilterQuery hasItem, ItemFilterQuery hasItemEquipped, Map<Attributes, MultiRollResult> beatsCheck) {
+            this.name = name;
+            this.nameRegexes = nameRegexes != null ? Collections.unmodifiableList(List.copyOf(nameRegexes)) : null;
+            this.factions = factions != null ? Collections.unmodifiableNavigableMap(new TreeMap<>(factions)) : null;
+            this.vocations = vocations != null ? Collections.unmodifiableNavigableMap(new TreeMap<>(vocations)) : null;
+            this.classNames = classNames != null ? Collections.unmodifiableNavigableMap(new TreeMap<>(classNames))
+                    : null;
+            this.isBattling = isBattling;
+            this.hasItem = hasItem;
+            this.hasItemEquipped = hasItemEquipped;
+            this.beatsCheck = beatsCheck != null ? Collections.unmodifiableNavigableMap(new TreeMap<>(beatsCheck))
+                    : null;
+        }
+
+        public static CreatureFilterQuery withName(String name) {
+            return new CreatureFilterQuery(name, null, null, null, null, null, null, null, null);
+        }
+
+        public static CreatureFilterQuery withRegexName(String regex) {
+            return new CreatureFilterQuery(null, List.of(regex), null, null, null, null, null, null, null);
+        }
+
+        public static CreatureFilterQuery withFaction(CreatureFaction faction) {
+            return new CreatureFilterQuery(null, null, faction != null ? Map.of(faction, true) : null, null, null, null,
+                    null, null, null);
+        }
+
+        public static CreatureFilterQuery withFactions(Collection<CreatureFaction> factions) {
+            return new CreatureFilterQuery(null, null,
+                    factions != null ? factions.stream().filter(faction -> faction != null)
+                            .collect(Collectors.toMap(faction -> faction, faction -> true)) : null,
+                    null, null, null, null, null, null);
+        }
+
+        public static CreatureFilterQuery withoutFaction(CreatureFaction faction) {
+            return new CreatureFilterQuery(null, null, faction != null ? Map.of(faction, false) : null, null, null,
+                    null, null, null, null);
+        }
+
+        public static CreatureFilterQuery withoutFactions(Collection<CreatureFaction> factions) {
+            return new CreatureFilterQuery(null, null,
+                    factions != null ? factions.stream().filter(faction -> faction != null)
+                            .collect(Collectors.toMap(faction -> faction, faction -> false)) : null,
+                    null, null, null, null, null, null);
+        }
+
+        private static <T> T combineAnd(T value1, T value2) {
             if (value1 == null)
                 return value2;
             if (value2 == null)
@@ -109,11 +190,11 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
         }
 
         // Helper methods to merge attributes according to OR logic
-        private <T> T combineOr(T value1, T value2) {
+        private static <T> T combineOr(T value1, T value2) {
             return (value1 != null) ? value1 : value2; // At least one must be non-null
         }
 
-        private ArrayList<String> combineRegexesAnd(List<String> firstRegex, List<String> secondRegex) {
+        private static List<String> combineRegexesAnd(List<String> firstRegex, List<String> secondRegex) {
             ArrayList<String> list = new ArrayList<>();
             if (firstRegex != null) {
                 list.addAll(firstRegex);
@@ -124,7 +205,7 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
             return list;
         }
 
-        private ArrayList<String> combineRegexesOr(List<String> firstRegex, List<String> secondRegex) {
+        private static List<String> combineRegexesOr(List<String> firstRegex, List<String> secondRegex) {
             ArrayList<String> list = new ArrayList<>();
             if (firstRegex != null && secondRegex == null) {
                 list.addAll(firstRegex);
@@ -145,7 +226,8 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
             return list;
         }
 
-        private <T> TreeMap<T, Boolean> combineMapsAnd(Map<T, Boolean> firstMap, Map<T, Boolean> secondMap) {
+        private static <T> NavigableMap<T, Boolean> combineMapsAnd(Map<T, Boolean> firstMap,
+                Map<T, Boolean> secondMap) {
             TreeMap<T, Boolean> next = null;
             if (firstMap == null && secondMap == null) {
                 return next;
@@ -156,13 +238,14 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
             } else if (firstMap != null && secondMap != null) {
                 next = new TreeMap<>(firstMap);
                 for (Map.Entry<T, Boolean> entry : secondMap.entrySet()) {
-                    next.put(entry.getKey(), this.combineAnd(entry.getValue(), firstMap.get(entry.getKey())));
+                    next.put(entry.getKey(),
+                            CreatureFilterQuery.combineAnd(entry.getValue(), firstMap.get(entry.getKey())));
                 }
             }
             return next;
         }
 
-        private <T> TreeMap<T, Boolean> combineMapsOr(Map<T, Boolean> firstMap, Map<T, Boolean> secondMap) {
+        private static <T> NavigableMap<T, Boolean> combineMapsOr(Map<T, Boolean> firstMap, Map<T, Boolean> secondMap) {
             TreeMap<T, Boolean> next = null;
             if (firstMap == null && secondMap == null) {
                 return next;
@@ -173,14 +256,15 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
             } else if (firstMap != null && secondMap != null) {
                 next = new TreeMap<>(firstMap);
                 for (Map.Entry<T, Boolean> entry : secondMap.entrySet()) {
-                    next.put(entry.getKey(), this.combineOr(entry.getValue(), firstMap.get(entry.getKey())));
+                    next.put(entry.getKey(),
+                            CreatureFilterQuery.combineOr(entry.getValue(), firstMap.get(entry.getKey())));
                 }
             }
             return next;
         }
 
-        private TreeMap<Attributes, MultiRollResult> combineChecksAnd(Map<Attributes, MultiRollResult> firstMap,
-                Map<Attributes, MultiRollResult> secondMap) {
+        private static NavigableMap<Attributes, MultiRollResult> combineChecksAnd(
+                Map<Attributes, MultiRollResult> firstMap, Map<Attributes, MultiRollResult> secondMap) {
             TreeMap<Attributes, MultiRollResult> next = null;
             if (firstMap == null && secondMap == null) {
                 return next;
@@ -197,8 +281,8 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
             return next;
         }
 
-        private TreeMap<Attributes, MultiRollResult> combineChecksOr(Map<Attributes, MultiRollResult> firstMap,
-                Map<Attributes, MultiRollResult> secondMap) {
+        private static NavigableMap<Attributes, MultiRollResult> combineChecksOr(
+                Map<Attributes, MultiRollResult> firstMap, Map<Attributes, MultiRollResult> secondMap) {
             TreeMap<Attributes, MultiRollResult> next = null;
             if (firstMap == null && secondMap == null) {
                 return next;
@@ -222,25 +306,26 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
             } else if (other == this) {
                 return this;
             }
-            CreatureFilterQuery next = new CreatureFilterQuery();
-            next.setName(this.combineAnd(this.name, other.name));
-            next.nameRegexes = this.combineRegexesAnd(this.nameRegexes, other.nameRegexes);
-            next.factions = this.combineMapsAnd(this.factions, other.factions);
-            next.vocations = this.combineMapsAnd(this.vocations, other.vocations);
-            next.classNames = this.combineMapsAnd(this.classNames, other.classNames);
-            next.isBattling = this.combineAnd(this.isBattling, other.isBattling);
+            ItemFilterQuery hasItemAnd = null;
             if (this.hasItem != null) {
-                next.hasItem = this.hasItem.and(other.hasItem);
+                hasItemAnd = this.hasItem.and(other.hasItem);
             } else if (other.hasItem != null) {
-                next.hasItem = other.hasItem.and(other.hasItem);
+                hasItemAnd = other.hasItem.and(other.hasItem);
             }
+            ItemFilterQuery equippedAnd = null;
             if (this.hasItemEquipped != null) {
-                next.hasItemEquipped = this.hasItemEquipped.and(other.hasItemEquipped);
+                equippedAnd = this.hasItemEquipped.and(other.hasItemEquipped);
             } else if (other.hasItemEquipped != null) {
-                next.hasItemEquipped = other.hasItemEquipped.and(other.hasItemEquipped);
+                equippedAnd = other.hasItemEquipped.and(other.hasItemEquipped);
             }
-            next.beatsCheck = this.combineChecksAnd(this.beatsCheck, other.beatsCheck);
-            return next;
+
+            return new CreatureFilterQuery(CreatureFilterQuery.combineAnd(this.name, other.name),
+                    CreatureFilterQuery.combineRegexesAnd(this.nameRegexes, other.nameRegexes),
+                    CreatureFilterQuery.combineMapsAnd(this.factions, other.factions),
+                    CreatureFilterQuery.combineMapsAnd(this.vocations, other.vocations),
+                    CreatureFilterQuery.combineMapsAnd(this.classNames, other.classNames),
+                    CreatureFilterQuery.combineAnd(this.isBattling, other.isBattling), hasItemAnd, equippedAnd,
+                    CreatureFilterQuery.combineChecksAnd(this.beatsCheck, other.beatsCheck));
         }
 
         public CreatureFilterQuery or(CreatureFilterQuery other) {
@@ -249,195 +334,26 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
             } else if (other == this) {
                 return this;
             }
-            CreatureFilterQuery next = new CreatureFilterQuery();
-            next.setName(this.combineOr(this.name, other.name));
-            next.nameRegexes = this.combineRegexesOr(this.nameRegexes, other.nameRegexes);
-            next.factions = this.combineMapsOr(this.factions, other.factions);
-            next.vocations = this.combineMapsOr(this.vocations, other.vocations);
-            next.classNames = this.combineMapsOr(this.classNames, other.classNames);
-            next.isBattling = this.combineOr(this.isBattling, other.isBattling);
+
+            ItemFilterQuery hasItemOr = null;
             if (this.hasItem != null) {
-                next.hasItem = this.hasItem.or(other.hasItem);
+                hasItemOr = this.hasItem.or(other.hasItem);
             } else if (other.hasItem != null) {
-                next.hasItem = other.hasItem.or(other.hasItem);
+                hasItemOr = other.hasItem.or(other.hasItem);
             }
+            ItemFilterQuery equippedOr = null;
             if (this.hasItemEquipped != null) {
-                next.hasItemEquipped = this.hasItemEquipped.or(other.hasItemEquipped);
+                equippedOr = this.hasItemEquipped.or(other.hasItemEquipped);
             } else if (other.hasItemEquipped != null) {
-                next.hasItemEquipped = other.hasItemEquipped.or(other.hasItemEquipped);
+                equippedOr = other.hasItemEquipped.or(other.hasItemEquipped);
             }
-            next.beatsCheck = this.combineChecksOr(this.beatsCheck, other.beatsCheck);
-            return next;
-        }
-
-        public CreatureFilterQuery setName(String name) {
-            this.name = name;
-            if (name != null && nameRegexes != null) {
-                this.nameRegexes.clear();
-            }
-            return this;
-        }
-
-        public CreatureFilterQuery addNameRegex(String regex) {
-            if (this.nameRegexes == null) {
-                this.nameRegexes = new ArrayList<>();
-            }
-            if (regex != null) {
-                this.nameRegexes.add(regex);
-                this.name = null;
-            }
-            return this;
-        }
-
-        public CreatureFilterQuery setNameRegexes(List<String> regexes) {
-            if (this.nameRegexes == null) {
-                this.nameRegexes = new ArrayList<>();
-            }
-            if (regexes == null || regexes.isEmpty()) {
-                return this;
-            }
-            this.nameRegexes = new ArrayList<>(regexes);
-            this.name = null;
-            return this;
-        }
-
-        public CreatureFilterQuery needFaction(CreatureFaction faction) {
-            if (faction == null) {
-                return this;
-            }
-            if (factions == null) {
-                this.factions = new TreeMap<>();
-            }
-            this.factions.put(faction, true);
-            return this;
-        }
-
-        public CreatureFilterQuery forbiddenFaction(CreatureFaction faction) {
-            if (faction == null) {
-                return this;
-            }
-            if (factions == null) {
-                this.factions = new TreeMap<>();
-            }
-            this.factions.put(faction, false);
-            return this;
-        }
-
-        public CreatureFilterQuery clearFactions() {
-            if (factions != null) {
-                this.factions.clear();
-            }
-            return this;
-        }
-
-        public CreatureFilterQuery needVocation(VocationName name) {
-            if (name == null) {
-                return this;
-            }
-            if (this.vocations == null) {
-                this.vocations = new TreeMap<>();
-            }
-            this.vocations.put(name, true);
-            return this;
-        }
-
-        public CreatureFilterQuery forbiddenVocation(VocationName name) {
-            if (name == null) {
-                return this;
-            }
-            if (this.vocations == null) {
-                this.vocations = new TreeMap<>();
-            }
-            this.vocations.put(name, false);
-            return this;
-        }
-
-        public CreatureFilterQuery clearVocations() {
-            if (vocations != null) {
-                this.vocations.clear();
-            }
-            return this;
-        }
-
-        public CreatureFilterQuery needClassname(Class<? extends ICreature> clazz) {
-            if (clazz == null) {
-                return this;
-            }
-            if (this.classNames == null) {
-                this.classNames = new TreeMap<>();
-            }
-            this.classNames.put(clazz.getName(), true);
-            return this;
-        }
-
-        public CreatureFilterQuery needClassname(ICreature creature) {
-            if (creature == null) {
-                return this;
-            }
-            if (this.classNames == null) {
-                this.classNames = new TreeMap<>();
-            }
-            this.classNames.put(creature.getClass().getName(), true);
-            return this;
-        }
-
-        public CreatureFilterQuery forbiddenClassname(Class<? extends ICreature> clazz) {
-            if (clazz == null) {
-                return this;
-            }
-            if (this.classNames == null) {
-                this.classNames = new TreeMap<>();
-            }
-            this.classNames.put(clazz.getName(), false);
-            return this;
-        }
-
-        public CreatureFilterQuery forbiddenClassname(ICreature creature) {
-            if (creature == null) {
-                return this;
-            }
-            if (this.classNames == null) {
-                this.classNames = new TreeMap<>();
-            }
-            this.classNames.put(creature.getClass().getName(), false);
-            return this;
-        }
-
-        public CreatureFilterQuery clearClassnames() {
-            if (classNames != null) {
-                this.classNames.clear();
-            }
-            return this;
-        }
-
-        public CreatureFilterQuery battlingRequired() {
-            this.isBattling = true;
-            return this;
-        }
-
-        public CreatureFilterQuery battlingForbidden() {
-            this.isBattling = false;
-            return this;
-        }
-
-        public CreatureFilterQuery battlingNotMatter() {
-            this.isBattling = null;
-            return this;
-        }
-
-        public CreatureFilterQuery setBattling(Boolean battling) {
-            this.isBattling = battling;
-            return this;
-        }
-
-        public CreatureFilterQuery mustHaveItemLike(ItemFilterQuery query) {
-            this.hasItem = query;
-            return this;
-        }
-
-        public CreatureFilterQuery mustHaveItemEquippedLike(ItemFilterQuery query) {
-            this.hasItemEquipped = query;
-            return this;
+            return new CreatureFilterQuery(CreatureFilterQuery.combineAnd(this.name, other.name),
+                    CreatureFilterQuery.combineRegexesOr(this.nameRegexes, other.nameRegexes),
+                    CreatureFilterQuery.combineMapsOr(this.factions, other.factions),
+                    CreatureFilterQuery.combineMapsOr(this.vocations, other.vocations),
+                    CreatureFilterQuery.combineMapsOr(this.classNames, other.classNames),
+                    CreatureFilterQuery.combineOr(this.isBattling, other.isBattling), hasItemOr, equippedOr,
+                    CreatureFilterQuery.combineChecksOr(this.beatsCheck, other.beatsCheck));
         }
 
         @Override
