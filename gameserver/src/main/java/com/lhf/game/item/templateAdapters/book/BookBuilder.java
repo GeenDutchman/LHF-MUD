@@ -4,14 +4,14 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.lhf.RichOutput.RichOutputBuilder;
+import com.lhf.game.item.EffectorCapability;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.IItem.IItemBuilder;
 import com.lhf.game.item.Item;
-import com.lhf.game.item.UsableCapability;
 
 public final class BookBuilder implements IItem.IItemBuilderAdapter {
     private final Item.ItemBuilder inner = new Item.ItemBuilder().setName("Book").setDescriptionString("A book.")
-            .adjustUsableCapability(usable -> usable != null ? usable : new UsableCapability.Usable.UsableBuilder());
+            .adjustUsableCapability(usable -> usable != null ? usable : new EffectorCapability.Usable.UsableBuilder());
 
     public boolean isTakeable() {
         return inner.isTakeable();
@@ -68,7 +68,7 @@ public final class BookBuilder implements IItem.IItemBuilderAdapter {
         if (page != null) {
             this.inner.adjustUsableCapability(usable -> {
                 if (usable == null) {
-                    usable = UsableCapability.Usable.getBuilder();
+                    usable = EffectorCapability.Usable.getBuilder();
                 }
                 usable.addUseDisplayPage(page);
                 return usable;
@@ -90,7 +90,7 @@ public final class BookBuilder implements IItem.IItemBuilderAdapter {
         if (pageEditor != null) {
             this.inner.adjustUsableCapability(usable -> {
                 if (usable == null) {
-                    usable = UsableCapability.Usable.getBuilder();
+                    usable = EffectorCapability.Usable.getBuilder();
                 }
                 usable.createOrEditPage(index, pageEditor);
                 return usable;
@@ -103,7 +103,7 @@ public final class BookBuilder implements IItem.IItemBuilderAdapter {
         if (pages != null && !pages.isEmpty()) {
             this.inner.adjustUsableCapability(usable -> {
                 if (usable == null) {
-                    usable = UsableCapability.Usable.getBuilder();
+                    usable = EffectorCapability.Usable.getBuilder();
                 }
                 usable.setUseDisplayPages(pages);
                 return usable;

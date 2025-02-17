@@ -65,8 +65,8 @@ public interface AffectableEntity<Effect extends EntityEffect> {
      * This is to be called when it's possible for an effect to expire.
      * 
      * Based on the {@link com.lhf.game.TickType TickType} in the
-     * {@link com.lhf.messages.events.GameEvent GameEvent} the
-     * effect may or may not be removed.
+     * {@link com.lhf.messages.events.GameEvent GameEvent} the effect may or may not
+     * be removed.
      * 
      * @see com.lhf.game.TickType TickType
      * @see com.lhf.messages.events.GameEvent GameEvent

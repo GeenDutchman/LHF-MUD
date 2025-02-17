@@ -1,6 +1,5 @@
 package com.lhf.game.item;
 
-import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -147,7 +146,7 @@ public interface LockingCapability extends ItemCapability, Lockable {
         }
     }
 
-    public static final class Locking implements LockingCapability, Serializable {
+    public static final class Locking implements LockingCapability {
         private final UUID lockUUID;
         private boolean locked = false;
         // TODO: have a good look at the key

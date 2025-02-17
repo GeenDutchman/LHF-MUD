@@ -7,6 +7,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -14,9 +15,9 @@ import java.util.stream.Stream;
 import com.lhf.Examinable;
 import com.lhf.RichOutput;
 import com.lhf.RichOutput.RichOutputBuilder;
+import com.lhf.game.CreatureContainer.CreatureFilterQuery;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.IExternalReference;
-import com.lhf.game.CreatureContainer.CreatureFilterQuery;
 import com.lhf.game.ItemContainer.ItemFilterQuery;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
@@ -33,7 +34,10 @@ import com.lhf.messages.events.ItemUsedEvent;
  * a < Source extends {@link com.lhf.game.EntityEffectSource} >.
  */
 interface EffectorCapability<T extends Examinable, Source extends EntityEffectSource> extends ItemCapability {
-    // TODO: flatten EntityEffect and EntityEffectSource
+    /*
+     * TODO: flatten EntityEffect and EntityEffectSource, and then pull
+     * applyEffectsOnTarget here
+     */
 
     /**
      * Returns the total number of times that this item can be used.
@@ -93,6 +97,13 @@ interface EffectorCapability<T extends Examinable, Source extends EntityEffectSo
      * @return true if it still can be used, false otherwise
      */
     public boolean useOnce();
+
+    /**
+     * Checks if the item needs to be equipped before you can use it
+     * 
+     * @return
+     */
+    public boolean isEquippingRequired();
 
     /**
      * Gets the list of display pages for perusal.
@@ -416,8 +427,11 @@ interface EffectorCapability<T extends Examinable, Source extends EntityEffectSo
     }
 
     /**
+     * <p>
      * Upon use, this applies any effects listed by {@link #getTargetEffects()} upon
      * the target.
+     * </p>
+     * This guy is the star of the show.
      * 
      * @param ctx
      * @param myItem
@@ -524,6 +538,7 @@ interface EffectorCapability<T extends Examinable, Source extends EntityEffectSo
         private final Set<CreatureEffectSource> userEffects;
         private final List<RichOutput> useDisplayPages;
         private final boolean useDisplayPaged;
+        private final boolean equippingRequired;
 
         public static final class EffectorKernelBuilder {
             public ItemFilterQuery selfRestrictions;
@@ -532,6 +547,7 @@ interface EffectorCapability<T extends Examinable, Source extends EntityEffectSo
             public Set<CreatureEffectSource.Builder> userEffects;
             public List<RichOutput.RichOutputBuilder> useDisplayPages;
             public boolean useDisplayPaged;
+            public boolean equippingRequired;
 
             public ItemFilterQuery getSelfRestrictions() {
                 return selfRestrictions;
@@ -668,12 +684,51 @@ interface EffectorCapability<T extends Examinable, Source extends EntityEffectSo
                 return this;
             }
 
+            public EffectorKernelBuilder addUseDisplayPage(String page) {
+                if (page != null) {
+                    if (this.useDisplayPages == null) {
+                        this.useDisplayPages = new ArrayList<>();
+                    }
+                    this.useDisplayPages.add(new RichOutputBuilder().appendString(page));
+                }
+                return this;
+            }
+
+            public RichOutputBuilder createOrGetPage(int index) {
+                if (this.useDisplayPages == null) {
+                    this.useDisplayPages = new ArrayList<>();
+                }
+                if (index < 0 || index >= this.useDisplayPages.size()) {
+                    RichOutputBuilder page = new RichOutputBuilder();
+                    this.useDisplayPages.add(page);
+                    return page;
+                }
+                return this.useDisplayPages.get(index);
+            }
+
+            public EffectorKernelBuilder createOrEditPage(int index, Consumer<RichOutputBuilder> pageEditor) {
+                RichOutputBuilder pageBuilder = this.createOrGetPage(index);
+                if (pageBuilder != null && pageEditor != null) {
+                    pageEditor.accept(pageBuilder);
+                }
+                return this;
+            }
+
             public boolean isUseDisplayPaged() {
                 return useDisplayPaged;
             }
 
             public EffectorKernelBuilder setUseDisplayPaged(boolean useDisplayPaged) {
                 this.useDisplayPaged = useDisplayPaged;
+                return this;
+            }
+
+            public boolean isEquippingRequired() {
+                return equippingRequired;
+            }
+
+            public EffectorKernelBuilder setEquippingRequired(boolean equippingRequired) {
+                this.equippingRequired = equippingRequired;
                 return this;
             }
 
@@ -687,8 +742,14 @@ interface EffectorCapability<T extends Examinable, Source extends EntityEffectSo
             return new EffectorKernelBuilder();
         }
 
-        protected final static <T> Set<T> defensiveSetCopy(Set<T> toCopy) {
+        protected final static <Type> Set<Type> defensiveSetCopy(Set<Type> toCopy) {
             return toCopy != null ? Collections.unmodifiableSet(new LinkedHashSet<>(toCopy)) : null;
+        }
+
+        protected final static <Type> Set<Type> readStream(Stream<Type> toRead) {
+            return toRead != null ? toRead.filter(t -> t != null).collect(Collectors
+                    .collectingAndThen(Collectors.toCollection(LinkedHashSet::new), Collections::unmodifiableSet))
+                    : null;
         }
 
         private EffectorKernel(EffectorKernelBuilder builder) {
@@ -707,11 +768,12 @@ interface EffectorCapability<T extends Examinable, Source extends EntityEffectSo
                             .collect(Collectors.collectingAndThen(Collectors.toCollection(ArrayList::new),
                                     Collections::unmodifiableList));
             this.useDisplayPaged = builder.isUseDisplayPaged();
+            this.equippingRequired = builder.isEquippingRequired();
         }
 
         public EffectorKernel(ItemFilterQuery selfRestrictions, CreatureFilterQuery userRestrictions,
                 Set<ItemEffectSource> selfEffects, Set<CreatureEffectSource> userEffects,
-                List<RichOutput> useDisplayPages, boolean useDisplayPaged) {
+                List<RichOutput> useDisplayPages, boolean useDisplayPaged, boolean equippingRequired) {
             this.selfRestrictions = selfRestrictions;
             this.userRestrictions = userRestrictions;
             this.selfEffects = EffectorKernel.defensiveSetCopy(selfEffects);
@@ -719,6 +781,20 @@ interface EffectorCapability<T extends Examinable, Source extends EntityEffectSo
             this.useDisplayPages = useDisplayPages == null ? null
                     : Collections.unmodifiableList(new ArrayList<>(useDisplayPages));
             this.useDisplayPaged = useDisplayPaged;
+            this.equippingRequired = equippingRequired;
+        }
+
+        public EffectorKernel(ItemFilterQuery selfRestrictions, CreatureFilterQuery userRestrictions,
+                Stream<ItemEffectSource> selfEffects, Stream<CreatureEffectSource> userEffects,
+                List<RichOutput> useDisplayPages, boolean useDisplayPaged, boolean equippingRequired) {
+            this.selfRestrictions = selfRestrictions;
+            this.userRestrictions = userRestrictions;
+            this.selfEffects = EffectorKernel.readStream(selfEffects);
+            this.userEffects = EffectorKernel.readStream(userEffects);
+            this.useDisplayPages = useDisplayPages == null ? null
+                    : Collections.unmodifiableList(new ArrayList<>(useDisplayPages));
+            this.useDisplayPaged = useDisplayPaged;
+            this.equippingRequired = equippingRequired;
         }
 
         public final ItemFilterQuery getSelfRestrictions() {
@@ -741,6 +817,10 @@ interface EffectorCapability<T extends Examinable, Source extends EntityEffectSo
             return this.useDisplayPaged;
         }
 
+        public boolean isEquippingRequired() {
+            return equippingRequired;
+        }
+
         public List<RichOutput> getUseDisplayPages() {
             return useDisplayPages;
         }
@@ -751,14 +831,15 @@ interface EffectorCapability<T extends Examinable, Source extends EntityEffectSo
             builder.append("EffectorKernel [selfRestrictions=").append(selfRestrictions).append(", userRestrictions=")
                     .append(userRestrictions).append(", selfEffects=").append(selfEffects).append(", userEffects=")
                     .append(userEffects).append(", useDisplayPages=").append(useDisplayPages)
-                    .append(", useDisplayPaged=").append(useDisplayPaged).append("]");
+                    .append(", useDisplayPaged=").append(useDisplayPaged).append(", equippingRequired=")
+                    .append(equippingRequired).append("]");
             return builder.toString();
         }
 
         @Override
         public int hashCode() {
             return Objects.hash(selfRestrictions, userRestrictions, selfEffects, userEffects, useDisplayPages,
-                    useDisplayPaged);
+                    useDisplayPaged, equippingRequired);
         }
 
         @Override
@@ -772,7 +853,7 @@ interface EffectorCapability<T extends Examinable, Source extends EntityEffectSo
                     && Objects.equals(userRestrictions, other.userRestrictions)
                     && Objects.equals(selfEffects, other.selfEffects) && Objects.equals(userEffects, other.userEffects)
                     && Objects.equals(useDisplayPages, other.useDisplayPages)
-                    && useDisplayPaged == other.useDisplayPaged;
+                    && useDisplayPaged == other.useDisplayPaged && equippingRequired == other.equippingRequired;
         }
 
     }

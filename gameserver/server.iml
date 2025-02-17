@@ -11,12 +11,13 @@
     <orderEntry type="module-library" exported="">
       <library>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/annotations/17.0.0/annotations-17.0.0.jar!/" />
+          <root
+            url="jar://$MAVEN_REPOSITORY$/org/jetbrains/annotations/21.0.0/annotations-21.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" exported="" name="org.jetbrains:annotations:17.0.0" level="project" />
+    <orderEntry type="library" exported="" name="org.jetbrains:annotations:21.0.0" level="project" />
   </component>
 </module>

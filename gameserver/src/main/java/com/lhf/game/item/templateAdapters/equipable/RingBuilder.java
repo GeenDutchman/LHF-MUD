@@ -6,10 +6,10 @@ import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.game.item.EffectorCapability;
 import com.lhf.game.item.EquipableCapability;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.Item;
-import com.lhf.game.item.UsableCapability;
 import com.lhf.game.map.RoomEffectSource;
 
 public final class RingBuilder implements IItem.IItemBuilderAdapter {
@@ -36,7 +36,7 @@ public final class RingBuilder implements IItem.IItemBuilderAdapter {
         });
         builder.inner.adjustUsableCapability(usable -> {
             if (usable == null) {
-                usable = new UsableCapability.Usable.UsableBuilder();
+                usable = new EffectorCapability.Usable.UsableBuilder();
             }
             usable.setEquippingRequired(true).setSelfOnly(false).setTotalNumberUsableTimes(3);
             usable.addUseOnAreaEffect(new RoomEffectSource.Builder("Seeing Everything").instantPersistence()

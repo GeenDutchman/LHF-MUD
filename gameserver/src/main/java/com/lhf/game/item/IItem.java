@@ -217,6 +217,14 @@ public interface IItem extends Examinable, AffectableEntity<ItemEffect> {
         public InteractableCapability getInteractableCapability();
 
         /**
+         * Returns the {@link com.lhf.game.item.ItemModifierCapability Item Modifier
+         * Capability } of the item, if it has one
+         * 
+         * @return ItemModifierCapability or null
+         */
+        public ItemModifierCapability getItemModifierCapability();
+
+        /**
          * Returns the {@link com.lhf.game.item.ItemContainerCapability Item Container
          * Capability } of the item, if it has one
          * 
@@ -292,9 +300,17 @@ public interface IItem extends Examinable, AffectableEntity<ItemEffect> {
      * Returns the {@link com.lhf.game.item.InteractableCapability Interactable
      * Capability } of the item, if it has one
      * 
-     * @return UsableCapability or null
+     * @return InteractableCapability or null
      */
     public InteractableCapability getInteractableCapability();
+
+    /**
+     * Returns the {@link com.lhf.game.item.ItemModifierCapability Item Modifier
+     * Capability } of the item, if it has one
+     * 
+     * @return ItemModifierCapability or null
+     */
+    public ItemModifierCapability getItemModifierCapability();
 
     /**
      * Returns the {@link com.lhf.game.item.ItemContainerCapability Item Container

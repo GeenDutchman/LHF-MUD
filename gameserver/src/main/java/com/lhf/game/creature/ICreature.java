@@ -21,6 +21,8 @@ import com.lhf.Taggable;
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.EffectResistance;
+import com.lhf.game.IExternalReference;
+import com.lhf.game.IExternalReference.ExternalReference;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.commandHandlers.EquipHandler;
@@ -666,6 +668,24 @@ public interface ICreature extends InventoryOwner, EquipmentOwner, Comparable<IC
         @Override
         default CommandChainHandler getChainHandler(CommandContext ctx) {
             return ctx.getCreature();
+        }
+    }
+
+    public class CreatureReference extends ExternalReference<ICreature> {
+
+        public CreatureReference(String locality, String referenceName) {
+            super(locality, referenceName);
+        }
+
+        public CreatureReference(IExternalReference<ICreature> creatureReference) {
+            super(creatureReference);
+        }
+
+        public static CreatureReference copy(IExternalReference<ICreature> ref) {
+            if (ref == null) {
+                return null;
+            }
+            return new CreatureReference(ref);
         }
     }
 

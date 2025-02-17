@@ -1,6 +1,5 @@
 package com.lhf.game.item;
 
-import java.io.Serializable;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Objects;
@@ -163,7 +162,7 @@ public interface RenameCapability extends ItemCapability {
         return myItem.getName();
     }
 
-    public static final class Renameable implements RenameCapability, Serializable {
+    public static final class Renameable implements RenameCapability {
         private LinkedList<String> alternateNames;
 
         @Override

@@ -33,6 +33,7 @@ public class Item implements IItem {
     private final ItemContainerCapability itemContainerCapability;
     private final CreatureContainerCapability creatureContainerCapability;
     private final GameEventProcessorCapability gameEventProcessorCapability;
+    private final ItemModifierCapability itemModifierCapability;
     private transient NavigableSet<ItemEffect> effects;
 
     public static class ItemBuilder implements IItem.IItemBuilder {
@@ -50,6 +51,7 @@ public class Item implements IItem {
         private ItemContainerCapability.Container.Builder itemContainerCapability;
         private CreatureContainerCapability.CreaturePen.Builder creatureContainerCapability;
         private GameEventProcessorCapability.Reactor.Builder gameEventProcessorCapability;
+        private ItemModifierCapability.ItemModifier.ItemModifierBuilder itemModifierCapability;
 
         @Override
         public ItemBuilder reset() {
@@ -66,6 +68,7 @@ public class Item implements IItem {
             this.itemContainerCapability = null;
             this.creatureContainerCapability = null;
             this.gameEventProcessorCapability = null;
+            this.itemModifierCapability = null;
             return this;
         }
 
@@ -333,6 +336,10 @@ public class Item implements IItem {
             return this;
         }
 
+        public ItemModifierCapability getItemModifierCapability() {
+            return itemModifierCapability != null ? itemModifierCapability.build() : null;
+        }
+
         @Override
         public Item build() {
             return new Item(this);
@@ -359,6 +366,7 @@ public class Item implements IItem {
             this.itemContainerCapability = null;
             this.creatureContainerCapability = null;
             this.gameEventProcessorCapability = null;
+            this.itemModifierCapability = null;
         } else {
             this.objectName = builder.getName();
             this.visible = builder.isVisible();
@@ -374,6 +382,7 @@ public class Item implements IItem {
             this.itemContainerCapability = builder.getItemContainerCapability();
             this.creatureContainerCapability = builder.getCreatureContainerCapability();
             this.gameEventProcessorCapability = builder.getGameEventProcessorCapability();
+            this.itemModifierCapability = builder.getItemModifierCapability();
         }
     }
 
@@ -515,6 +524,10 @@ public class Item implements IItem {
 
     public GameEventProcessorCapability getGameEventProcessorCapability() {
         return gameEventProcessorCapability;
+    }
+
+    public ItemModifierCapability getItemModifierCapability() {
+        return itemModifierCapability;
     }
 
     @Override

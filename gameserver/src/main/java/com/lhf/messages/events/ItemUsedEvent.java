@@ -13,7 +13,7 @@ import com.lhf.messages.GameEventType;
 
 public class ItemUsedEvent extends GameEvent {
     public enum UseOutMessageOption {
-        OK, USED_UP, NO_USES, REQUIRE_EQUIPPED;
+        OK, USED_UP, NO_USES, REQUIRE_EQUIPPED, CANNOT;
     }
 
     private final UseOutMessageOption subType;
@@ -199,6 +199,15 @@ public class ItemUsedEvent extends GameEvent {
                     builder.appendString("item");
                 }
                 builder.appendString("equipped in order to use it!");
+                break;
+            case CANNOT:
+                builder.appendString("Something prevents you from using this");
+                if (this.usable != null) {
+                    builder.appendTaggable(this.usable);
+                } else {
+                    builder.appendString("item");
+                }
+                builder.appendString(".", null, null);
                 break;
             case OK:
             default:

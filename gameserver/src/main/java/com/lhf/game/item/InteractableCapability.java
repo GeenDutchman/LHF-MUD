@@ -8,17 +8,22 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.lhf.RichOutput;
 import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.CreatureContainer.CreatureFilterQuery;
 import com.lhf.game.IExternalReference;
+import com.lhf.game.ItemContainer.ItemFilterQuery;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.item.UsableCapability.Usable.UsableBuilder;
 import com.lhf.game.map.Area;
 import com.lhf.game.map.RoomEffect;
 import com.lhf.game.map.RoomEffectSource;
@@ -31,67 +36,12 @@ import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 import com.lhf.messages.events.SeeEvent.ABuilder;
 import com.lhf.messages.events.TickEvent;
 
-public interface InteractableCapability extends ItemCapability {
-    public boolean isInteractionRepeatable();
+public interface InteractableCapability extends EffectorCapability<Area, RoomEffectSource> {
+    @Override
+    public InteractableCapability adjustUses(int delta);
 
-    public int getInteractCount();
-
-    public InteractableCapability setInteractCount(int count);
-
-    public InteractableCapability incrementInteractCount();
-
-    public CreatureFilterQuery getInteractUserRestrictions();
-
-    public List<RichOutput> getInteractDisplayPages();
-
-    public default RichOutput getInteractDisplay() {
-        List<RichOutput> pages = this.getInteractDisplayPages();
-        if (pages == null || pages.size() == 0) {
-            return null;
-        }
-        int size = pages.size();
-        if (this.isInteractDisplayPaged()) {
-            if (size < 0) {
-                size *= -1;
-            }
-            return pages.get(this.getInteractCount() % size);
-        }
-        if (size == 1) {
-            return pages.get(0);
-        }
-        RichOutputBuilder builder = new RichOutputBuilder();
-        for (RichOutput richOutput : pages) {
-            if (richOutput == null) {
-                continue;
-            }
-            builder.appendRichOutput(richOutput);
-        }
-        return builder.build();
-    }
-
-    public default boolean isInteractDisplayPaged() {
-        return false;
-    }
-
-    public List<IExternalReference<Area>> getExternalAreaReferences();
-
-    public default Area getInteractArea() {
-        final List<IExternalReference<Area>> retrieved = this.getExternalAreaReferences();
-        if (retrieved == null || retrieved.isEmpty()) {
-            return null;
-        }
-        for (IExternalReference<Area> iExternalReference : retrieved) {
-            if (iExternalReference != null) {
-                return iExternalReference.getReference();
-            }
-        }
-        return null;
-    }
-
-    public Set<RoomEffectSource> getAreaInteractEffects();
-
-    public Set<CreatureEffectSource> getInteractorEffects();
-    // TODO: describe changes to self on interaction, needs DC for traps?
+    @Override
+    public InteractableCapability setUses(int count);
 
     /**
      * Returns an editable set of Guards names If any guards are present in the
@@ -106,60 +56,107 @@ public interface InteractableCapability extends ItemCapability {
         return true;
     }
 
-    public static void broadcast(CommandContext ctx, InteractableCapability capability, GameEvent.Builder<?> builder) {
-        if (builder == null) {
-            return;
-        }
-        InteractableCapability.broadcast(ctx, capability, builder.Build());
-    }
-
-    public static void broadcast(CommandContext ctx, InteractableCapability capability, GameEvent event) {
+    @Override
+    public default void broadcast(CommandContext ctx, GameEvent event) {
         if (event == null) {
             return;
-        }
-        if (capability != null) {
-            final Area interactArea = capability.getInteractArea();
-            if (interactArea != null) {
-                Area.eventAccepter.accept(interactArea, event);
-                return;
-            }
         }
         if (ctx == null) {
             return;
         }
-        final ICreature creature = ctx.getCreature();
-        if (creature != null) {
-            ICreature.eventAccepter.accept(creature, event);
-            return;
+        final Stream<IExternalReference<Area>> stream = this.getInternalTargetReferences();
+        if (stream != null) {
+            final AtomicBoolean sent = new AtomicBoolean(false);
+            stream.filter(ref -> ref != null).forEachOrdered(ref -> {
+                final Area area = ref.getReference();
+                if (area != null) {
+                    Area.eventAccepter.accept(area, event);
+                    sent.set(true);
+                }
+            });
+            if (sent.get()) {
+                return;
+            }
         }
-        ctx.receive(event);
+        EffectorCapability.super.broadcast(ctx, event);
     }
 
     private static void updateGuards(InteractableCapability capability) {
         if (capability == null) {
             return;
         }
-        final Area area = capability.getInteractArea();
-        if (area == null) {
-            return;
-        }
         final Set<String> guards = capability.getGuardsNames();
         if (guards == null || guards.isEmpty()) {
             return;
         }
+
+        final Stream<IExternalReference<Area>> stream = capability.getInternalTargetReferences();
+        if (stream == null) {
+            return;
+        }
+        stream.filter(ref -> ref != null && ref.getReference() != null).forEachOrdered(ref -> {
+            final Area area = ref.getReference();
+        });
         for (Iterator<String> guardIterator = guards.iterator(); guardIterator.hasNext();) {
             final String guardName = guardIterator.next();
             if (guardName == null || guardName.isBlank()) {
                 guardIterator.remove();
                 continue;
             }
-            if (!area.hasCreature(guardName)) {
+            Stream<IExternalReference<Area>> guardStream = capability.getInternalTargetReferences();
+            if (guardStream == null) {
+                return;
+            }
+            if (guardStream.filter(ref -> ref != null && ref.getReference() != null)
+                    .noneMatch(ref -> ref.getReference().hasCreature(guardName))) {
                 guardIterator.remove();
             }
         }
     }
 
     public boolean isDispenser();
+
+    @Override
+    default void applyEffectsOnTarget(CommandContext ctx, IItem myItem, Area target) {
+        if (ctx == null) {
+            return;
+        }
+        if (target == null) {
+            target = ctx.getArea();
+        }
+        if (target == null) {
+            return;
+        }
+        final Stream<RoomEffectSource> targetEffects = this.getTargetEffects();
+        if (targetEffects != null) {
+            targetEffects.filter(source -> source != null).forEachOrdered(source -> {
+                final RoomEffect effect = new RoomEffect(source, ctx.getCreature(), myItem);
+                this.broadcast(ctx, target.applyEffect(effect));
+            });
+        }
+    }
+
+    @Override
+    default void applyEffectsOnInternalTargets(CommandContext ctx, IItem myItem) {
+        if (ctx == null) {
+            return;
+        }
+        final Stream<IExternalReference<Area>> internalTargets = this.getInternalTargetReferences();
+        if (internalTargets == null) {
+            return;
+        }
+        final Stream<RoomEffectSource> internalTargetEffects = this.getInternalTargetEffects();
+        if (internalTargetEffects == null) {
+            return;
+        }
+        internalTargets.filter(ref -> ref != null).map(ref -> ref.getReference()).filter(area -> area != null)
+                .forEachOrdered(area -> {
+                    internalTargetEffects.filter(source -> source != null).forEachOrdered(source -> {
+                        final RoomEffect effect = new RoomEffect(source, ctx.getCreature(), myItem);
+                        this.broadcast(ctx, area.applyEffect(effect));
+                    });
+                });
+    }
 
     public static boolean interactWithItem(CommandContext ctx, IItem myItem) {
         if (ctx == null) {
@@ -191,102 +188,126 @@ public interface InteractableCapability extends ItemCapability {
         InteractableCapability.updateGuards(capability);
         final Set<String> guards = capability.getGuardsNames();
         if (guards != null && !guards.contains(interactor.getName())) {
-            InteractableCapability.broadcast(ctx, capability,
-                    eventBuilder.setBroacast().setSubType(InteractOutMessageType.CANNOT)
-                            .setDescription("This item is guarded").setOutputCallback(rob -> {
-                                if (rob != null) {
-                                    rob.appendString("This item is guarded.");
-                                    final StringJoiner sj = new StringJoiner(", ", " It is guarded by: ", ". ")
-                                            .setEmptyValue("");
-                                    guards.stream().filter(name -> name != null).forEachOrdered(name -> sj.add(name));
-                                    rob.appendString(sj.toString());
-                                }
-                            }));
+            capability.broadcast(ctx, eventBuilder.setBroacast().setSubType(InteractOutMessageType.CANNOT)
+                    .setDescription("This item is guarded").setOutputCallback(rob -> {
+                        if (rob != null) {
+                            rob.appendString("This item is guarded.");
+                            final StringJoiner sj = new StringJoiner(", ", " It is guarded by: ", ". ")
+                                    .setEmptyValue("");
+                            guards.stream().filter(name -> name != null).forEachOrdered(name -> sj.add(name));
+                            rob.appendString(sj.toString());
+                        }
+                    }));
             return false;
         }
         final LockingCapability locking = myItem.getLockingCapability();
         if (locking != null && !locking.canAccess(interactor)) {
-            InteractableCapability.broadcast(ctx, capability,
-                    eventBuilder.setBroacast().setSubType(InteractOutMessageType.CANNOT).setDescription("It is locked.")
-                            .setOutputCallback(rob -> {
-                                if (rob != null) {
-                                    rob.appendString("This item is locked.");
-                                }
-                            }));
+            capability.broadcast(ctx, eventBuilder.setBroacast().setSubType(InteractOutMessageType.CANNOT)
+                    .setDescription("It is locked.").setOutputCallback(rob -> {
+                        if (rob != null) {
+                            rob.appendString("This item is locked.");
+                        }
+                    }));
             return false;
         }
-        final CreatureFilterQuery restrictions = capability.getInteractUserRestrictions();
+        final Predicate<ICreature> restrictions = capability.getUserRestrictions();
         if (restrictions != null && !restrictions.test(interactor)) {
-            InteractableCapability.broadcast(ctx, capability,
-                    eventBuilder.setBroacast().setSubType(InteractOutMessageType.CANNOT)
-                            .setDescription("Something prevents you from using it.").setOutputCallback(rob -> {
-                                if (rob != null) {
-                                    rob.appendString("This item has limitations on who can use it.");
-                                }
-                            }));
+            capability.broadcast(ctx, eventBuilder.setBroacast().setSubType(InteractOutMessageType.CANNOT)
+                    .setDescription("Something prevents you from using it.").setOutputCallback(rob -> {
+                        if (rob != null) {
+                            rob.appendString("This item has limitations on who can use it.");
+                        }
+                    }));
             return false;
         }
-        InteractableCapability.broadcast(ctx, capability,
-                eventBuilder.setBroacast().setPerformed().setOutputCallback(rob -> {
-                    if (rob != null) {
-                        rob.appendRichOutput(capability.getInteractDisplay());
-                    }
-                }));
-        final Set<RoomEffectSource> areaInteractEffects = capability.getAreaInteractEffects();
-        final Area area = capability.getInteractArea();
-        if (area != null && areaInteractEffects != null && !areaInteractEffects.isEmpty()) {
-            for (final RoomEffectSource roomEffectSource : areaInteractEffects) {
-                if (roomEffectSource == null) {
-                    continue;
-                }
-                InteractableCapability.broadcast(ctx, capability,
-                        area.applyEffect(new RoomEffect(roomEffectSource, interactor, myItem)));
+        capability.broadcast(ctx, eventBuilder.setBroacast().setPerformed().setOutputCallback(rob -> {
+            if (rob != null) {
+                rob.appendRichOutput(capability.getUseDisplay());
+            }
+        }));
+        final Area ctxArea = ctx.getArea();
+        final Predicate<Area> targetRestriction = capability.getTargetingRestrictions();
+        if (ctxArea != null && !targetRestriction.test(ctxArea)) {
+            capability.broadcast(ctx, eventBuilder.setBroacast().setSubType(InteractOutMessageType.CANNOT)
+                    .setDescription("Something prevents you from using it.").setOutputCallback(rob -> {
+                        if (rob != null) {
+                            rob.appendString("This item has limitations on where it can be used.");
+                        }
+                    }));
+            return false;
+        }
+        if (ctxArea != null) {
+            final Stream<RoomEffectSource> areaInteractEffects = capability.getTargetEffects();
+            if (areaInteractEffects != null) {
+                areaInteractEffects.filter(source -> source != null).forEachOrdered(roomEffectSource -> {
+                    capability.broadcast(ctx,
+                            ctxArea.applyEffect(new RoomEffect(roomEffectSource, interactor, myItem)));
+                });
             }
         }
-        final Set<CreatureEffectSource> interactorEffects = capability.getInteractorEffects();
-        if (interactorEffects != null && !interactorEffects.isEmpty()) {
-            for (final CreatureEffectSource creatureEffectSource : interactorEffects) {
-                if (creatureEffectSource == null) {
-                    continue;
+        final Stream<IExternalReference<Area>> areas = capability.getInternalTargetReferences();
+        if (areas != null) {
+            areas.filter(ref -> ref != null && ref.getReference() != null).forEachOrdered(ref -> {
+                final Area area = ref.getReference();
+
+                final Stream<RoomEffectSource> areaInteractEffects = capability.getInternalTargetEffects();
+                if (area != null && areaInteractEffects != null) {
+                    areaInteractEffects.filter(source -> source != null).forEachOrdered(roomEffectSource -> {
+                        capability.broadcast(ctx,
+                                area.applyEffect(new RoomEffect(roomEffectSource, interactor, myItem)));
+                    });
+
                 }
-                InteractableCapability.broadcast(ctx, capability,
+
+            });
+        }
+
+        final Stream<CreatureEffectSource> interactorEffects = capability.getUserEffects();
+        if (interactorEffects != null) {
+            interactorEffects.filter(effect -> effect != null).forEachOrdered(creatureEffectSource -> {
+                capability.broadcast(ctx,
                         interactor.applyEffect(new CreatureEffect(creatureEffectSource, interactor, myItem)));
-            }
+            });
         }
         final ItemContainerCapability itemContainer = myItem.getItemContainerCapability();
-        if (capability.isDispenser() && itemContainer != null && area != null) {
-            final IItem removed = itemContainer.removeOne();
-            area.addItem(removed);
-        }
-        final Area ctxArea = ctx.getArea();
-        final List<IExternalReference<Area>> areas = capability.getExternalAreaReferences();
-        if (areas != null && ctxArea != null && ctxArea.hasCreature(interactor)) {
-            for (final IExternalReference<Area> reference : areas) {
-                final Area referred = reference.getReference();
-                if (referred == null) {
-                    continue;
-                }
-                if (referred.equals(ctxArea)) {
-                    continue;
-                }
-                if (ctxArea.removeCreature(interactor)) {
-                    ctxArea.announce(
-                            RoomExitedEvent.getBuilder().setLeaveTaker(interactor).setBecauseOf(myItem).Build());
-                    ICreature.eventAccepter.accept(ctx.getCreature(),
-                            TickEvent.getBuilder().setTickType(TickType.ROOM).Build());
-                    referred.addCreature(interactor);
-                    break;
+        if (capability.isDispenser() && itemContainer != null) {
+            if (ctxArea != null) {
+                final IItem removed = itemContainer.removeOne();
+                ctxArea.addItem(removed);
+            } else {
+                final Stream<IExternalReference<Area>> areaStream = capability.getInternalTargetReferences();
+                if (areaStream != null) {
+                    areaStream.filter(ref -> ref != null && ref.getReference() != null).findFirst()
+                            .ifPresent(ref -> ref.getReference().addItem(itemContainer.removeOne()));
                 }
             }
+        }
+        final Stream<IExternalReference<Area>> areaStream = capability.getInternalTargetReferences();
+        if (capability.isCreatureTransporter() && ctxArea != null && areaStream != null) {
+            // if (areas != null && ctxArea != null && ctxArea.hasCreature(interactor)) {
+            areaStream.filter(ref -> ref != null).map(ref -> ref.getReference())
+                    .filter(area -> area != null && !ctxArea.equals(area)).findFirst().ifPresent(referred -> {
+                        if (ctxArea.removeCreature(interactor)) {
+                            ctxArea.announce(RoomExitedEvent.getBuilder().setLeaveTaker(interactor).setBecauseOf(myItem)
+                                    .Build());
+                            ICreature.eventAccepter.accept(ctx.getCreature(),
+                                    TickEvent.getBuilder().setTickType(TickType.ROOM).Build());
+                            referred.addCreature(interactor);
+                            break;
+                        }
+                    });
+
         } else if (myItem.getCreatureContainerCapability() != null) {
             final CreatureContainerCapability ccc = myItem.getCreatureContainerCapability();
             if (ccc.hasCapacity()) {
                 ccc.addCreature(interactor);
             }
         }
-        capability.incrementInteractCount();
+        capability.useOnce();
         return true;
     }
+
+    public boolean isCreatureTransporter();
 
     @Override
     default ItemCapabilityNames getCapabilityName() {
@@ -299,9 +320,14 @@ public interface InteractableCapability extends ItemCapability {
             return;
         }
         seeEventBuilder.addExtraInfo("This item is Interactable. ");
-        if (this.getInteractCount() > 0) {
+        if (this.getTimesUsed() > 0) {
             seeEventBuilder.addExtraInfo("It seems to have been interacted with already. ");
         }
+    }
+
+    @Override
+    public default boolean isEquippingRequired() {
+        return false;
     }
 
     public static enum Delta implements ICapabilityDelta, Consumer<InteractableCapability> {
@@ -309,7 +335,7 @@ public interface InteractableCapability extends ItemCapability {
             @Override
             public void accept(InteractableCapability arg0) {
                 if (arg0 != null) {
-                    arg0.setInteractCount(0);
+                    arg0.setUses(0);
                 }
             }
         },
@@ -317,7 +343,7 @@ public interface InteractableCapability extends ItemCapability {
             @Override
             public void accept(InteractableCapability arg0) {
                 if (arg0 != null) {
-                    arg0.incrementInteractCount();
+                    arg0.useOnce();
                 }
             }
         },
@@ -326,8 +352,8 @@ public interface InteractableCapability extends ItemCapability {
             @Override
             public void accept(InteractableCapability arg0) {
                 if (arg0 != null) {
-                    int count = arg0.getInteractCount() - 1;
-                    arg0.setInteractCount(Integer.max(count, 0));
+                    int count = arg0.getTimesUsed() - 1;
+                    arg0.setUses(Integer.max(count, 0));
                 }
             }
 
@@ -396,49 +422,30 @@ public interface InteractableCapability extends ItemCapability {
     }
 
     public static final class Interactable implements InteractableCapability {
-        private final boolean interactionRepeatable;
+        private final EffectorKernel kernel;
+        private final int totalNumberUsableTimes;
         private int interactCount;
-        private final CreatureFilterQuery interactUserRestrictions;
-        private final List<RichOutput> interactDisplayPages;
         private final Set<RoomEffectSource> areaInteractEffects;
-        private final Set<CreatureEffectSource> interactorEffects;
         private final Set<String> guardsNames;
         private final List<Area.AreaReference> interactAreas;
-        private final boolean dispenser;
+        private final boolean dispenser; // TODO: make this actually dispense somehow
 
         public static class Builder {
-            private boolean interactionRepeatable;
+            private EffectorKernel.EffectorKernelBuilder kernel;
+            private int totalNumberUsableTimes = -1;
             private int interactCount = 0;
-            private CreatureFilterQuery interactUserRestrictions;
-            private List<RichOutputBuilder> interactDisplayPages;
             private Set<RoomEffectSource> areaInteractEffects;
-            private Set<CreatureEffectSource> interactorEffects;
             private List<Area.AreaReference> interactAreas;
             private Set<String> guardsNames;
             private boolean dispenser;
 
             public Builder() {
-                this.interactionRepeatable = false;
-                this.interactUserRestrictions = null;
-                this.interactDisplayPages = null;
+                this.kernel = EffectorKernel.getBuilder().setEquippingRequired(false);
+                this.totalNumberUsableTimes = -1;
                 this.areaInteractEffects = null;
-                this.interactorEffects = null;
                 this.interactAreas = null;
                 this.guardsNames = null;
                 this.dispenser = false;
-            }
-
-            public Builder reset() {
-                this.interactionRepeatable = false;
-                this.interactUserRestrictions = null;
-                this.interactDisplayPages = null;
-                this.areaInteractEffects = null;
-                this.interactorEffects = null;
-                this.interactCount = 0;
-                this.interactAreas = null;
-                this.guardsNames = null;
-                this.dispenser = false;
-                return this;
             }
 
             public boolean isDispenser() {
@@ -450,12 +457,12 @@ public interface InteractableCapability extends ItemCapability {
                 return this;
             }
 
-            public boolean isInteractionRepeatable() {
-                return interactionRepeatable;
+            public int getTotalNumberUsableTimes() {
+                return totalNumberUsableTimes;
             }
 
-            public Builder setInteractionRepeatable(boolean interactionRepeatable) {
-                this.interactionRepeatable = interactionRepeatable;
+            public Builder setTotalNumberUsableTimes(int totalNumberUsableTimes) {
+                this.totalNumberUsableTimes = totalNumberUsableTimes;
                 return this;
             }
 
@@ -469,98 +476,49 @@ public interface InteractableCapability extends ItemCapability {
             }
 
             public CreatureFilterQuery getInteractUserRestrictions() {
-                return interactUserRestrictions;
+                return this.kernel.getUserRestrictions();
             }
 
             public Builder setInteractUserRestrictions(CreatureFilterQuery interactUserRestrictions) {
-                this.interactUserRestrictions = interactUserRestrictions;
-                return this;
-            }
-
-            public Builder adjustInteractUserRestrictions(Consumer<CreatureFilterQuery> adjustor) {
-                if (adjustor != null) {
-                    if (this.interactUserRestrictions == null) {
-                        this.interactUserRestrictions = new CreatureFilterQuery();
-                    }
-                    adjustor.accept(this.interactUserRestrictions);
-                }
+                this.kernel.setUserRestrictions(interactUserRestrictions);
                 return this;
             }
 
             public List<RichOutputBuilder> getInteractDisplayPages() {
-                return interactDisplayPages != null ? Collections.unmodifiableList(interactDisplayPages) : List.of();
+                return this.kernel.getUseDisplayPages();
             }
 
             public Builder setInteractDisplayPages(List<RichOutputBuilder> interactDisplayPages) {
-                this.interactDisplayPages = interactDisplayPages;
+                this.kernel.setUseDisplayPages(interactDisplayPages);
                 return this;
             }
 
             public Builder addInteractDisplayPage(RichOutputBuilder page) {
-                if (page != null) {
-                    if (this.interactDisplayPages == null) {
-                        this.interactDisplayPages = new ArrayList<>();
-                    }
-                    this.interactDisplayPages.add(page);
-                }
+                this.kernel.addUseDisplayPages(page);
                 return this;
             }
 
             public Builder addInteractDisplayPage(String page) {
-                if (page != null) {
-                    if (this.interactDisplayPages == null) {
-                        this.interactDisplayPages = new ArrayList<>();
-                    }
-                    RichOutputBuilder pageBuilder = new RichOutputBuilder().appendString(page);
-                    this.interactDisplayPages.add(pageBuilder);
-                }
+                this.kernel.addUseDisplayPage(page);
                 return this;
             }
 
-            public Builder addInteractDisplayPage(Consumer<RichOutputBuilder> pageBuilder) {
+            public Builder addUseDisplayPage(Consumer<RichOutputBuilder> pageBuilder) {
                 if (pageBuilder != null) {
-                    if (this.interactDisplayPages == null) {
-                        this.interactDisplayPages = new ArrayList<>();
-                    }
                     RichOutputBuilder builder = new RichOutputBuilder();
-                    this.interactDisplayPages.add(builder);
+                    this.kernel.addUseDisplayPages(builder);
                     pageBuilder.accept(builder);
                 }
                 return this;
             }
 
             public RichOutputBuilder createOrGetPageBuilder(int index) {
-                if (this.interactDisplayPages == null) {
-                    this.interactDisplayPages = new ArrayList<>();
-                }
-                if (index < 0 || index >= this.interactDisplayPages.size()) {
-                    RichOutputBuilder page = new RichOutputBuilder();
-                    this.interactDisplayPages.add(page);
-                    return page;
-                }
-                return this.interactDisplayPages.get(index);
+                return this.kernel.createOrGetPage(index);
             }
 
             public Builder createOrEditPageBuilder(int index, Consumer<RichOutputBuilder> pageEditor) {
-                RichOutputBuilder pageBuilder = this.createOrGetPageBuilder(index);
-                if (pageBuilder != null && pageEditor != null) {
-                    pageEditor.accept(pageBuilder);
-                }
+                this.kernel.createOrEditPage(index, pageEditor);
                 return this;
-            }
-
-            public Builder clearPages() {
-                if (this.interactDisplayPages != null) {
-                    this.interactDisplayPages.clear();
-                }
-                return this;
-            }
-
-            public int size() {
-                if (this.interactDisplayPages != null) {
-                    return this.interactDisplayPages.size();
-                }
-                return 0;
             }
 
             public Set<RoomEffectSource> getAreaInteractEffects() {
@@ -582,22 +540,17 @@ public interface InteractableCapability extends ItemCapability {
                 return this;
             }
 
-            public Set<CreatureEffectSource> getInteractorEffects() {
-                return interactorEffects != null ? Collections.unmodifiableSet(interactorEffects) : Set.of();
+            public Set<CreatureEffectSource.Builder> getInteractorEffects() {
+                return this.kernel.getUserEffects();
             }
 
-            public Builder setInteractorEffects(Set<CreatureEffectSource> interactorEffects) {
-                this.interactorEffects = interactorEffects;
+            public Builder setInteractorEffects(Set<CreatureEffectSource.Builder> interactorEffects) {
+                this.kernel.setUserEffects(interactorEffects);
                 return this;
             }
 
-            public Builder addInteractorEffect(CreatureEffectSource interactorEffect) {
-                if (interactorEffect != null) {
-                    if (this.interactorEffects == null) {
-                        this.interactorEffects = new LinkedHashSet<>();
-                    }
-                    this.interactorEffects.add(interactorEffect);
-                }
+            public Builder addInteractorEffect(CreatureEffectSource.Builder interactorEffect) {
+                this.kernel.addUserEffects(interactorEffect);
                 return this;
             }
 
@@ -666,57 +619,118 @@ public interface InteractableCapability extends ItemCapability {
             @Override
             public String toString() {
                 StringBuilder builder = new StringBuilder();
-                builder.append("Builder [interactionRepeatable=").append(interactionRepeatable)
-                        .append(", interactCount=").append(interactCount).append(", interactUserRestrictions=")
-                        .append(interactUserRestrictions).append(", interactDisplayPages=").append(interactDisplayPages)
-                        .append(", areaInteractEffects=").append(areaInteractEffects).append(", interactorEffects=")
-                        .append(interactorEffects).append(", interactAreas=").append(interactAreas)
-                        .append(", guardsNames=").append(guardsNames).append(", dispenser=").append(dispenser)
-                        .append("]");
+                builder.append("Builder [kernel=").append(kernel).append(", totalNumberUsableTimes=")
+                        .append(totalNumberUsableTimes).append(", interactCount=").append(interactCount)
+                        .append(", areaInteractEffects=").append(areaInteractEffects).append(", interactAreas=")
+                        .append(interactAreas).append(", guardsNames=").append(guardsNames).append(", dispenser=")
+                        .append(dispenser).append("]");
                 return builder.toString();
             }
 
         }
 
         protected Interactable() {
-            this.interactionRepeatable = false;
+            this.kernel = EffectorKernel.getBuilder().build();
+            this.totalNumberUsableTimes = -1;
             this.interactCount = 0;
             this.interactAreas = new ArrayList<>();
-            this.interactUserRestrictions = null;
-            this.interactDisplayPages = new ArrayList<>();
             this.areaInteractEffects = new LinkedHashSet<>();
-            this.interactorEffects = new LinkedHashSet<>();
             this.guardsNames = new LinkedHashSet<>();
             this.dispenser = false;
         }
 
         protected Interactable(Builder builder) {
             if (builder == null) {
-                this.interactionRepeatable = false;
+                this.kernel = EffectorKernel.getBuilder().build();
+                this.totalNumberUsableTimes = -1;
                 this.interactCount = 0;
                 this.interactAreas = new ArrayList<>();
-                this.interactUserRestrictions = null;
-                this.interactDisplayPages = new ArrayList<>();
                 this.areaInteractEffects = new LinkedHashSet<>();
-                this.interactorEffects = new LinkedHashSet<>();
                 this.guardsNames = new LinkedHashSet<>();
                 this.dispenser = false;
             } else {
-                this.interactionRepeatable = builder.isInteractionRepeatable();
+                this.kernel = builder.kernel.build();
+                this.totalNumberUsableTimes = builder.getTotalNumberUsableTimes();
                 this.interactCount = builder.getInteractCount();
                 this.interactAreas = builder.interactAreas != null ? List.copyOf(builder.interactAreas) : List.of();
-                this.interactUserRestrictions = builder.getInteractUserRestrictions() != null
-                        ? new CreatureFilterQuery(builder.interactUserRestrictions)
-                        : null;
-                this.interactDisplayPages = builder.getInteractDisplayPages().stream().filter(rab -> rab != null)
-                        .map(rab -> rab.build()).toList();
                 this.areaInteractEffects = builder.getAreaInteractEffects().stream().filter(ef -> ef != null)
-                        .collect(Collectors.toCollection(LinkedHashSet::new));
-                this.interactorEffects = builder.getInteractorEffects().stream().filter(ef -> ef != null)
                         .collect(Collectors.toCollection(LinkedHashSet::new));
                 this.guardsNames = builder.guardsNames != null ? new LinkedHashSet<>(builder.guardsNames) : null;
                 this.dispenser = builder.isDispenser();
             }
+        }
+
+        @Override
+        public boolean isCreatureTransporter() {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        @Override
+        public Stream<RoomEffectSource> getInternalTargetEffects() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public Stream<IExternalReference<Area>> getInternalTargetReferences() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public Stream<ItemEffectSource> getSelfEffects() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public ItemFilterQuery getSelfRestrictions() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public Stream<RoomEffectSource> getTargetEffects() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public Predicate<Area> getTargetingRestrictions() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public List<RichOutput> getUseDisplayPages() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public com.lhf.messages.events.ItemUsedEvent.Builder getUsedEventBuilder(CommandContext ctx, IItem myItem,
+                Area target) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public Stream<CreatureEffectSource> getUserEffects() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public CreatureFilterQuery getUserRestrictions() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public boolean useOnce() {
+            // TODO Auto-generated method stub
+            return false;
         }
 
         @Override
@@ -725,48 +739,53 @@ public interface InteractableCapability extends ItemCapability {
         }
 
         @Override
-        public boolean isInteractionRepeatable() {
-            return this.interactionRepeatable;
+        public int getTotalNumberUsableTimes() {
+            return this.totalNumberUsableTimes;
         }
 
-        @Override
+        public boolean isInteractionRepeatable() {
+            return this.hasUsesRemaining();
+        }
+
         public synchronized int getInteractCount() {
             return this.interactCount;
         }
 
-        @Override
-        public synchronized InteractableCapability setInteractCount(int count) {
+        public synchronized int getTimesUsed() {
+            return this.interactCount;
+        }
+
+        public synchronized InteractableCapability setUses(int count) {
             this.interactCount = count;
             return this;
         }
 
-        @Override
+        public synchronized InteractableCapability adjustUses(int delta) {
+            this.interactCount += delta;
+            return this;
+        }
+
         public synchronized InteractableCapability incrementInteractCount() {
             this.interactCount++;
             return this;
         }
 
-        @Override
         public CreatureFilterQuery getInteractUserRestrictions() {
-            return this.interactUserRestrictions;
+            return this.kernel.getUserRestrictions();
         }
 
-        @Override
         public List<RichOutput> getInteractDisplayPages() {
-            return Collections.unmodifiableList(this.interactDisplayPages);
+            return this.kernel.getUseDisplayPages();
         }
 
-        @Override
         public Set<RoomEffectSource> getAreaInteractEffects() {
             return this.areaInteractEffects != null ? Collections.unmodifiableSet(this.areaInteractEffects) : Set.of();
         }
 
-        @Override
         public Set<CreatureEffectSource> getInteractorEffects() {
-            return this.interactorEffects != null ? Collections.unmodifiableSet(this.interactorEffects) : Set.of();
+            return this.kernel.getUserEffects().collect(Collectors.toSet());
         }
 
-        @Override
         public List<IExternalReference<Area>> getExternalAreaReferences() {
             return this.interactAreas != null
                     ? this.interactAreas.stream().filter(ref -> ref != null).map(ref -> (IExternalReference<Area>) ref)
@@ -781,8 +800,8 @@ public interface InteractableCapability extends ItemCapability {
 
         @Override
         public int hashCode() {
-            return Objects.hash(interactionRepeatable, interactUserRestrictions, interactDisplayPages,
-                    areaInteractEffects, interactorEffects, interactAreas, dispenser);
+            return Objects.hash(kernel, interactionRepeatable, interactCount, areaInteractEffects, guardsNames,
+                    interactAreas, dispenser);
         }
 
         @Override
@@ -792,11 +811,10 @@ public interface InteractableCapability extends ItemCapability {
             if (!(obj instanceof Interactable))
                 return false;
             Interactable other = (Interactable) obj;
-            return interactionRepeatable == other.interactionRepeatable
-                    && Objects.equals(interactUserRestrictions, other.interactUserRestrictions)
-                    && Objects.equals(interactDisplayPages, other.interactDisplayPages)
+            return Objects.equals(kernel, other.kernel) && interactionRepeatable == other.interactionRepeatable
+                    && interactCount == other.interactCount
                     && Objects.equals(areaInteractEffects, other.areaInteractEffects)
-                    && Objects.equals(interactorEffects, other.interactorEffects)
+                    && Objects.equals(guardsNames, other.guardsNames)
                     && Objects.equals(interactAreas, other.interactAreas) && dispenser == other.dispenser;
         }
 
@@ -806,17 +824,9 @@ public interface InteractableCapability extends ItemCapability {
             sj.add("interactionRepeatable=" + Boolean.toString(interactionRepeatable));
             sj.add("interactCount=" + Integer.toString(interactCount));
             sj.add("dispenser=" + Boolean.toString(dispenser));
-            if (interactUserRestrictions != null) {
-                sj.add("interactUserRestrictions=" + interactUserRestrictions.toString());
-            }
-            if (interactDisplayPages != null) {
-                sj.add("interactDisplayPages=" + interactDisplayPages.toString());
-            }
+            sj.add("kernel=" + this.kernel.toString());
             if (areaInteractEffects != null) {
                 sj.add("areaInteractEffects=" + areaInteractEffects.toString());
-            }
-            if (interactorEffects != null) {
-                sj.add("interactorEffects=" + interactorEffects.toString());
             }
             if (guardsNames != null) {
                 sj.add("guardsNames=" + guardsNames.toString());

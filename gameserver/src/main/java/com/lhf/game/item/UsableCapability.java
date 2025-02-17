@@ -1,7 +1,6 @@
 package com.lhf.game.item;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
@@ -9,63 +8,31 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.lhf.RichOutput;
 import com.lhf.RichOutput.RichOutputBuilder;
 import com.lhf.game.CreatureContainer.CreatureFilterQuery;
+import com.lhf.game.IExternalReference;
+import com.lhf.game.IExternalReference.ExternalReference;
 import com.lhf.game.ItemContainer.ItemFilterQuery;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.ICreature;
-import com.lhf.game.map.Area;
-import com.lhf.game.map.RoomEffect;
-import com.lhf.game.map.RoomEffectSource;
+import com.lhf.game.item.ItemEffectSource.Builder;
 import com.lhf.game.map.SubArea;
 import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.CommandContext;
-import com.lhf.messages.GameEventProcessorHub;
 import com.lhf.messages.events.BattleRoundEvent;
 import com.lhf.messages.events.BattleRoundEvent.RoundAcceptance;
-import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.ItemUsedEvent;
 import com.lhf.messages.events.ItemUsedEvent.UseOutMessageOption;
 import com.lhf.messages.events.SeeEvent.ABuilder;
 
-public interface UsableCapability extends ItemCapability {
-    public int getTotalNumberUsableTimes();
+public interface UsableCapability extends EffectorCapability<ICreature, CreatureEffectSource> {
 
-    public int getTimesUsed();
-
-    public default boolean hasUsesRemaining() {
-        int usableTimes = this.getTotalNumberUsableTimes();
-        return (usableTimes <= 0) || (usableTimes > this.getTimesUsed());
-    }
-
-    public boolean requiresEquipping();
-
-    public boolean isSelfOnly();
-
+    @Override
     public UsableCapability adjustUses(int uses);
-
-    /**
-     * Uses the item once
-     * 
-     * @return true if it still can be used, false otherwise
-     */
-    public boolean useOnce();
-
-    public CreatureFilterQuery getUserRestrictions();
-
-    public CreatureFilterQuery affectsCreaturesLike();
-
-    public ItemFilterQuery affectsItemsLike();
-
-    public Set<ItemEffectSource> getUseOnItemEffects();
-
-    // how to search Areas?? with concrete attributes?
-    public Set<CreatureEffectSource> getUseOnCreatureEffects();
-
-    public Set<RoomEffectSource> getUseOnAreaEffects();
 
     @Override
     default ItemCapabilityNames getCapabilityName() {
@@ -73,46 +40,10 @@ public interface UsableCapability extends ItemCapability {
     }
 
     @Override
-    public default boolean isStateful() {
-        return true;
-    }
-
-    public List<RichOutput> getUseDisplayPages();
-
-    public default RichOutput getUseDisplay() {
-        List<RichOutput> pages = this.getUseDisplayPages();
-        if (pages == null || pages.size() == 0) {
-            return null;
-        }
-        int size = pages.size();
-        if (this.isUseDisplayPaged()) {
-            if (size < 0) {
-                size *= -1;
-            }
-            return pages.get(this.getTimesUsed() % size);
-        }
-        if (size == 1) {
-            return pages.get(0);
-        }
-        RichOutputBuilder builder = new RichOutputBuilder();
-        for (RichOutput richOutput : pages) {
-            if (richOutput == null) {
-                continue;
-            }
-            builder.appendRichOutput(richOutput);
-        }
-        return builder.build();
-    }
-
-    public default boolean isUseDisplayPaged() {
-        return false;
-    }
-
-    private ItemUsedEvent.Builder getCreatureUseBuilder(CommandContext ctx, IItem myItem, ICreature target) {
+    public default ItemUsedEvent.Builder getUsedEventBuilder(CommandContext ctx, IItem myItem, ICreature target) {
         return ItemUsedEvent.getBuilder().setUsable(myItem).setSubType(UseOutMessageOption.OK)
                 .setItemUser(ctx.getCreature())
-                .addMessage(this.getUseOnCreatureEffects() == null || this.getUseOnAreaEffects().isEmpty() ? null
-                        : "Affects try to take hold.")
+                .addMessage(this.getTargetEffects() == null ? null : "Affects try to take hold.")
                 .editMessage(builder -> {
                     if (builder == null) {
                         return;
@@ -125,85 +56,14 @@ public interface UsableCapability extends ItemCapability {
                 }).setTarget(target);
     }
 
-    private ItemUsedEvent.Builder getItemUseBuilder(CommandContext ctx, IItem myItem, IItem target) {
-        return ItemUsedEvent.getBuilder().setUsable(myItem).setSubType(UseOutMessageOption.OK)
-                .setItemUser(ctx.getCreature()).editMessage(builder -> {
-                    if (builder == null) {
-                        return;
-                    }
-                    final RichOutput messages = this.getUseDisplay();
-                    if (messages == null) {
-                        return;
-                    }
-                    builder.appendRichOutput(messages);
-                }).setItemUser(ctx.getCreature()).setTarget(target);
-    }
-
-    private ItemUsedEvent.Builder getAreaUseBuilder(CommandContext ctx, IItem myItem, Area target) {
-        return ItemUsedEvent.getBuilder().setUsable(myItem).setSubType(UseOutMessageOption.OK)
-                .setItemUser(ctx.getCreature())
-                .addMessage(this.getUseOnAreaEffects() == null || this.getUseOnAreaEffects().isEmpty() ? null
-                        : "Affects try to take hold.")
-                .editMessage(builder -> {
-                    if (builder == null) {
-                        return;
-                    }
-                    final RichOutput messages = this.getUseDisplay();
-                    if (messages == null) {
-                        return;
-                    }
-                    builder.appendRichOutput(messages);
-                }).setItemUser(ctx.getCreature()).setTarget(target);
-    }
-
-    public static boolean useItem(CommandContext ctx, IItem myItem) {
-        return UsableCapability.useOn(ctx, myItem, ctx.getCreature());
-    }
-
-    public static boolean useOn(CommandContext ctx, IItem myItem, ICreature creature) {
-        ItemUsedEvent.Builder useOutMessage = ItemUsedEvent.getBuilder().setItemUser(ctx.getCreature())
-                .setUsable(myItem);
-        if (creature == null || myItem == null) {
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
-                    .addMessage("Must target a creature with an item!").Build());
+    @Override
+    default boolean customChecks(CommandContext ctx, IItem myItem, ICreature target) {
+        if (ctx == null || target == null) {
             return false;
         }
-        UsableCapability capability = myItem.getUsableCapability();
-        if (capability == null) {
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES).addMessage("That item is not usable!")
-                    .Build());
-            return false;
-        }
-        if (!capability.hasUsesRemaining()) {
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.USED_UP).Build());
-            return false;
-        }
-        final ICreature myUser = ctx.getCreature();
-        if (capability.requiresEquipping() && !myUser.getEquipmentSlots().containsValue(myItem)) {
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.REQUIRE_EQUIPPED).Build());
-            return false;
-        }
-        final CreatureFilterQuery userRestriction = capability.getUserRestrictions();
-        if (userRestriction != null && !userRestriction.test(myUser)) {
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
-                    .setMessage("You cannot use this for some reason.").Build());
-            return false;
-        }
-        if (capability.isSelfOnly() && !creature.equals(myUser)) {
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
-                    .setMessage("You can only use this on yourself!").Build());
-            return false;
-        }
-        final CreatureFilterQuery query = capability.affectsCreaturesLike();
-        if (query != null && !query.test(creature)) {
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
-                    .setMessage("The target does not meet the requirements!").Build());
-            return false;
-        }
-
         if (ctx.getSubAreaForSort(SubAreaSort.BATTLE) != null) {
             SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
-            if (bm.hasCreature(creature) && !bm.hasCreature(ctx.getCreature())) {
+            if (bm.hasCreature(target) && !bm.hasCreature(ctx.getCreature())) {
                 // give out of turn message
                 bm.addCreature(ctx.getCreature());
                 ctx.receive(BattleRoundEvent.getBuilder().setNeedSubmission(RoundAcceptance.REJECTED).setNotBroadcast()
@@ -211,176 +71,67 @@ public interface UsableCapability extends ItemCapability {
                 return false;
             }
         }
-        UsableCapability.sendNotice(ctx, creature, capability.getCreatureUseBuilder(ctx, myItem, creature));
-        UsableCapability.applyCreatureEffects(ctx, myItem, creature);
-        return true;
-    }
-
-    public static boolean useOn(CommandContext ctx, IItem myItem, IItem targetedItem) {
-        ItemUsedEvent.Builder useOutMessage = ItemUsedEvent.getBuilder().setItemUser(ctx.getCreature())
-                .setUsable(myItem);
-        if (targetedItem == null || myItem == null) {
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());
+        final ICreature creature = ctx.getCreature();
+        if (creature == null || myItem == null) {
             return false;
         }
-        UsableCapability capability = myItem.getUsableCapability();
-        if (capability == null) {
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES).addMessage("That item is not usable!")
-                    .Build());
-            return false;
-        }
-        if (!capability.hasUsesRemaining()) {
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.USED_UP).Build());
-            return false;
-        }
-        final ICreature myUser = ctx.getCreature();
-        if (capability.requiresEquipping() && !myUser.getEquipmentSlots().containsValue(myItem)) {
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.REQUIRE_EQUIPPED).Build());
-            return false;
-        }
-        final CreatureFilterQuery userRestriction = capability.getUserRestrictions();
-        if (userRestriction != null && !userRestriction.test(myUser)) {
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
-                    .setMessage("You cannot use this for some reason.").Build());
-            return false;
-        }
-        final ItemFilterQuery targetRestirctions = capability.affectsItemsLike();
-        if (targetRestirctions != null && !targetRestirctions.test(targetedItem)) {
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
-                    .setMessage("You cannot use this to affect that item.").Build());
-            return false;
-        }
-        UsableCapability.sendNotice(ctx, myUser, capability.getItemUseBuilder(ctx, myItem, targetedItem));
-        UsableCapability.applyItemEffects(ctx, myItem, targetedItem);
-
-        return true;
-    }
-
-    public static boolean useOn(CommandContext ctx, IItem myItem, Area area) {
-        ItemUsedEvent.Builder useOutMessage = ItemUsedEvent.getBuilder().setItemUser(ctx.getCreature())
-                .setUsable(myItem);
-        if (area == null || myItem == null) {
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());
-            return false;
-        }
-        UsableCapability capability = myItem.getUsableCapability();
-        if (capability == null) {
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES).addMessage("That item is not usable!")
-                    .Build());
-            return false;
-        }
-        if (!capability.hasUsesRemaining()) {
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.USED_UP).Build());
-            return false;
-        }
-        final ICreature myUser = ctx.getCreature();
-        if (capability.requiresEquipping() && !myUser.getEquipmentSlots().containsValue(myItem)) {
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.REQUIRE_EQUIPPED).Build());
-            return false;
-        }
-        final CreatureFilterQuery userRestriction = capability.getUserRestrictions();
-        if (userRestriction != null && !userRestriction.test(myUser)) {
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
-                    .setMessage("You cannot use this for some reason.").Build());
-            return false;
-        }
-        UsableCapability.sendNotice(ctx, ctx.getCreature(), capability.getAreaUseBuilder(ctx, myItem, area));
-        UsableCapability.applyAreaEffects(ctx, myItem, area);
-        return true;
-    }
-
-    private static void sendNotice(CommandContext ctx, ICreature creature, GameEvent event) {
-        if (creature == null || event == null) {
-            return;
-        }
-        GameEventProcessorHub hub = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
-        if (hub == null) {
-            hub = ctx.getArea();
-        }
-        if (hub != null) {
-            hub.announce(event);
-        } else {
-            ctx.receive(event);
-            if (!creature.equals(ctx.getCreature())) {
-                ICreature.eventAccepter.accept(creature, event);
+        if (this.isEquippingRequired() && !creature.hasItem(myItem)) {
+            ItemUsedEvent.Builder eventBuilder = this.getUsedEventBuilder(ctx, myItem, target);
+            if (eventBuilder != null) {
+                ctx.receive(eventBuilder.setSubType(UseOutMessageOption.REQUIRE_EQUIPPED));
             }
+            return false;
         }
-    }
-
-    private static void sendNotice(CommandContext ctx, ICreature creature, GameEvent.Builder<?> eventBuilder) {
-        if (creature == null || eventBuilder == null) {
-            return;
-        }
-        GameEventProcessorHub hub = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
-        if (hub == null) {
-            hub = ctx.getArea();
-        }
-        if (hub != null) {
-            hub.announce(eventBuilder.setBroacast().Build());
-        } else {
-            ctx.receive(eventBuilder.setNotBroadcast());
-            if (!creature.equals(ctx.getCreature())) {
-                ICreature.eventAccepter.accept(creature, eventBuilder.setBroacast().Build());
+        if (this.isSelfOnly() && !target.equals(creature)) {
+            ItemUsedEvent.Builder eventBuilder = this.getUsedEventBuilder(ctx, myItem, target);
+            if (eventBuilder != null) {
+                ctx.receive(eventBuilder.setSubType(UseOutMessageOption.CANNOT)
+                        .addMessage("You can only target yourself!"));
             }
+            return false;
         }
+        return true;
     }
 
-    private static void applyItemEffects(CommandContext ctx, IItem item, IItem target) {
-        if (target == null || item == null) {
-            return;
-        }
-        UsableCapability capability = item.getUsableCapability();
-        if (capability == null) {
-            return;
-        }
-        final Set<ItemEffectSource> effects = capability.getUseOnItemEffects();
-        if (effects == null || effects.isEmpty()) {
-            return;
-        }
-        for (final ItemEffectSource source : effects) {
-            final ItemEffect effect = new ItemEffect(source, ctx.getCreature(), item);
-            UsableCapability.sendNotice(ctx, ctx.getCreature(), target.applyEffect(effect));
-        }
-    }
-
-    private static void applyCreatureEffects(CommandContext ctx, IItem item, ICreature creature) {
+    @Override
+    public default void applyEffectsOnTarget(CommandContext ctx, IItem item, ICreature creature) {
         if (creature == null || item == null) {
             return;
         }
-        UsableCapability capability = item.getUsableCapability();
-        if (capability == null) {
+        final Stream<CreatureEffectSource> effects = this.getTargetEffects();
+        if (effects == null) {
             return;
         }
-        final Set<CreatureEffectSource> effects = capability.getUseOnCreatureEffects();
-        if (effects == null || effects.isEmpty()) {
-            return;
-        }
-        for (final CreatureEffectSource source : effects) {
+        effects.filter(source -> source != null).forEachOrdered(source -> {
             final CreatureEffect effect = new CreatureEffect(source, ctx.getCreature(), item);
-            UsableCapability.sendNotice(ctx, ctx.getCreature(), creature.applyEffect(effect));
-        }
+            this.broadcast(ctx, creature.applyEffect(effect));
+        });
     }
 
-    private static void applyAreaEffects(CommandContext ctx, IItem item, Area area) {
-        if (area == null || item == null) {
+    @Override
+    default void applyEffectsOnInternalTargets(CommandContext ctx, IItem myItem) {
+        if (ctx == null || myItem == null) {
             return;
         }
-        UsableCapability capability = item.getUsableCapability();
-        if (capability == null) {
+        final Stream<IExternalReference<ICreature>> internalTargets = this.getInternalTargetReferences();
+        if (internalTargets == null) {
             return;
         }
-        final Set<RoomEffectSource> effects = capability.getUseOnAreaEffects();
-        if (effects == null || effects.isEmpty()) {
+        final Stream<CreatureEffectSource> internalTargetEffects = this.getInternalTargetEffects();
+        if (internalTargetEffects == null) {
             return;
         }
-        for (final RoomEffectSource source : effects) {
-            final RoomEffect effect = new RoomEffect(source, ctx.getCreature(), item);
-            UsableCapability.sendNotice(ctx, ctx.getCreature(), area.applyEffect(effect));
-        }
+        internalTargets.filter(ref -> ref != null).map(ref -> ref.getReference()).filter(creature -> creature != null)
+                .forEachOrdered(creature -> {
+                    internalTargetEffects.filter(source -> source != null).forEachOrdered(source -> {
+                        final CreatureEffect effect = new CreatureEffect(source, ctx.getCreature(), myItem);
+                        this.broadcast(ctx, creature.applyEffect(effect));
+                    });
+                });
     }
 
     public static UsableCapability generateUsableCapability() {
-        return new Usable();
+        return new UsableCapability.Usable();
     }
 
     public static enum Delta implements Consumer<UsableCapability> {
@@ -436,17 +187,19 @@ public interface UsableCapability extends ItemCapability {
         }
     }
 
-    public static final class Usable implements UsableCapability {
-        private final Set<ItemEffectSource> useOnItemEffects;
+    public boolean isSelfOnly();
+
+    @Override
+    public CreatureFilterQuery getTargetingRestrictions();
+
+    public final class Usable implements UsableCapability {
+        private final EffectorKernel kernel;
         private final Set<CreatureEffectSource> useOnCreatureEffects;
-        private final Set<RoomEffectSource> useOnAreaEffects;
-        private final List<RichOutput> useDisplayPages;
+        private final Set<CreatureEffectSource> internalTargetEffects;
+        private final Set<ExternalReference<ICreature>> internalTargets;
         private final int totalNumberUsableTimes;
-        private final boolean equippingRequired;
         private final boolean selfOnly;
-        private final CreatureFilterQuery userRestrictions;
         private final CreatureFilterQuery creatureFilter;
-        private final ItemFilterQuery itemFilter;
         private int timesUsed = 0;
 
         public static UsableBuilder getBuilder() {
@@ -454,42 +207,112 @@ public interface UsableCapability extends ItemCapability {
         }
 
         public static final class UsableBuilder {
-            private Set<ItemEffectSource.Builder> useOnItemEffects;
+            private EffectorKernel.EffectorKernelBuilder kernelBuilder = EffectorKernel.getBuilder();
+            private Set<CreatureEffectSource.Builder> internalTargetEffects;
             private Set<CreatureEffectSource.Builder> useOnCreatureEffects;
-            private Set<RoomEffectSource.Builder> useOnAreaEffects;
-            private List<RichOutputBuilder> useDisplayPages;
+            private Set<ExternalReference<ICreature>> internalTargets;
             private int totalNumberUsableTimes = -1;
-            private boolean equippingRequired;
             private boolean selfOnly;
-            private CreatureFilterQuery userRestrictions;
             private CreatureFilterQuery creatureFilter;
-            private ItemFilterQuery itemFilter;
             private int timesUsed = 0;
 
-            public Set<ItemEffectSource> getUseOnItemEffects() {
-                return useOnItemEffects == null ? null
-                        : this.useOnItemEffects.stream().filter(builder -> builder != null)
-                                .map(builder -> builder.build()).collect(Collectors.toCollection(LinkedHashSet::new));
+            public ItemFilterQuery getSelfRestrictions() {
+                return kernelBuilder.getSelfRestrictions();
             }
 
-            public UsableBuilder setUseOnItemEffects(Set<ItemEffectSource.Builder> useOnItemEffects) {
-                this.useOnItemEffects = useOnItemEffects;
+            public UsableBuilder setSelfRestrictions(ItemFilterQuery selfRestrictions) {
+                this.kernelBuilder.setSelfRestrictions(selfRestrictions);
                 return this;
             }
 
-            public UsableBuilder addUseOnItemEffect(ItemEffectSource.Builder builder) {
+            public UsableBuilder setUserRestrictions(CreatureFilterQuery userRestrictions) {
+                this.kernelBuilder.setUserRestrictions(userRestrictions);
+                return this;
+            }
+
+            public UsableBuilder setSelfEffects(Set<Builder> selfEffects) {
+                this.kernelBuilder.setSelfEffects(selfEffects);
+                return this;
+            }
+
+            public UsableBuilder addSelfEffects(Builder... sources) {
+                this.kernelBuilder.addSelfEffects(sources);
+                return this;
+            }
+
+            public UsableBuilder addSelfEffects(Collection<Builder> sources) {
+                this.kernelBuilder.addSelfEffects(sources);
+                return this;
+            }
+
+            public Set<com.lhf.game.creature.CreatureEffectSource.Builder> getUserEffects() {
+                return kernelBuilder.getUserEffects();
+            }
+
+            public UsableBuilder setUserEffects(Set<com.lhf.game.creature.CreatureEffectSource.Builder> userEffects) {
+                this.kernelBuilder.setUserEffects(userEffects);
+                return this;
+            }
+
+            public UsableBuilder addUserEffects(com.lhf.game.creature.CreatureEffectSource.Builder... sources) {
+                this.kernelBuilder.addUserEffects(sources);
+                return this;
+            }
+
+            public UsableBuilder addUserEffects(
+                    Collection<com.lhf.game.creature.CreatureEffectSource.Builder> sources) {
+                this.kernelBuilder.addUserEffects(sources);
+                return this;
+            }
+
+            public UsableBuilder setUseDisplayPages(List<RichOutputBuilder> useDisplayPages) {
+                this.kernelBuilder.setUseDisplayPages(useDisplayPages);
+                return this;
+            }
+
+            public UsableBuilder addUseDisplayPages(RichOutputBuilder... builders) {
+                this.kernelBuilder.addUseDisplayPages(builders);
+                return this;
+            }
+
+            public UsableBuilder addUseDisplayPages(Collection<RichOutputBuilder> builders) {
+                this.kernelBuilder.addUseDisplayPages(builders);
+                return this;
+            }
+
+            public boolean isUseDisplayPaged() {
+                return kernelBuilder.isUseDisplayPaged();
+            }
+
+            public UsableBuilder setUseDisplayPaged(boolean useDisplayPaged) {
+                this.kernelBuilder.setUseDisplayPaged(useDisplayPaged);
+                return this;
+            }
+
+            public Set<CreatureEffectSource> getInternalTargetEffects() {
+                return internalTargetEffects == null ? null
+                        : this.internalTargetEffects.stream().filter(builder -> builder != null)
+                                .map(builder -> builder.build()).collect(Collectors.toCollection(LinkedHashSet::new));
+            }
+
+            public UsableBuilder setInternalTargetEffects(Set<CreatureEffectSource.Builder> internalEffects) {
+                this.internalTargetEffects = internalEffects;
+                return this;
+            }
+
+            public UsableBuilder addInternalTargetEffect(CreatureEffectSource.Builder builder) {
                 if (builder != null) {
-                    if (this.useOnItemEffects == null) {
-                        this.useOnItemEffects = new LinkedHashSet<>();
+                    if (this.internalTargetEffects == null) {
+                        this.internalTargetEffects = new LinkedHashSet<>();
                     }
-                    this.useOnItemEffects.add(builder);
+                    this.internalTargetEffects.add(builder);
                 }
                 return this;
             }
 
-            public UsableBuilder clearUseOnItemEffects() {
-                if (this.useOnItemEffects != null) {
-                    this.useOnItemEffects.clear();
+            public UsableBuilder clearInternalTargetEffects() {
+                if (this.internalTargetEffects != null) {
+                    this.internalTargetEffects.clear();
                 }
                 return this;
             }
@@ -522,51 +345,30 @@ public interface UsableCapability extends ItemCapability {
                 return this;
             }
 
-            public Set<RoomEffectSource> getUseOnAreaEffects() {
-                return useOnAreaEffects == null ? null
-                        : useOnAreaEffects.stream().filter(builder -> builder != null).map(builder -> builder.build())
+            public Set<ExternalReference<ICreature>> getInternalTargets() {
+                return internalTargets == null ? null
+                        : internalTargets.stream().filter(ref -> ref != null)
                                 .collect(Collectors.toCollection(LinkedHashSet::new));
             }
 
-            public UsableBuilder setUseOnAreaEffects(Set<RoomEffectSource.Builder> useOnAreaEffects) {
-                this.useOnAreaEffects = useOnAreaEffects;
+            public UsableBuilder setInternalTargets(Set<ExternalReference<ICreature>> references) {
+                this.internalTargets = references;
                 return this;
             }
 
-            public UsableBuilder addUseOnAreaEffect(RoomEffectSource.Builder builder) {
-                if (builder != null) {
-                    if (this.useOnAreaEffects == null) {
-                        this.useOnAreaEffects = new LinkedHashSet<>();
+            public UsableBuilder addInternalTarget(ExternalReference<ICreature> ref) {
+                if (ref != null) {
+                    if (this.internalTargets == null) {
+                        this.internalTargets = new LinkedHashSet<>();
                     }
-                    this.useOnAreaEffects.add(builder);
+                    this.internalTargets.add(ref);
                 }
                 return this;
             }
 
-            public UsableBuilder clearAreaEffects() {
-                if (this.useOnAreaEffects != null) {
-                    this.useOnAreaEffects.clear();
-                }
-                return this;
-            }
-
-            public List<RichOutput> getUseDisplayPages() {
-                return useDisplayPages == null ? null
-                        : useDisplayPages.stream().filter(builder -> builder != null).map(builder -> builder.build())
-                                .toList();
-            }
-
-            public UsableBuilder setUseDisplayPages(List<RichOutput.RichOutputBuilder> useDisplayPages) {
-                this.useDisplayPages = useDisplayPages;
-                return this;
-            }
-
-            public UsableBuilder addUseDisplayPage(RichOutput.RichOutputBuilder nextPage) {
-                if (nextPage != null) {
-                    if (this.useDisplayPages == null) {
-                        this.useDisplayPages = new ArrayList<>();
-                    }
-                    this.useDisplayPages.add(nextPage);
+            public UsableBuilder clearInternalTargets() {
+                if (this.internalTargets != null) {
+                    this.internalTargets.clear();
                 }
                 return this;
             }
@@ -574,7 +376,7 @@ public interface UsableCapability extends ItemCapability {
             public UsableBuilder addUseDisplayPage(String nextPage) {
                 if (nextPage != null) {
                     RichOutput.RichOutputBuilder nextPageBuilder = new RichOutputBuilder().appendString(nextPage);
-                    return this.addUseDisplayPage(nextPageBuilder);
+                    return this.addUseDisplayPages(nextPageBuilder);
                 }
                 return this;
             }
@@ -582,35 +384,24 @@ public interface UsableCapability extends ItemCapability {
             public UsableBuilder addUseDisplayPage(Consumer<RichOutputBuilder> pageBuilder) {
                 if (pageBuilder != null) {
                     RichOutputBuilder builder = new RichOutputBuilder();
-                    this.addUseDisplayPage(builder);
+                    this.addUseDisplayPages(builder);
                     pageBuilder.accept(builder);
                 }
                 return this;
             }
 
             public RichOutputBuilder createOrGetPage(int index) {
-                if (this.useDisplayPages == null) {
-                    this.useDisplayPages = new ArrayList<>();
-                }
-                if (index < 0 || index >= this.useDisplayPages.size()) {
-                    RichOutputBuilder page = new RichOutputBuilder();
-                    this.useDisplayPages.add(page);
-                    return page;
-                }
-                return this.useDisplayPages.get(index);
+                return this.kernelBuilder.createOrGetPage(index);
             }
 
             public UsableBuilder createOrEditPage(int index, Consumer<RichOutputBuilder> pageEditor) {
-                RichOutputBuilder pageBuilder = this.createOrGetPage(index);
-                if (pageBuilder != null && pageEditor != null) {
-                    pageEditor.accept(pageBuilder);
-                }
+                this.kernelBuilder.createOrEditPage(index, pageEditor);
                 return this;
             }
 
             public UsableBuilder clearUseDisplayPages() {
-                if (this.useDisplayPages != null) {
-                    this.useDisplayPages.clear();
+                if (this.kernelBuilder.useDisplayPages != null) {
+                    this.kernelBuilder.useDisplayPages.clear();
                 }
                 return this;
             }
@@ -625,11 +416,11 @@ public interface UsableCapability extends ItemCapability {
             }
 
             public boolean isEquippingRequired() {
-                return equippingRequired;
+                return this.kernelBuilder.isEquippingRequired();
             }
 
             public UsableBuilder setEquippingRequired(boolean equippingRequired) {
-                this.equippingRequired = equippingRequired;
+                this.kernelBuilder.setEquippingRequired(equippingRequired);
                 return this;
             }
 
@@ -642,30 +433,12 @@ public interface UsableCapability extends ItemCapability {
                 return this;
             }
 
-            public CreatureFilterQuery getUserRestrictions() {
-                return userRestrictions;
-            }
-
-            public UsableBuilder setUserRestrictions(CreatureFilterQuery userRestrictions) {
-                this.userRestrictions = userRestrictions;
-                return this;
-            }
-
             public CreatureFilterQuery getCreatureFilter() {
                 return creatureFilter;
             }
 
             public UsableBuilder setCreatureFilter(CreatureFilterQuery creatureFilter) {
                 this.creatureFilter = creatureFilter;
-                return this;
-            }
-
-            public ItemFilterQuery getItemFilter() {
-                return itemFilter;
-            }
-
-            public UsableBuilder setItemFilter(ItemFilterQuery itemFilter) {
-                this.itemFilter = itemFilter;
                 return this;
             }
 
@@ -678,16 +451,15 @@ public interface UsableCapability extends ItemCapability {
                 return this;
             }
 
-            public boolean requiresEquipping() {
-                return this.equippingRequired;
-            }
-
             public CreatureFilterQuery affectsCreaturesLike() {
                 return this.creatureFilter;
             }
 
-            public ItemFilterQuery affectsItemsLike() {
-                return this.itemFilter;
+            public EffectorKernel getKernel() {
+                if (this.kernelBuilder == null) {
+                    this.kernelBuilder = EffectorKernel.getBuilder();
+                }
+                return kernelBuilder.build();
             }
 
             public Usable build() {
@@ -697,86 +469,95 @@ public interface UsableCapability extends ItemCapability {
             @Override
             public String toString() {
                 StringBuilder builder = new StringBuilder();
-                builder.append("UsableBuilder [useOnCreatureEffects=").append(useOnCreatureEffects)
-                        .append(", useOnAreaEffects=").append(useOnAreaEffects).append(", useDisplayPages=")
-                        .append(useDisplayPages).append(", totalNumberUsableTimes=").append(totalNumberUsableTimes)
-                        .append(", equippingRequired=").append(equippingRequired).append(", selfOnly=").append(selfOnly)
-                        .append(", userRestrictions=").append(userRestrictions).append(", creatureFilter=")
-                        .append(creatureFilter).append(", itemFilter=").append(itemFilter).append(", timesUsed=")
-                        .append(timesUsed).append("]");
+                builder.append("UsableBuilder [kernelBuilder=").append(kernelBuilder).append(", internalTargetEffects=")
+                        .append(internalTargetEffects).append(", useOnCreatureEffects=").append(useOnCreatureEffects)
+                        .append(", internalTargets=").append(internalTargets).append(", totalNumberUsableTimes=")
+                        .append(totalNumberUsableTimes).append(", selfOnly=").append(selfOnly)
+                        .append(", creatureFilter=").append(creatureFilter).append(", timesUsed=").append(timesUsed)
+                        .append("]");
                 return builder.toString();
             }
 
         }
 
-        private Usable() {
-            this.useOnItemEffects = null;
+        Usable() {
+            this.kernel = EffectorKernel.getBuilder().build();
+            this.internalTargetEffects = null;
             this.totalNumberUsableTimes = -1;
-            this.useOnAreaEffects = null;
+            this.internalTargets = null;
             this.useOnCreatureEffects = null;
-            this.useDisplayPages = null;
             this.timesUsed = 0;
-            this.equippingRequired = false;
             this.selfOnly = false;
-            this.userRestrictions = null;
             this.creatureFilter = null;
-            this.itemFilter = null;
         }
 
         protected Usable(UsableBuilder builder) {
             if (builder == null) {
-                this.useOnItemEffects = null;
+                this.kernel = EffectorKernel.getBuilder().build();
+                this.internalTargetEffects = null;
                 this.totalNumberUsableTimes = -1;
-                this.useOnAreaEffects = null;
+                this.internalTargets = null;
                 this.useOnCreatureEffects = null;
-                this.useDisplayPages = null;
                 this.timesUsed = 0;
-                this.equippingRequired = false;
                 this.selfOnly = false;
-                this.userRestrictions = null;
                 this.creatureFilter = null;
-                this.itemFilter = null;
             } else {
-                this.useOnItemEffects = builder.getUseOnItemEffects();
+                this.kernel = builder.getKernel();
+                this.internalTargetEffects = builder.getInternalTargetEffects();
                 this.useOnCreatureEffects = builder.getUseOnCreatureEffects();
-                this.useOnAreaEffects = builder.getUseOnAreaEffects();
-                this.useDisplayPages = builder.getUseDisplayPages();
+                this.internalTargets = builder.getInternalTargets();
                 this.totalNumberUsableTimes = builder.getTotalNumberUsableTimes();
-                this.equippingRequired = builder.isEquippingRequired();
                 this.selfOnly = builder.isSelfOnly();
-                this.userRestrictions = builder.getUserRestrictions();
                 this.creatureFilter = builder.getCreatureFilter();
-                this.itemFilter = builder.getItemFilter();
                 this.timesUsed = builder.getTimesUsed();
             }
         }
 
         public Usable(UsableCapability usable) {
             if (usable == null) {
-                this.useOnItemEffects = null;
+                this.kernel = EffectorKernel.getBuilder().build();
+                this.internalTargetEffects = null;
                 this.totalNumberUsableTimes = -1;
-                this.useOnAreaEffects = null;
+                this.internalTargets = null;
                 this.useOnCreatureEffects = null;
-                this.useDisplayPages = null;
                 this.timesUsed = 0;
-                this.equippingRequired = false;
                 this.selfOnly = false;
-                this.userRestrictions = null;
                 this.creatureFilter = null;
-                this.itemFilter = null;
             } else {
-                this.useOnItemEffects = usable.getUseOnItemEffects();
+                Stream<CreatureEffectSource> internalStream = usable.getInternalTargetEffects();
+                if (internalStream != null) {
+                    this.internalTargetEffects = internalStream.filter(effect -> effect != null)
+                            .collect(Collectors.toCollection(LinkedHashSet::new));
+                } else {
+                    this.internalTargetEffects = null;
+                }
                 this.totalNumberUsableTimes = usable.getTotalNumberUsableTimes();
-                this.useOnAreaEffects = usable.getUseOnAreaEffects();
-                this.useOnCreatureEffects = usable.getUseOnCreatureEffects();
-                this.useDisplayPages = usable.getUseDisplayPages();
+                Stream<IExternalReference<ICreature>> internalRefStream = usable.getInternalTargetReferences();
+                if (internalRefStream != null) {
+                    this.internalTargets = internalRefStream.filter(ref -> ref != null)
+                            .map(ref -> new ICreature.CreatureReference(ref))
+                            .collect(Collectors.toCollection(LinkedHashSet::new));
+                } else {
+                    this.internalTargets = null;
+                }
+                Stream<CreatureEffectSource> effectStream = usable.getTargetEffects();
+                if (effectStream != null) {
+                    this.useOnCreatureEffects = effectStream.filter(effect -> effect != null)
+                            .collect(Collectors.toCollection(LinkedHashSet::new));
+                } else {
+                    this.useOnCreatureEffects = null;
+                }
                 this.timesUsed = 0;
-                this.equippingRequired = usable.requiresEquipping();
                 this.selfOnly = usable.isSelfOnly();
-                this.userRestrictions = usable.getUserRestrictions();
-                this.creatureFilter = usable.affectsCreaturesLike();
-                this.itemFilter = usable.affectsItemsLike();
+                this.creatureFilter = usable.getTargetingRestrictions();
+                this.kernel = new EffectorKernel(usable.getSelfRestrictions(), usable.getUserRestrictions(),
+                        usable.getSelfEffects(), usable.getUserEffects(), usable.getUseDisplayPages(),
+                        usable.isUseDisplayPaged(), usable.isEquippingRequired());
             }
+        }
+
+        public EffectorKernel getEffectorKernel() {
+            return this.kernel;
         }
 
         @Override
@@ -789,25 +570,57 @@ public interface UsableCapability extends ItemCapability {
             if (this.timesUsed != 0) {
                 sj.add("This item looks to have been used before.");
             }
-            if (this.useOnItemEffects != null || !this.useOnItemEffects.isEmpty()) {
-                sj.add("When used on an applicable Item, it has the following effects:");
-                for (final ItemEffectSource source : this.useOnItemEffects) {
-                    sj.add(source.getDescription());
-                }
+            if (this.isEquippingRequired()) {
+                sj.add("It must be equipped if it is to be used.");
+            }
+            if (this.getSelfRestrictions() != null) {
+                sj.add("This item has need of meeting requirements of its own before being used.");
+            }
+            if (this.getUserRestrictions() != null) {
+                sj.add("The user must meet certain requirements before the user can use this item.");
+            }
+            if (this.selfOnly) {
+                sj.add("The user can only target themselves with this item.");
+            }
+            if (this.getSelfEffects() != null || this.getSelfEffects().count() != 0) {
+                sj.add("When used, it has the following effects upon itself:");
+                this.getSelfEffects().forEachOrdered(source -> sj.add(source.getDescription()));
             }
             if (this.useOnCreatureEffects != null || !this.useOnCreatureEffects.isEmpty()) {
-                sj.add("When used on a Creature, it has the following effects:");
+                sj.add("When used on a target Creature, it has the following effects:");
                 for (final CreatureEffectSource source : this.useOnCreatureEffects) {
                     sj.add(source.getDescription());
                 }
             }
-            if (this.useOnAreaEffects != null || !this.useOnAreaEffects.isEmpty()) {
-                sj.add("When used on an Area or Room, it has the following effects:");
-                for (final RoomEffectSource source : this.useOnAreaEffects) {
-                    sj.add(source.getDescription());
-                }
+            if (this.internalTargets != null && !this.internalTargets.isEmpty() && this.internalTargetEffects != null
+                    && !this.internalTargetEffects.isEmpty()) {
+                sj.add("This item targets some other creatures and has some effect upon them.");
             }
             seeEventBuilder.addExtraInfo(sj.toString());
+        }
+
+        public final ItemFilterQuery getSelfRestrictions() {
+            return kernel.getSelfRestrictions();
+        }
+
+        public final CreatureFilterQuery getUserRestrictions() {
+            return kernel.getUserRestrictions();
+        }
+
+        public final Stream<ItemEffectSource> getSelfEffects() {
+            return kernel.getSelfEffects();
+        }
+
+        public final Stream<CreatureEffectSource> getUserEffects() {
+            return kernel.getUserEffects();
+        }
+
+        public final boolean isUseDisplayPaged() {
+            return kernel.isUseDisplayPaged();
+        }
+
+        public List<RichOutput> getUseDisplayPages() {
+            return kernel.getUseDisplayPages();
         }
 
         @Override
@@ -821,8 +634,8 @@ public interface UsableCapability extends ItemCapability {
         }
 
         @Override
-        public boolean requiresEquipping() {
-            return this.equippingRequired;
+        public boolean isEquippingRequired() {
+            return this.kernel.isEquippingRequired();
         }
 
         @Override
@@ -840,71 +653,58 @@ public interface UsableCapability extends ItemCapability {
         }
 
         @Override
+        public synchronized UsableCapability setUses(int count) {
+            this.timesUsed = count;
+            if (this.totalNumberUsableTimes > 0 && this.timesUsed > this.totalNumberUsableTimes) {
+                this.timesUsed = this.totalNumberUsableTimes;
+            }
+            return this;
+        };
+
+        @Override
         public synchronized boolean useOnce() {
             this.timesUsed++;
             return this.timesUsed < this.totalNumberUsableTimes;
         }
 
-        @Override
-        public CreatureFilterQuery getUserRestrictions() {
-            return this.userRestrictions;
+        public Stream<CreatureEffectSource> getTargetEffects() {
+            return this.useOnCreatureEffects != null ? this.useOnCreatureEffects.stream() : Stream.of();
         }
 
         @Override
-        public CreatureFilterQuery affectsCreaturesLike() {
+        public Stream<CreatureEffectSource> getInternalTargetEffects() {
+            return this.internalTargetEffects != null ? this.internalTargetEffects.stream() : Stream.of();
+        }
+
+        @Override
+        public Stream<IExternalReference<ICreature>> getInternalTargetReferences() {
+            return this.internalTargets != null ? this.internalTargets.stream().filter(ref -> ref != null)
+                    .map(ref -> (IExternalReference<ICreature>) ref) : Stream.of();
+        }
+
+        @Override
+        public CreatureFilterQuery getTargetingRestrictions() {
             return this.creatureFilter;
-        }
-
-        @Override
-        public ItemFilterQuery affectsItemsLike() {
-            return this.itemFilter;
-        }
-
-        @Override
-        public Set<ItemEffectSource> getUseOnItemEffects() {
-            return this.useOnItemEffects == null ? Set.of() : Collections.unmodifiableSet(this.useOnItemEffects);
-        }
-
-        @Override
-        public Set<CreatureEffectSource> getUseOnCreatureEffects() {
-            return this.useOnCreatureEffects == null ? Set.of()
-                    : Collections.unmodifiableSet(this.useOnCreatureEffects);
-        }
-
-        @Override
-        public Set<RoomEffectSource> getUseOnAreaEffects() {
-            return this.useOnAreaEffects == null ? Set.of() : Collections.unmodifiableSet(this.useOnAreaEffects);
-        }
-
-        @Override
-        public List<RichOutput> getUseDisplayPages() {
-            return this.useDisplayPages;
         }
 
         @Override
         public String toString() {
             StringJoiner sj = new StringJoiner(", ", "Usable [", "]");
+            sj.add("kernel=" + this.kernel.toString());
             sj.add("timesUsed=" + Integer.toString(timesUsed));
             sj.add("totalNumberUsableTimes=" + Integer.toString(totalNumberUsableTimes));
-            sj.add("equippingRequired=" + Boolean.toString(equippingRequired));
             sj.add("selfOnly=" + Boolean.toString(selfOnly));
             if (this.useOnCreatureEffects != null) {
                 sj.add("useOnCreatureEffects=" + useOnCreatureEffects.toString());
             }
-            if (this.useOnAreaEffects != null) {
-                sj.add("useOnAreaEffects=" + useOnAreaEffects.toString());
-            }
-            if (this.useDisplayPages != null) {
-                sj.add("useDisplayPages=" + this.useDisplayPages.toString());
-            }
-            if (this.userRestrictions != null) {
-                sj.add("userRestrictions=" + this.userRestrictions.toString());
-            }
             if (this.creatureFilter != null) {
                 sj.add("creatureFilter=" + this.creatureFilter.toString());
             }
-            if (this.itemFilter != null) {
-                sj.add("itemFilter=" + this.itemFilter.toString());
+            if (this.internalTargets != null) {
+                sj.add("internalTargets=" + this.internalTargets.toString());
+            }
+            if (this.internalTargetEffects != null) {
+                sj.add("internalTargetEffects=" + this.internalTargetEffects.toString());
             }
 
             return sj.toString();
@@ -912,8 +712,8 @@ public interface UsableCapability extends ItemCapability {
 
         @Override
         public int hashCode() {
-            return Objects.hash(useOnCreatureEffects, useOnAreaEffects, useDisplayPages, totalNumberUsableTimes,
-                    equippingRequired, selfOnly, userRestrictions, creatureFilter, itemFilter);
+            return Objects.hash(kernel, useOnCreatureEffects, internalTargetEffects, internalTargets,
+                    totalNumberUsableTimes, selfOnly, creatureFilter, timesUsed);
         }
 
         @Override
@@ -923,14 +723,12 @@ public interface UsableCapability extends ItemCapability {
             if (!(obj instanceof Usable))
                 return false;
             Usable other = (Usable) obj;
-            return Objects.equals(useOnCreatureEffects, other.useOnCreatureEffects)
-                    && Objects.equals(useOnAreaEffects, other.useOnAreaEffects)
-                    && Objects.equals(useDisplayPages, other.useDisplayPages)
-                    && totalNumberUsableTimes == other.totalNumberUsableTimes
-                    && equippingRequired == other.equippingRequired && selfOnly == other.selfOnly
-                    && Objects.equals(userRestrictions, other.userRestrictions)
-                    && Objects.equals(creatureFilter, other.creatureFilter)
-                    && Objects.equals(itemFilter, other.itemFilter);
+            return Objects.equals(kernel, other.kernel)
+                    && Objects.equals(useOnCreatureEffects, other.useOnCreatureEffects)
+                    && Objects.equals(internalTargetEffects, other.internalTargetEffects)
+                    && Objects.equals(internalTargets, other.internalTargets)
+                    && totalNumberUsableTimes == other.totalNumberUsableTimes && selfOnly == other.selfOnly
+                    && Objects.equals(creatureFilter, other.creatureFilter) && timesUsed == other.timesUsed;
         }
 
     }

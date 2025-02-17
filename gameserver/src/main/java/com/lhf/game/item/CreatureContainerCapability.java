@@ -51,7 +51,6 @@ import com.lhf.messages.events.SeeEvent.SeeCategory;
 import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.ExitMessage;
 import com.lhf.messages.in.GoMessage;
-import com.lhf.messages.in.InteractMessage;
 import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.in.ShoutMessage;
 import com.lhf.server.client.user.UserID;

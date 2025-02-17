@@ -4,14 +4,14 @@ import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.enums.HealType;
 import com.lhf.game.enums.Stats;
+import com.lhf.game.item.EffectorCapability;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.Item;
-import com.lhf.game.item.UsableCapability;
 import com.lhf.server.interfaces.NotNull;
 
 public final class PotionBuilder implements IItem.IItemBuilderAdapter {
     private final Item.ItemBuilder inner = new Item.ItemBuilder().setName("Potion").setDescriptionString("A potion.")
-            .adjustUsableCapability(usable -> usable != null ? usable : new UsableCapability.Usable.UsableBuilder());
+            .adjustUsableCapability(usable -> usable != null ? usable : new EffectorCapability.Usable.UsableBuilder());
 
     /**
      * Creates an item after the template of a healing potion. They are, in order of
@@ -26,7 +26,7 @@ public final class PotionBuilder implements IItem.IItemBuilderAdapter {
         this.inner.setName(name);
         inner.adjustUsableCapability(usable -> {
             if (usable == null) {
-                usable = UsableCapability.Usable.getBuilder();
+                usable = EffectorCapability.Usable.getBuilder();
             }
             usable.addUseOnCreatureEffect(
                     CreatureEffectSource.getCreatureEffectBuilder(name).instantPersistence()
@@ -46,7 +46,7 @@ public final class PotionBuilder implements IItem.IItemBuilderAdapter {
         if (builder != null) {
             inner.adjustUsableCapability(usable -> {
                 if (usable == null) {
-                    usable = UsableCapability.Usable.getBuilder();
+                    usable = EffectorCapability.Usable.getBuilder();
                 }
                 usable.addUseOnCreatureEffect(builder);
                 return usable;
